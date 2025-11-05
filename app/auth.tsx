@@ -28,6 +28,10 @@ export default function AuthScreen(){
         router.replace('/(tabs)');
     };
 
+    const goToRegister = () => {
+        router.push('/register');
+    };
+
     return (
         <>
             <StatusBar barStyle="dark-content" backgroundColor="#E8F5E8" />
@@ -115,7 +119,7 @@ export default function AuthScreen(){
                             {/* Footer */}
                             <View style={styles.footer}>
                                 <Text style={styles.footerText}>¿No tienes cuenta? </Text>
-                                <TouchableOpacity>
+                                <TouchableOpacity onPress={goToRegister}>
                                     <Text style={styles.signUpText}>Regístrate aquí</Text>
                                 </TouchableOpacity>
                             </View>
