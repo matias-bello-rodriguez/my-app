@@ -1,4 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import {
   Alert,
@@ -12,6 +13,7 @@ import {
 } from 'react-native';
 
 export default function ReviewInspection() {
+  const router = useRouter();
   const [inspectionCode, setInspectionCode] = useState('');
   const [vehiclePlate, setVehiclePlate] = useState('');
   const [searchResults, setSearchResults] = useState<any[]>([]);
@@ -85,6 +87,11 @@ export default function ReviewInspection() {
     Alert.alert('Info', 'Función de escaneo QR próximamente');
   };
 
+  const handleInspectionPress = (inspection: any) => {
+    console.log('Navegando a detalle de inspección:', inspection);
+    router.push('/review-inspection-detail-by-car');
+  };
+
   return (
     <ScrollView style={styles.container}>
       <View style={styles.header}>
@@ -155,6 +162,7 @@ export default function ReviewInspection() {
               key={inspection.id} 
               style={styles.resultCard}
               activeOpacity={0.8}
+              onPress={() => handleInspectionPress(inspection)}
             >
               <View style={styles.resultHeader}>
                 <View style={styles.resultMainInfo}>
