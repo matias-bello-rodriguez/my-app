@@ -14,11 +14,11 @@ export default function ReviewInspectionDetailByCar() {
 
   // Datos de ejemplo del mecánico y la inspección
   const inspectionData = {
-    vehiclePlate: 'ABC-1234',
+    vehiclePlate: 'ABCD-34',
     vehicleModel: 'Toyota Corolla 2020',
-    inspectionDate: '25/10/2024',
+    inspectionDate: '25/10/2025',
     inspectionTime: '14:30',
-    location: 'AUTObox 17 Calle Prat 814 Valparaíso',
+    location: 'AutoBox 17 Calle Prat 814 Valparaíso',
     mechanic: {
       name: 'Carlos Rodríguez',
       photo: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&auto=format&facepad=3',
@@ -81,7 +81,7 @@ export default function ReviewInspectionDetailByCar() {
               </View>
             </View>
             {inspectionData.mechanic.verified && (
-              <Ionicons name="checkmark-circle" size={24} color="#4CAF50" />
+              <Ionicons name="checkmark-circle" size={24} color="#1DA1F2" />
             )}
           </View>
 
