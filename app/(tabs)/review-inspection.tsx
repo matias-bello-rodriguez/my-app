@@ -1,28 +1,82 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
 import {
-    Alert,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View
+  Alert,
+  Image,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View
 } from 'react-native';
 
 export default function ReviewInspection() {
   const [inspectionCode, setInspectionCode] = useState('');
   const [vehiclePlate, setVehiclePlate] = useState('');
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [hasSearched, setHasSearched] = useState(false);
+
+  // Datos de ejemplo para simular resultados de búsqueda
+  const mockInspections = [
+    {
+      id: 'INS-2024-001234',
+      vehiclePlate: 'ABC-1234',
+      vehicleModel: 'Toyota Corolla 2020',
+      inspectionDate: '25/10/2024',
+      status: 'Completado',
+      statusColor: '#4CAF50',
+      location: 'AutoBox Providencia',
+      price: '$90.000',
+      vehicleImage: 'https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?w=400&h=300&fit=crop&auto=format'
+    },
+    {
+      id: 'INS-2024-001235',
+      vehiclePlate: 'DEF-5678',
+      vehicleModel: 'Honda Civic 2019',
+      inspectionDate: '20/10/2024',
+      status: 'En Proceso',
+      statusColor: '#FF9800',
+      location: 'AutoBox Las Condes',
+      price: '$90.000',
+      vehicleImage: 'https://images.unsplash.com/photo-1606664515524-ed2f786a0bd6?w=400&h=300&fit=crop&auto=format'
+    },
+    {
+      id: 'INS-2024-001236',
+      vehiclePlate: 'GHI-9012',
+      vehicleModel: 'Nissan Sentra 2021',
+      inspectionDate: '18/10/2024',
+      status: 'Pendiente',
+      statusColor: '#2196F3',
+      location: 'AutoBox Centro',
+      price: '$90.000',
+      vehicleImage: 'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=400&h=300&fit=crop&auto=format'
+    },
+  ];
 
   const handleReviewInspection = () => {
-    if (!inspectionCode.trim() || !vehiclePlate.trim()) {
-      Alert.alert('Error', 'Por favor completa todos los campos');
-      return;
-    }
+    setIsSearching(true);
+    setHasSearched(true);
     
-    console.log(`Revisando inspección - Código: ${inspectionCode}, Patente: ${vehiclePlate}`);
-    // Aquí puedes agregar la lógica para revisar la inspección
-    Alert.alert('Éxito', 'Buscando inspección...');
+    // Simular búsqueda con delay
+    setTimeout(() => {
+      // Filtrar resultados basados en código de inspección o patente
+      let filteredResults = mockInspections;
+      
+      if (inspectionCode.trim()) {
+        filteredResults = mockInspections.filter(inspection => 
+          inspection.id.toLowerCase().includes(inspectionCode.toLowerCase())
+        );
+      } else if (vehiclePlate.trim()) {
+        filteredResults = mockInspections.filter(inspection => 
+          inspection.vehiclePlate.toLowerCase().includes(vehiclePlate.toLowerCase())
+        );
+      }
+      
+      setSearchResults(filteredResults);
+      setIsSearching(false);
+    }, 1000);
   };
 
   const handleScanQR = () => {
@@ -34,7 +88,7 @@ export default function ReviewInspection() {
   return (
     <ScrollView style={styles.container}>
       <View style={styles.header}>
-        <Ionicons name="document-text" size={48} color="#42A5F5" />
+        <Ionicons name="document-text" size={48} color="#4CAF50" />
         <Text style={styles.title}>Revisar Inspección</Text>
         <Text style={styles.subtitle}>
           Verifica el estado de una inspección mecánica existente
@@ -80,45 +134,72 @@ export default function ReviewInspection() {
           activeOpacity={0.8}
         >
           <Ionicons name="search" size={24} color="#FFFFFF" />
-          <Text style={styles.searchButtonText}>Buscar Inspección</Text>
+          <Text style={styles.searchButtonText}>
+            {isSearching ? 'Buscando...' : 'Buscar Inspección'}
+          </Text>
         </TouchableOpacity>
       </View>
 
-      <View style={styles.infoCard}>
-        <Text style={styles.infoTitle}>¿Dónde encuentro el código?</Text>
-        <View style={styles.infoItems}>
-          <View style={styles.infoItem}>
-            <Ionicons name="document-outline" size={20} color="#65676B" />
-            <Text style={styles.infoText}>En el certificado de inspección</Text>
-          </View>
-          <View style={styles.infoItem}>
-            <Ionicons name="mail-outline" size={20} color="#65676B" />
-            <Text style={styles.infoText}>En el correo de confirmación</Text>
-          </View>
-          <View style={styles.infoItem}>
-            <Ionicons name="qr-code-outline" size={20} color="#65676B" />
-            <Text style={styles.infoText}>Código QR en el documento</Text>
-          </View>
-        </View>
-      </View>
+      {/* Resultados de búsqueda */}
+      {hasSearched && (
+        <View style={styles.resultsContainer}>
+          <Text style={styles.resultsTitle}>
+            {searchResults.length > 0 
+              ? `${searchResults.length} resultado(s) encontrado(s)` 
+              : 'No se encontraron resultados'
+            }
+          </Text>
+          
+          {searchResults.map((inspection) => (
+            <TouchableOpacity 
+              key={inspection.id} 
+              style={styles.resultCard}
+              activeOpacity={0.8}
+            >
+              <View style={styles.resultHeader}>
+                <View style={styles.resultMainInfo}>
+                  <Text style={styles.resultPlate}>{inspection.vehiclePlate}</Text>
+                  <Text style={styles.resultModel}>{inspection.vehicleModel}</Text>
+                </View>
+                <View style={[styles.statusBadge, { backgroundColor: inspection.statusColor }]}>
+                  <Text style={styles.statusBadgeText}>{inspection.status}</Text>
+                </View>
+              </View>
+              
+              <View style={styles.resultDetails}>
+                <View style={styles.resultDetailRow}>
+                  <Ionicons name="document-text" size={16} color="#65676B" />
+                  <Text style={styles.resultDetailText}>Código: {inspection.id}</Text>
+                </View>
+                <View style={styles.resultDetailRow}>
+                  <Ionicons name="calendar" size={16} color="#65676B" />
+                  <Text style={styles.resultDetailText}>Fecha: {inspection.inspectionDate}</Text>
+                </View>
+                <View style={styles.resultDetailRow}>
+                  <Ionicons name="location" size={16} color="#65676B" />
+                  <Text style={styles.resultDetailText}>{inspection.location}</Text>
+                </View>
+                <View style={styles.resultDetailRow}>
+                  <Ionicons name="cash" size={16} color="#65676B" />
+                  <Text style={styles.resultDetailText}>{inspection.price}</Text>
+                </View>
 
-      <View style={styles.statusCard}>
-        <Text style={styles.statusTitle}>Estados de Inspección</Text>
-        <View style={styles.statusItems}>
-          <View style={styles.statusItem}>
-            <View style={[styles.statusDot, { backgroundColor: '#4CAF50' }]} />
-            <Text style={styles.statusText}>Aprobada - Vehículo en perfecto estado</Text>
-          </View>
-          <View style={styles.statusItem}>
-            <View style={[styles.statusDot, { backgroundColor: '#FF9800' }]} />
-            <Text style={styles.statusText}>Pendiente - Correcciones menores</Text>
-          </View>
-          <View style={styles.statusItem}>
-            <View style={[styles.statusDot, { backgroundColor: '#F44336' }]} />
-            <Text style={styles.statusText}>Rechazada - Requiere reparaciones</Text>
-          </View>
+                {/* Mostrar imagen solo si la inspección está completada */}
+                {inspection.status === 'Completado' && inspection.vehicleImage && (
+                  <View style={styles.vehicleImageContainer}>
+                    <Text style={styles.vehicleImageLabel}>Foto del vehículo:</Text>
+                    <Image 
+                      source={{ uri: inspection.vehicleImage }}
+                      style={styles.vehicleImage}
+                      resizeMode="cover"
+                    />
+                  </View>
+                )}
+              </View>
+            </TouchableOpacity>
+          ))}
         </View>
-      </View>
+      )}
     </ScrollView>
   );
 }
@@ -196,7 +277,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   searchButton: {
-    backgroundColor: '#42A5F5',
+    backgroundColor: '#4CAF50',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -280,5 +361,95 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#65676B',
     flex: 1,
+  },
+  // Estilos para resultados de búsqueda
+  resultsContainer: {
+    margin: 16,
+    marginTop: 0,
+  },
+  resultsTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1C1E21',
+    marginBottom: 12,
+    paddingHorizontal: 4,
+  },
+  resultCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    borderLeftWidth: 4,
+    borderLeftColor: '#4CAF50',
+  },
+  resultHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 12,
+  },
+  resultMainInfo: {
+    flex: 1,
+  },
+  resultPlate: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#1C1E21',
+    marginBottom: 4,
+  },
+  resultModel: {
+    fontSize: 14,
+    color: '#65676B',
+  },
+  statusBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+    marginLeft: 12,
+  },
+  statusBadgeText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#FFFFFF',
+  },
+  resultDetails: {
+    gap: 8,
+  },
+  resultDetailRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  resultDetailText: {
+    fontSize: 14,
+    color: '#65676B',
+    flex: 1,
+  },
+  // Estilos para imagen del vehículo
+  vehicleImageContainer: {
+    marginTop: 12,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: '#E4E6EA',
+  },
+  vehicleImageLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#1C1E21',
+    marginBottom: 8,
+  },
+  vehicleImage: {
+    width: '100%',
+    height: 200,
+    borderRadius: 8,
+    backgroundColor: '#F0F2F5',
   },
 });
