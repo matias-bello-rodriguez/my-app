@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect, useRouter } from 'expo-router';
-import { useCallback, useState } from 'react';
+import { useCallback, useState, useRef, useEffect } from 'react';
 import {
     Alert,
     Dimensions,
@@ -110,11 +110,20 @@ const RangeSlider = ({
 export default function Search() {
   const { hideHeader, showHeader } = useHeader();
   const router = useRouter();
+  const searchInputRef = useRef<TextInput>(null);
   
   // Estados principales
   const [searchQuery, setSearchQuery] = useState('');
   const [showFilters, setShowFilters] = useState(false);
   const [searchResults, setSearchResults] = useState<VehicleResult[]>([]);
+  const [recentSearches, setRecentSearches] = useState<string[]>([
+    'Toyota Corolla',
+    'Honda Civic 2020',
+    'BMW X3',
+    'Hyundai Tucson',
+    'Nissan Sentra'
+  ]);
+  const [showRecentSearches, setShowRecentSearches] = useState(true);
 
   // Estados para dropdowns
   const [showBrandDropdown, setShowBrandDropdown] = useState(false);
@@ -127,6 +136,11 @@ export default function Search() {
     useCallback(() => {
       // Cuando la pantalla se enfoca (se abre)
       hideHeader();
+      
+      // Enfocar automáticamente el campo de búsqueda con un pequeño delay
+      setTimeout(() => {
+        searchInputRef.current?.focus();
+      }, 100);
       
       // Cuando la pantalla se desenfoca (se cierra o navega a otra)
       return () => {
@@ -258,6 +272,15 @@ export default function Search() {
 
   // Manejadores de eventos
   const handleSearch = useCallback(async () => {
+    if (searchQuery.trim()) {
+      // Agregar a búsquedas recientes
+      setRecentSearches(prev => {
+        const newSearches = [searchQuery, ...prev.filter(s => s !== searchQuery)];
+        return newSearches.slice(0, 5); // Mantener solo las últimas 5
+      });
+      setShowRecentSearches(false);
+    }
+    
     try {
       // Simular búsqueda
       await new Promise(resolve => setTimeout(resolve, 1500));
@@ -289,9 +312,22 @@ export default function Search() {
       ];
       
       setSearchResults(mockResults);
-    } catch (error) {
+    } catch {
       Alert.alert('Error', 'Hubo un problema al realizar la búsqueda');
     }
+  }, [searchQuery]);
+
+  const handleRecentSearchPress = useCallback((searchTerm: string) => {
+    setSearchQuery(searchTerm);
+    setShowRecentSearches(false);
+    // Ejecutar búsqueda automáticamente
+    setTimeout(() => {
+      handleSearch();
+    }, 100);
+  }, [handleSearch]);
+
+  const clearRecentSearches = useCallback(() => {
+    setRecentSearches([]);
   }, []);
 
   const clearFilters = useCallback(() => {
@@ -311,6 +347,8 @@ export default function Search() {
       bodyType: ''
     });
     setSearchQuery('');
+    setShowRecentSearches(true);
+    setSearchResults([]);
   }, []);
 
   const updateFilter = useCallback((key: keyof SearchFilters, value: any) => {
@@ -349,17 +387,25 @@ export default function Search() {
           <View style={styles.searchBar}>
             <Ionicons name="search" size={20} color="#65676B" style={styles.searchIcon} />
             <TextInput
+              ref={searchInputRef}
               style={styles.searchInput}
               placeholder="Buscar marca, modelo o características..."
               placeholderTextColor="#65676B"
               value={searchQuery}
-              onChangeText={setSearchQuery}
+              onChangeText={(text) => {
+                setSearchQuery(text);
+                setShowRecentSearches(text.length === 0);
+              }}
+              onFocus={() => setShowRecentSearches(searchQuery.length === 0)}
               returnKeyType="search"
               onSubmitEditing={handleSearch}
             />
             {searchQuery.length > 0 && (
               <TouchableOpacity 
-                onPress={() => setSearchQuery('')}
+                onPress={() => {
+                  setSearchQuery('');
+                  setShowRecentSearches(true);
+                }}
                 style={styles.clearButton}
               >
                 <Ionicons name="close-circle" size={20} color="#65676B" />
@@ -381,6 +427,31 @@ export default function Search() {
       </View>
 
       <ScrollView style={styles.scrollContainer}>
+        {/* Búsquedas recientes */}
+        {showRecentSearches && recentSearches.length > 0 && (
+          <View style={styles.recentSearchesContainer}>
+            <View style={styles.recentSearchesHeader}>
+              <Text style={styles.recentSearchesTitle}>Reciente</Text>
+              <TouchableOpacity onPress={clearRecentSearches}>
+                <Text style={styles.clearRecentText}>Limpiar</Text>
+              </TouchableOpacity>
+            </View>
+            
+            {recentSearches.map((searchTerm, index) => (
+              <TouchableOpacity
+                key={index}
+                style={styles.recentSearchItem}
+                onPress={() => handleRecentSearchPress(searchTerm)}
+                activeOpacity={0.7}
+              >
+                <Ionicons name="time" size={16} color="#65676B" />
+                <Text style={styles.recentSearchText}>{searchTerm}</Text>
+                <Ionicons name="arrow-up-outline" size={16} color="#65676B" style={styles.recentSearchIcon} />
+              </TouchableOpacity>
+            ))}
+          </View>
+        )}
+
         {/* Panel de filtros expandible */}
         {showFilters && (
           <View style={styles.filtersPanel}>
@@ -893,5 +964,50 @@ const styles = StyleSheet.create({
   dropdownItemText: {
     fontSize: 16,
     color: '#1C1E21',
+  },
+  // Estilos para búsquedas recientes
+  recentSearchesContainer: {
+    backgroundColor: '#FFFFFF',
+    margin: 16,
+    borderRadius: 12,
+    padding: 16,
+    elevation: 1,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+  },
+  recentSearchesHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  recentSearchesTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1C1E21',
+  },
+  clearRecentText: {
+    fontSize: 14,
+    color: '#4CAF50',
+    fontWeight: '500',
+  },
+  recentSearchItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 8,
+    borderRadius: 8,
+    marginBottom: 4,
+  },
+  recentSearchText: {
+    flex: 1,
+    fontSize: 15,
+    color: '#1C1E21',
+    marginLeft: 12,
+  },
+  recentSearchIcon: {
+    transform: [{ rotate: '45deg' }],
   },
 });
