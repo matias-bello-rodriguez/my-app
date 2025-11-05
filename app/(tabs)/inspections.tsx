@@ -2,7 +2,6 @@ import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useState } from 'react';
 import {
-  Alert,
   ScrollView,
   StyleSheet,
   Text,
@@ -31,17 +30,6 @@ export default function Inspections() {
   ];
 
   const handleRequestInspection = () => {
-    if (!vehiclePlate.trim() || !inspectionDate.trim() || !inspectionTime.trim() || 
-        !selectedAutoBox || !userRut.trim() || !userPhone.trim() || !userEmail.trim()) {
-      Alert.alert('Error', 'Por favor completa todos los campos');
-      return;
-    }
-    
-    if (!acceptTerms) {
-      Alert.alert('Error', 'Debes aceptar los términos y condiciones');
-      return;
-    }
-    
     // Guardar los datos de la inspección para pasarlos a la pantalla de pago
     const inspectionData = {
       vehiclePlate,
@@ -207,10 +195,9 @@ export default function Inspections() {
 
       <View style={styles.buttonContainer}>
         <TouchableOpacity 
-          style={[styles.requestButton, !acceptTerms && styles.disabledButton]} 
+          style={styles.requestButton} 
           onPress={handleRequestInspection}
           activeOpacity={0.8}
-          disabled={!acceptTerms}
         >
           <Ionicons name="calendar" size={24} color="#FFFFFF" />
           <Text style={styles.requestButtonText}>Solicitar</Text>

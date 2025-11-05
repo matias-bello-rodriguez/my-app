@@ -1,4 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import {
     Alert,
@@ -10,6 +11,7 @@ import {
 } from 'react-native';
 
 export default function InspectionPayment() {
+  const router = useRouter();
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('');
   const [currentStep, setCurrentStep] = useState(1); // 1: Detalles, 2: Pago
 
@@ -153,10 +155,20 @@ export default function InspectionPayment() {
             </View>
           </View>
 
-          {/* Botón Siguiente */}
-          <View style={styles.buttonContainer}>
+          {/* Botones de navegación */}
+          <View style={styles.buttonRow}>
             <TouchableOpacity 
-              style={styles.nextButtonFull} 
+              style={styles.backButton} 
+              onPress={() => {
+                router.back();
+              }}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.backButtonText}>ATRÁS</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity 
+              style={styles.nextButton} 
               onPress={handleNextStep}
               activeOpacity={0.8}
             >
