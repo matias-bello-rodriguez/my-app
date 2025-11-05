@@ -156,12 +156,11 @@ export default function InspectionPayment() {
           {/* Botón Siguiente */}
           <View style={styles.buttonContainer}>
             <TouchableOpacity 
-              style={styles.nextButton} 
+              style={styles.nextButtonFull} 
               onPress={handleNextStep}
               activeOpacity={0.8}
             >
-              <Text style={styles.nextButtonText}>Siguiente</Text>
-              <Ionicons name="arrow-forward" size={24} color="#FFFFFF" />
+              <Text style={styles.nextButtonText}>SIGUIENTE</Text>
             </TouchableOpacity>
           </View>
         </>
@@ -219,14 +218,13 @@ export default function InspectionPayment() {
           </View>
 
           {/* Botones de navegación */}
-          <View style={styles.navigationContainer}>
+          <View style={styles.buttonRow}>
             <TouchableOpacity 
               style={styles.backButton} 
               onPress={handlePreviousStep}
               activeOpacity={0.8}
             >
-              <Ionicons name="arrow-back" size={24} color="#66BB6A" />
-              <Text style={styles.backButtonText}>Anterior</Text>
+              <Text style={styles.backButtonText}>ATRÁS</Text>
             </TouchableOpacity>
 
             <TouchableOpacity 
@@ -235,9 +233,8 @@ export default function InspectionPayment() {
               activeOpacity={0.8}
               disabled={!selectedPaymentMethod}
             >
-              <Ionicons name="card" size={24} color="#FFFFFF" />
               <Text style={styles.payButtonText}>
-                Pagar {formatCurrency(inspectionDetails.price)}
+                PAGAR
               </Text>
             </TouchableOpacity>
           </View>
@@ -368,34 +365,96 @@ const styles = StyleSheet.create({
   buttonContainer: {
     padding: 16,
   },
-  payButton: {
-    flex: 2,
-    backgroundColor: '#66BB6A',
+  buttonRow: {
     flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 18,
-    paddingHorizontal: 24,
+    justifyContent: 'space-between',
+    marginTop: 25,
+    gap: 15,
+    paddingHorizontal: 16,
+    paddingVertical: 20,
+  },
+  payButton: {
+    flex: 1,
+    backgroundColor: '#4CAF50',
     borderRadius: 12,
-    gap: 12,
-    elevation: 4,
-    shadowColor: '#66BB6A',
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
+    paddingVertical: 18,
+    paddingHorizontal: 25,
+    alignItems: 'center',
+    shadowColor: '#4CAF50',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.4,
+    shadowRadius: 10,
+    elevation: 8,
+    borderWidth: 2,
+    borderColor: '#45A049',
+  },
+  nextButtonFull: {
+    backgroundColor: '#4CAF50',
+    borderRadius: 12,
+    paddingVertical: 18,
+    paddingHorizontal: 25,
+    alignItems: 'center',
+    width: '100%',
+    shadowColor: '#4CAF50',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.4,
+    shadowRadius: 10,
+    elevation: 8,
+    borderWidth: 2,
+    borderColor: '#45A049',
   },
   payButtonText: {
     color: '#FFFFFF',
-    fontSize: 18,
-    fontWeight: '700',
-    letterSpacing: 0.5,
+    fontSize: 16,
+    fontWeight: 'bold',
+    letterSpacing: 1,
+    textAlign: 'center'
   },
   disabledButton: {
     backgroundColor: '#CCC',
     opacity: 0.6,
+  },
+  nextButton: {
+    backgroundColor: '#4CAF50',
+    borderRadius: 12,
+    paddingVertical: 18,
+    paddingHorizontal: 25,
+    alignItems: 'center',
+    flex: 1,
+    shadowColor: '#4CAF50',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.4,
+    shadowRadius: 10,
+    elevation: 8,
+    borderWidth: 2,
+    borderColor: '#45A049',
+  },
+  nextButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: 'bold',
+    letterSpacing: 1,
+  },
+  backButton: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    paddingVertical: 18,
+    paddingHorizontal: 25,
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#4CAF50',
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+    elevation: 4,
+  },
+  backButtonText: {
+    color: '#4CAF50',
+    fontSize: 16,
+    fontWeight: 'bold',
+    letterSpacing: 1,
   },
   // Estilos para indicador de pasos
   stepIndicator: {
@@ -429,7 +488,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   activeStep: {
-    backgroundColor: '#66BB6A',
+    backgroundColor: '#4CAF50',
   },
   stepNumber: {
     fontSize: 16,
@@ -445,62 +504,12 @@ const styles = StyleSheet.create({
     color: '#65676B',
   },
   activeStepLabel: {
-    color: '#66BB6A',
+    color: '#4CAF50',
   },
   stepLine: {
     width: 60,
     height: 2,
     backgroundColor: '#E4E6EA',
     marginHorizontal: 16,
-  },
-  // Estilos para botones de navegación
-  nextButton: {
-    backgroundColor: '#66BB6A',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 18,
-    paddingHorizontal: 24,
-    borderRadius: 12,
-    gap: 12,
-    elevation: 4,
-    shadowColor: '#66BB6A',
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-  },
-  nextButtonText: {
-    color: '#FFFFFF',
-    fontSize: 18,
-    fontWeight: '700',
-    letterSpacing: 0.5,
-  },
-  navigationContainer: {
-    flexDirection: 'row',
-    paddingHorizontal: 16,
-    paddingVertical: 20,
-    gap: 16,
-  },
-  backButton: {
-    flex: 1,
-    backgroundColor: '#FFFFFF',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 18,
-    paddingHorizontal: 24,
-    borderRadius: 12,
-    borderWidth: 2,
-    borderColor: '#66BB6A',
-    gap: 12,
-  },
-  backButtonText: {
-    color: '#66BB6A',
-    fontSize: 18,
-    fontWeight: '700',
-    letterSpacing: 0.5,
   },
 });
