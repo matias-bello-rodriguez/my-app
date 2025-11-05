@@ -1,5 +1,4 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import {
     Image,
@@ -11,7 +10,6 @@ import {
 } from 'react-native';
 
 export default function ReviewInspectionDetailByCar() {
-  const router = useRouter();
   const [mechanicRating, setMechanicRating] = useState(0);
 
   // Datos de ejemplo del mecánico y la inspección
@@ -144,26 +142,7 @@ export default function ReviewInspectionDetailByCar() {
           </TouchableOpacity>
         </View>
 
-        {/* Espacio para la barra inferior */}
-        <View style={styles.bottomSpacer} />
       </ScrollView>
-
-      {/* Barra Inferior Fija */}
-      <View style={styles.bottomBar}>
-        <TouchableOpacity 
-          style={[styles.bottomButton, styles.homeButton]}
-          onPress={() => router.push('/')}
-        >
-          <Ionicons name="home" size={24} color="#FFFFFF" />
-        </TouchableOpacity>
-        
-        <TouchableOpacity 
-          style={[styles.bottomButton, styles.backButton]}
-          onPress={() => router.back()}
-        >
-          <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
-        </TouchableOpacity>
-      </View>
     </View>
   );
 }
@@ -175,7 +154,6 @@ const styles = StyleSheet.create({
   },
   scrollContainer: {
     flex: 1,
-    paddingBottom: 80, // Espacio para la barra inferior
   },
   // Estilos de la tarjeta del mecánico
   mechanicCard: {
@@ -357,51 +335,5 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     letterSpacing: 0.5,
-  },
-  // Estilos de la barra inferior
-  bottomSpacer: {
-    height: 100, // Espacio para la barra inferior fija
-  },
-  bottomBar: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingHorizontal: 32,
-    paddingVertical: 16,
-    backgroundColor: '#FFFFFF',
-    borderTopWidth: 1,
-    borderTopColor: '#E4E6EA',
-    elevation: 8,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: -2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-  },
-  bottomButton: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    alignItems: 'center',
-    justifyContent: 'center',
-    elevation: 4,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-  },
-  homeButton: {
-    backgroundColor: '#4CAF50',
-  },
-  backButton: {
-    backgroundColor: '#65676B',
   },
 });
