@@ -36,14 +36,17 @@ export default function RootLayout() {
         tabBarStyle: {
           backgroundColor: '#4CAF50',
           borderTopWidth: 0,
-          height: 80,
-          paddingBottom: 20,
-          paddingTop: 8,
+          height: 95,
+          paddingBottom: 25,
+          paddingTop: 10,
         },
         tabBarLabelStyle: {
           fontSize: 10,
           fontWeight: '600',
           marginTop: 4,
+          textAlign: 'center',
+          lineHeight: 14,
+          minHeight: 30,
         },
         tabBarIconStyle: {
           marginBottom: 0,
@@ -62,7 +65,16 @@ export default function RootLayout() {
         <Tabs.Screen 
           name="inspections" 
           options={{
-            title: 'Inspecciones',
+            title: 'Solicitar\nInspección',
+            tabBarIcon: ({ color, focused }) => 
+              (<Ionicons name={focused ? "add-circle" : "add-circle-outline"} size={24} color={color}/>),
+          }}
+        />
+
+        <Tabs.Screen 
+          name="review-inspection" 
+          options={{
+            title: 'Revisar\nInspección',
             tabBarIcon: ({ color, focused }) => 
               (<Ionicons name={focused ? "checkmark-circle" : "checkmark-circle-outline"} size={24} color={color}/>),
           }}
@@ -73,7 +85,7 @@ export default function RootLayout() {
           options={{
             title: 'Vender',
             tabBarIcon: ({ color, focused }) => 
-              (<Ionicons name={focused ? "add-circle" : "add-circle-outline"} size={24} color={color}/>),
+              (<Ionicons name={focused ? "car-sport" : "car-sport-outline"} size={24} color={color}/>),
           }}
         />
         

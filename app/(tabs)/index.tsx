@@ -105,8 +105,8 @@ export default function Index() {
     ];
 
     const inspectedCars = [
-        { id: 1, model: 'Ford Focus 2018', price: '$9.800.000', image: '🚐', inspection: '✅ Aprobada' },
-        { id: 2, model: 'Hyundai Elantra 2019', price: '$11.500.000', image: '🚙', inspection: '✅ Aprobada' }
+        { id: 1, model: 'Ford Focus 2018', price: '$9.800.000', image: '🚐', inspection: 'Aprobada' },
+        { id: 2, model: 'Hyundai Elantra 2019', price: '$11.500.000', image: '🚙', inspection: 'Aprobada' }
     ];
 
     const latestCars = [
@@ -248,27 +248,29 @@ export default function Index() {
                     </View>
                     <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.feedCarousel}>
                         {myCars.map((car) => (
-                            <TouchableOpacity key={car.id} style={styles.feedCarCard}>
-                                <Text style={styles.feedCarEmoji}>{car.image}</Text>
-                                <Text style={styles.feedCarModel}>{car.model}</Text>
-                                <Text style={styles.feedCarPrice}>{car.price}</Text>
-                                <Text style={styles.feedCarStatus}>{car.status}</Text>
+                            <TouchableOpacity key={car.id} style={styles.reelsVideoCard}>
+                                <View style={styles.videoBackground}>
+                                    <Text style={styles.videoEmoji}>{car.image}</Text>
+                                    <View style={styles.videoOverlay}>
+                                        <View style={styles.videoInfo}>
+                                            <Text style={styles.videoModel}>{car.model}</Text>
+                                            <Text style={styles.videoPrice}>{car.price}</Text>
+                                            <View style={styles.videoStatus}>
+                                                <Text style={styles.videoStatusText}>{car.status}</Text>
+                                            </View>
+                                        </View>
+                                    </View>
+                                </View>
                             </TouchableOpacity>
                         ))}
-                        <TouchableOpacity style={styles.addCarFeedCard}>
-                            <Ionicons name="add" size={30} color="#4CAF50" />
-                            <Text style={styles.addCarFeedText}>Agregar</Text>
+                        <TouchableOpacity style={styles.addCarReelsCard}>
+                            <View style={styles.addVideoBackground}>
+                                <Ionicons name="add" size={40} color="#4CAF50" />
+                                <Text style={styles.addVideoText}>Vender Auto</Text>
+                            </View>
                         </TouchableOpacity>
                     </ScrollView>
                     <View style={styles.postActions}>
-                        <TouchableOpacity style={styles.postAction}>
-                            <Ionicons name="heart-outline" size={20} color="#65676B" />
-                            <Text style={styles.postActionText}>Me gusta</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity style={styles.postAction}>
-                            <Ionicons name="chatbubble-outline" size={20} color="#65676B" />
-                            <Text style={styles.postActionText}>Comentar</Text>
-                        </TouchableOpacity>
                         <TouchableOpacity style={styles.postAction}>
                             <Ionicons name="share-outline" size={20} color="#65676B" />
                             <Text style={styles.postActionText}>Compartir</Text>
@@ -291,23 +293,23 @@ export default function Index() {
                     </View>
                     <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.feedCarousel}>
                         {favorites.map((car) => (
-                            <TouchableOpacity key={car.id} style={styles.feedCarCard}>
-                                <Text style={styles.feedCarEmoji}>{car.image}</Text>
-                                <Text style={styles.feedCarModel}>{car.model}</Text>
-                                <Text style={styles.feedCarPrice}>{car.price}</Text>
-                                <Text style={styles.feedCarLocation}>📍 {car.location}</Text>
+                            <TouchableOpacity key={car.id} style={styles.reelsVideoCard}>
+                                <View style={styles.videoBackground}>
+                                    <Text style={styles.videoEmoji}>{car.image}</Text>
+                                    <View style={styles.videoOverlay}>
+                                        <View style={styles.videoInfo}>
+                                            <Text style={styles.videoModel}>{car.model}</Text>
+                                            <Text style={styles.videoPrice}>{car.price}</Text>
+                                            <View style={styles.videoStatus}>
+                                                <Text style={[styles.videoStatusText, { backgroundColor: 'rgba(244, 67, 54, 0.8)' }]}>📍 {car.location}</Text>
+                                            </View>
+                                        </View>
+                                    </View>
+                                </View>
                             </TouchableOpacity>
                         ))}
                     </ScrollView>
                     <View style={styles.postActions}>
-                        <TouchableOpacity style={styles.postAction}>
-                            <Ionicons name="heart" size={20} color="#F44336" />
-                            <Text style={[styles.postActionText, { color: '#F44336' }]}>Me gusta</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity style={styles.postAction}>
-                            <Ionicons name="chatbubble-outline" size={20} color="#65676B" />
-                            <Text style={styles.postActionText}>Comentar</Text>
-                        </TouchableOpacity>
                         <TouchableOpacity style={styles.postAction}>
                             <Ionicons name="share-outline" size={20} color="#65676B" />
                             <Text style={styles.postActionText}>Compartir</Text>
@@ -330,23 +332,23 @@ export default function Index() {
                     </View>
                     <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.feedCarousel}>
                         {inspectedCars.map((car) => (
-                            <TouchableOpacity key={car.id} style={styles.feedCarCard}>
-                                <Text style={styles.feedCarEmoji}>{car.image}</Text>
-                                <Text style={styles.feedCarModel}>{car.model}</Text>
-                                <Text style={styles.feedCarPrice}>{car.price}</Text>
-                                <Text style={styles.feedCarInspection}>{car.inspection}</Text>
+                            <TouchableOpacity key={car.id} style={styles.reelsVideoCard}>
+                                <View style={styles.videoBackground}>
+                                    <Text style={styles.videoEmoji}>{car.image}</Text>
+                                    <View style={styles.videoOverlay}>
+                                        <View style={styles.videoInfo}>
+                                            <Text style={styles.videoModel}>{car.model}</Text>
+                                            <Text style={styles.videoPrice}>{car.price}</Text>
+                                            <View style={styles.videoStatus}>
+                                                <Text style={[styles.videoStatusText, { backgroundColor: 'rgba(76, 175, 80, 0.8)' }]}>{car.inspection}</Text>
+                                            </View>
+                                        </View>
+                                    </View>
+                                </View>
                             </TouchableOpacity>
                         ))}
                     </ScrollView>
                     <View style={styles.postActions}>
-                        <TouchableOpacity style={styles.postAction}>
-                            <Ionicons name="heart-outline" size={20} color="#65676B" />
-                            <Text style={styles.postActionText}>Me gusta</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity style={styles.postAction}>
-                            <Ionicons name="chatbubble-outline" size={20} color="#65676B" />
-                            <Text style={styles.postActionText}>Comentar</Text>
-                        </TouchableOpacity>
                         <TouchableOpacity style={styles.postAction}>
                             <Ionicons name="share-outline" size={20} color="#65676B" />
                             <Text style={styles.postActionText}>Compartir</Text>
@@ -369,23 +371,23 @@ export default function Index() {
                     </View>
                     <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.feedCarousel}>
                         {latestCars.map((car) => (
-                            <TouchableOpacity key={car.id} style={styles.feedCarCard}>
-                                <Text style={styles.feedCarEmoji}>{car.image}</Text>
-                                <Text style={styles.feedCarModel}>{car.model}</Text>
-                                <Text style={styles.feedCarPrice}>{car.price}</Text>
-                                <Text style={styles.feedCarTime}>{car.time}</Text>
+                            <TouchableOpacity key={car.id} style={styles.reelsVideoCard}>
+                                <View style={styles.videoBackground}>
+                                    <Text style={styles.videoEmoji}>{car.image}</Text>
+                                    <View style={styles.videoOverlay}>
+                                        <View style={styles.videoInfo}>
+                                            <Text style={styles.videoModel}>{car.model}</Text>
+                                            <Text style={styles.videoPrice}>{car.price}</Text>
+                                            <View style={styles.videoStatus}>
+                                                <Text style={[styles.videoStatusText, { backgroundColor: 'rgba(255, 152, 0, 0.8)' }]}>{car.time}</Text>
+                                            </View>
+                                        </View>
+                                    </View>
+                                </View>
                             </TouchableOpacity>
                         ))}
                     </ScrollView>
                     <View style={styles.postActions}>
-                        <TouchableOpacity style={styles.postAction}>
-                            <Ionicons name="heart-outline" size={20} color="#65676B" />
-                            <Text style={styles.postActionText}>Me gusta</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity style={styles.postAction}>
-                            <Ionicons name="chatbubble-outline" size={20} color="#65676B" />
-                            <Text style={styles.postActionText}>Comentar</Text>
-                        </TouchableOpacity>
                         <TouchableOpacity style={styles.postAction}>
                             <Ionicons name="share-outline" size={20} color="#65676B" />
                             <Text style={styles.postActionText}>Compartir</Text>
@@ -655,5 +657,115 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         marginTop: 1,
         fontWeight: '400',
+    },
+    // Estilos para Reels de video
+    reelsVideoCard: {
+        width: 120,
+        height: 200,
+        marginRight: 12,
+        borderRadius: 16,
+        overflow: 'hidden',
+        backgroundColor: '#000000',
+    },
+    videoBackground: {
+        flex: 1,
+        position: 'relative',
+        backgroundColor: '#1a1a1a',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    videoEmoji: {
+        fontSize: 60,
+        position: 'absolute',
+        top: '30%',
+        opacity: 0.7,
+    },
+    videoOverlay: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        justifyContent: 'space-between',
+        padding: 12,
+    },
+    playButton: {
+        position: 'absolute',
+        top: '50%',
+        left: '50%',
+        transform: [{ translateX: -20 }, { translateY: -20 }],
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+        backgroundColor: 'rgba(255, 255, 255, 0.9)',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    videoInfo: {
+        marginTop: 'auto',
+        marginBottom: 8,
+    },
+    videoModel: {
+        fontSize: 12,
+        fontWeight: '600',
+        color: '#FFFFFF',
+        marginBottom: 2,
+    },
+    videoPrice: {
+        fontSize: 14,
+        fontWeight: 'bold',
+        color: '#4CAF50',
+        marginBottom: 4,
+    },
+    videoStatus: {
+        alignSelf: 'flex-start',
+    },
+    videoStatusText: {
+        fontSize: 10,
+        color: '#FFFFFF',
+        backgroundColor: 'rgba(33, 150, 243, 0.8)',
+        paddingHorizontal: 6,
+        paddingVertical: 2,
+        borderRadius: 4,
+    },
+    videoActions: {
+        position: 'absolute',
+        right: 8,
+        top: '50%',
+        transform: [{ translateY: -40 }],
+        alignItems: 'center',
+    },
+    videoActionButton: {
+        width: 32,
+        height: 32,
+        borderRadius: 16,
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginBottom: 8,
+    },
+    addCarReelsCard: {
+        width: 120,
+        height: 200,
+        marginRight: 12,
+        borderRadius: 16,
+        overflow: 'hidden',
+        backgroundColor: '#F0F2F5',
+        borderWidth: 2,
+        borderColor: '#4CAF50',
+        borderStyle: 'dashed',
+    },
+    addVideoBackground: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: '#FAFAFA',
+    },
+    addVideoText: {
+        fontSize: 12,
+        color: '#4CAF50',
+        fontWeight: '600',
+        marginTop: 8,
+        textAlign: 'center',
     },
 });
