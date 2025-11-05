@@ -32,6 +32,10 @@ export default function AuthScreen(){
         router.push('/register');
     };
 
+    const goToForgotPassword = () => {
+        router.push('/forgot-password');
+    };
+
     return (
         <>
             <StatusBar barStyle="dark-content" backgroundColor="#E8F5E8" />
@@ -107,7 +111,7 @@ export default function AuthScreen(){
                                     </View>
                                 </View>
 
-                                <TouchableOpacity style={styles.forgotPassword}>
+                                <TouchableOpacity style={styles.forgotPassword} onPress={goToForgotPassword}>
                                     <Text style={styles.forgotPasswordText}>¿Olvidaste tu contraseña?</Text>
                                 </TouchableOpacity>
 

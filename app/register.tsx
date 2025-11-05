@@ -34,7 +34,8 @@ export default function RegisterScreen(){
     const handleRegister = () => {
         // Aquí iría la lógica de registro
         console.log('Register attempt:', { name, lastName, rut, birthDate, region, comuna, email, password, confirmPassword });
-        router.replace('/(tabs)');
+        // Navegar a loading después de crear la cuenta con contexto
+        router.replace('/loading?context=register');
     };
 
     const goToLogin = () => {
@@ -317,7 +318,7 @@ export default function RegisterScreen(){
                                                 <Text style={styles.backButtonText}>ATRÁS</Text>
                                             </TouchableOpacity>
                                             <TouchableOpacity style={styles.registerButton} onPress={handleRegister}>
-                                                <Text style={styles.registerButtonText}>CREAR CUENTA</Text>
+                                                <Text style={styles.registerButtonText}>REGISTRARME</Text>
                                             </TouchableOpacity>
                                         </View>
                                     </View>
