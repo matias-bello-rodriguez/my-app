@@ -1,5 +1,4 @@
 import { Ionicons } from '@expo/vector-icons';
-import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
 import { Tabs } from "expo-router";
 import {
   StatusBar,
@@ -12,7 +11,11 @@ import {
 export default function RootLayout() {
   return(
     <>
-      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+      <StatusBar 
+        barStyle="light-content" 
+        backgroundColor="#4CAF50" 
+        translucent={false}
+      />
       
       {/* Header estilo Facebook */}
       <View style={styles.header}>
@@ -33,24 +36,35 @@ export default function RootLayout() {
         tabBarStyle: {
           backgroundColor: '#4CAF50',
           borderTopWidth: 0,
+          height: 80,
+          paddingBottom: 20,
+          paddingTop: 8,
+        },
+        tabBarLabelStyle: {
+          fontSize: 12,
+          fontWeight: '600',
+          marginTop: 4,
+        },
+        tabBarIconStyle: {
+          marginBottom: 0,
         },
         headerShown: false, // Ocultar el header de las tabs
       }}> 
         <Tabs.Screen 
           name="index" 
           options={{
-            title: 'Home', 
-            tabBarIcon: ({ color }) => 
-              (<FontAwesome5 name="home" size={24} color={color}/>), 
+            title: 'Inicio', 
+            tabBarIcon: ({ color, focused }) => 
+              (<Ionicons name={focused ? "home" : "home-outline"} size={28} color={color}/>), 
           }}
         />
         
         <Tabs.Screen 
           name="auth" 
           options={{
-            title: 'auth',
-            tabBarIcon: ({ color }) => 
-              (<FontAwesome5 name="sign-in-alt" size={24} color={color}/>),
+            title: 'Perfil',
+            tabBarIcon: ({ color, focused }) => 
+              (<Ionicons name={focused ? "person" : "person-outline"} size={28} color={color}/>),
           }}
         />
       </Tabs>
