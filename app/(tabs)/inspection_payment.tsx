@@ -209,6 +209,13 @@ export default function InspectionPayment() {
                 )}
               </TouchableOpacity>
             ))}
+
+            <View style={styles.separator} />
+
+            <View style={styles.totalRow}>
+              <Text style={styles.totalLabel}>Total a Pagar</Text>
+              <Text style={styles.totalAmount}>{formatCurrency(inspectionDetails.price)}</Text>
+            </View>
           </View>
 
           {/* Botones de navegación */}
