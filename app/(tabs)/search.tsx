@@ -1,5 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Picker } from '@react-native-picker/picker';
+import { useRouter } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import {
     ActivityIndicator,
@@ -110,6 +111,7 @@ const RangeSlider = ({
 
 export default function Search() {
   const { hideHeader, showHeader } = useHeader();
+  const router = useRouter();
   
   // Estados principales
   const [searchQuery, setSearchQuery] = useState('');
@@ -125,6 +127,11 @@ export default function Search() {
       showHeader();
     };
   }, [hideHeader, showHeader]);
+
+  // Función para volver atrás
+  const handleGoBack = () => {
+    router.back();
+  };
   
   // Estados de filtros
   const [filters, setFilters] = useState<SearchFilters>({
@@ -271,6 +278,14 @@ export default function Search() {
       {/* Header de búsqueda */}
       <View style={styles.searchHeader}>
         <View style={styles.searchBarContainer}>
+          {/* Botón de volver atrás */}
+          <TouchableOpacity 
+            style={styles.backButton}
+            onPress={handleGoBack}
+          >
+            <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
+          </TouchableOpacity>
+          
           <View style={styles.searchBar}>
             <Ionicons name="search" size={20} color="#65676B" style={styles.searchIcon} />
             <TextInput
@@ -291,6 +306,7 @@ export default function Search() {
               </TouchableOpacity>
             )}
           </View>
+          
           <TouchableOpacity 
             style={styles.filterToggleButton}
             onPress={() => setShowFilters(!showFilters)}
@@ -489,6 +505,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
+  },
+  backButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   searchBar: {
     flex: 1,
