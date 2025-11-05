@@ -137,6 +137,35 @@ export default function Search() {
       // Cuando la pantalla se enfoca (se abre)
       hideHeader();
       
+      // Resetear todo el estado de búsqueda
+      setSearchQuery('');
+      setSearchResults([]);
+      setShowRecentSearches(true);
+      setShowFilters(false);
+      
+      // Cerrar todos los dropdowns
+      setShowBrandDropdown(false);
+      setShowModelDropdown(false);
+      setShowRegionDropdown(false);
+      setShowFuelDropdown(false);
+      
+      // Resetear filtros
+      setFilters({
+        query: '',
+        brand: '',
+        model: '',
+        priceMin: 5000000,
+        priceMax: 50000000,
+        yearMin: 2010,
+        yearMax: 2025,
+        mileageMin: 0,
+        mileageMax: 200000,
+        region: '',
+        fuel: '',
+        transmission: '',
+        bodyType: ''
+      });
+      
       // Enfocar automáticamente el campo de búsqueda con un pequeño delay
       setTimeout(() => {
         searchInputRef.current?.focus();
@@ -278,8 +307,9 @@ export default function Search() {
         const newSearches = [searchQuery, ...prev.filter(s => s !== searchQuery)];
         return newSearches.slice(0, 5); // Mantener solo las últimas 5
       });
-      setShowRecentSearches(false);
     }
+    // Siempre ocultar búsquedas recientes al realizar búsqueda
+    setShowRecentSearches(false);
     
     try {
       // Simular búsqueda
@@ -348,7 +378,7 @@ export default function Search() {
     });
     setSearchQuery('');
     setShowRecentSearches(true);
-    setSearchResults([]);
+    // No limpiar los resultados, solo los filtros
   }, []);
 
   const updateFilter = useCallback((key: keyof SearchFilters, value: any) => {
@@ -416,9 +446,10 @@ export default function Search() {
               value={searchQuery}
               onChangeText={(text) => {
                 setSearchQuery(text);
-                setShowRecentSearches(text.length === 0);
+                // Solo mostrar búsquedas recientes si no hay resultados y el campo está vacío
+                setShowRecentSearches(text.length === 0 && searchResults.length === 0);
               }}
-              onFocus={() => setShowRecentSearches(searchQuery.length === 0)}
+              onFocus={() => setShowRecentSearches(searchQuery.length === 0 && searchResults.length === 0)}
               returnKeyType="search"
               onSubmitEditing={handleSearch}
             />
@@ -426,7 +457,8 @@ export default function Search() {
               <TouchableOpacity 
                 onPress={() => {
                   setSearchQuery('');
-                  setShowRecentSearches(true);
+                  // Solo mostrar búsquedas recientes si no hay resultados
+                  setShowRecentSearches(searchResults.length === 0);
                 }}
                 style={styles.clearButton}
               >
