@@ -1,7 +1,11 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Picker } from '@react-native-picker/picker';
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import {
+    ActivityIndicator,
+    Alert,
+    Dimensions,
+    FlatList,
     ScrollView,
     StyleSheet,
     Text,
@@ -10,58 +14,126 @@ import {
     View
 } from 'react-native';
 
-// Componente slider personalizado usando TouchableOpacity
-const CustomSlider = ({ 
+const { width } = Dimensions.get('window');
+
+// Tipos para mejor tipado
+interface SearchFilters {
+  query: string;
+  brand: string;
+  model: string;
+  priceMin: number;
+  priceMax: number;
+  yearMin: number;
+  yearMax: number;
+  mileageMin: number;
+  mileageMax: number;
+  region: string;
+  fuel: string;
+  transmission: string;
+  bodyType: string;
+}
+
+interface VehicleResult {
+  id: string;
+  brand: string;
+  model: string;
+  year: number;
+  price: number;
+  mileage: number;
+  fuel: string;
+  transmission: string;
+  location: string;
+  image?: string;
+}
+
+// Componente de slider mejorado
+const RangeSlider = ({ 
+  label,
   value, 
   onValueChange, 
   minimumValue, 
   maximumValue, 
-  step = 1 
+  step = 1,
+  formatValue = (val: number) => val.toString()
 }: {
-  value: number;
-  onValueChange: (value: number) => void;
+  label: string;
+  value: [number, number];
+  onValueChange: (value: [number, number]) => void;
   minimumValue: number;
   maximumValue: number;
   step?: number;
+  formatValue?: (val: number) => string;
 }) => {
-  const percentage = ((value - minimumValue) / (maximumValue - minimumValue)) * 100;
+  const [minValue, maxValue] = value;
   
   return (
-    <View style={styles.customSlider}>
-      <View style={styles.sliderTrack}>
-        <View style={[styles.sliderProgress, { width: `${percentage}%` }]} />
-        <View style={[styles.sliderThumb, { left: `${percentage}%` }]} />
+    <View style={styles.rangeSliderContainer}>
+      <Text style={styles.rangeSliderLabel}>{label}</Text>
+      <View style={styles.rangeValues}>
+        <Text style={styles.rangeValueText}>{formatValue(minValue)}</Text>
+        <Text style={styles.rangeValueText}>{formatValue(maxValue)}</Text>
       </View>
-      <View style={styles.sliderControls}>
-        <TouchableOpacity 
-          style={styles.sliderButton}
-          onPress={() => onValueChange(Math.max(minimumValue, value - step))}
-        >
-          <Ionicons name="remove" size={16} color="#4CAF50" />
-        </TouchableOpacity>
-        <TouchableOpacity 
-          style={styles.sliderButton}
-          onPress={() => onValueChange(Math.min(maximumValue, value + step))}
-        >
-          <Ionicons name="add" size={16} color="#4CAF50" />
-        </TouchableOpacity>
+      <View style={styles.sliderInputContainer}>
+        <View style={styles.sliderInputWrapper}>
+          <Text style={styles.sliderInputLabel}>Mín</Text>
+          <TextInput
+            style={styles.sliderInput}
+            value={minValue.toString()}
+            onChangeText={(text) => {
+              const numValue = parseInt(text) || minimumValue;
+              if (numValue >= minimumValue && numValue < maxValue) {
+                onValueChange([numValue, maxValue]);
+              }
+            }}
+            keyboardType="numeric"
+          />
+        </View>
+        <View style={styles.sliderInputWrapper}>
+          <Text style={styles.sliderInputLabel}>Máx</Text>
+          <TextInput
+            style={styles.sliderInput}
+            value={maxValue.toString()}
+            onChangeText={(text) => {
+              const numValue = parseInt(text) || maximumValue;
+              if (numValue <= maximumValue && numValue > minValue) {
+                onValueChange([minValue, numValue]);
+              }
+            }}
+            keyboardType="numeric"
+          />
+        </View>
       </View>
     </View>
   );
 };
 
 export default function Search() {
-  const [searchText, setSearchText] = useState('');
-  const [selectedBrand, setSelectedBrand] = useState('');
-  const [selectedModel, setSelectedModel] = useState('');
-  const [priceRange, setPriceRange] = useState({ min: 5000000, max: 50000000 });
-  const [kilometrageRange, setKilometrageRange] = useState({ min: 0, max: 200000 });
-  const [yearRange, setYearRange] = useState({ min: 2010, max: 2025 });
-  const [selectedRegion, setSelectedRegion] = useState('');
-  const [selectedFuel, setSelectedFuel] = useState('');
-  const [selectedVehicleType, setSelectedVehicleType] = useState('');
-  const [selectedTransmission, setSelectedTransmission] = useState('');
+  // Estados principales
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [showFilters, setShowFilters] = useState(false);
+  const [searchResults, setSearchResults] = useState<VehicleResult[]>([]);
+  
+  // Estados de filtros
+  const [filters, setFilters] = useState<SearchFilters>({
+    query: '',
+    brand: '',
+    model: '',
+    priceMin: 5000000,
+    priceMax: 50000000,
+    yearMin: 2010,
+    yearMax: 2025,
+    mileageMin: 0,
+    mileageMax: 200000,
+    region: '',
+    fuel: '',
+    transmission: '',
+    bodyType: ''
+  });
 
+
+
+  // Datos estáticos
   const brands = [
     'Todas las marcas', 'Toyota', 'BMW', 'Mercedes-Benz', 'Honda', 'Hyundai', 
     'Nissan', 'Volkswagen', 'Mazda', 'Chevrolet', 'Kia', 'Subaru', 'Lexus'
@@ -81,7 +153,7 @@ export default function Search() {
     'Todos los combustibles', 'Gasolina', 'Diésel', 'Híbrido', 'Eléctrico', 'GNC', 'GLP'
   ];
 
-  const vehicleTypes = [
+  const bodyTypes = [
     'Todos los tipos', 'Sedan', 'Hatchback', 'SUV', 'Pickup', 'Convertible', 'Coupe', 'Wagon'
   ];
 
@@ -89,201 +161,225 @@ export default function Search() {
     'Todas las transmisiones', 'Manual', 'Automática', 'CVT', 'Semiautomática'
   ];
 
-  const formatCurrency = (amount: number) => {
+  // Funciones auxiliares
+  const formatCurrency = useCallback((amount: number) => {
     return new Intl.NumberFormat('es-CL', {
       style: 'currency',
       currency: 'CLP',
       minimumFractionDigits: 0
     }).format(amount);
-  };
+  }, []);
 
-  const formatKilometers = (km: number) => {
+  const formatKilometers = useCallback((km: number) => {
     return `${km.toLocaleString('es-CL')} km`;
-  };
+  }, []);
 
-  const handleSearch = () => {
-    const searchParams = {
-      searchText,
-      selectedBrand,
-      selectedModel,
-      priceRange,
-      kilometrageRange,
-      yearRange,
-      selectedRegion,
-      selectedFuel,
-      selectedVehicleType,
-      selectedTransmission
-    };
-    console.log('Búsqueda realizada:', searchParams);
-    // Aquí implementarías la lógica de búsqueda
-  };
+  // Manejadores de eventos
+  const handleSearch = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      // Simular búsqueda
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      // Resultados simulados
+      const mockResults: VehicleResult[] = [
+        {
+          id: '1',
+          brand: 'Toyota',
+          model: 'Corolla',
+          year: 2022,
+          price: 18500000,
+          mileage: 25000,
+          fuel: 'Gasolina',
+          transmission: 'Automática',
+          location: 'Santiago, RM'
+        },
+        {
+          id: '2',
+          brand: 'Honda',
+          model: 'Civic',
+          year: 2021,
+          price: 17200000,
+          mileage: 35000,
+          fuel: 'Gasolina',
+          transmission: 'Manual',
+          location: 'Valparaíso, V'
+        }
+      ];
+      
+      setSearchResults(mockResults);
+    } catch (error) {
+      Alert.alert('Error', 'Hubo un problema al realizar la búsqueda');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [filters, searchQuery]);
 
-  const clearFilters = () => {
-    setSearchText('');
-    setSelectedBrand('');
-    setSelectedModel('');
-    setPriceRange({ min: 5000000, max: 50000000 });
-    setKilometrageRange({ min: 0, max: 200000 });
-    setYearRange({ min: 2010, max: 2025 });
-    setSelectedRegion('');
-    setSelectedFuel('');
-    setSelectedVehicleType('');
-    setSelectedTransmission('');
-  };
+  const clearFilters = useCallback(() => {
+    setFilters({
+      query: '',
+      brand: '',
+      model: '',
+      priceMin: 5000000,
+      priceMax: 50000000,
+      yearMin: 2010,
+      yearMax: 2025,
+      mileageMin: 0,
+      mileageMax: 200000,
+      region: '',
+      fuel: '',
+      transmission: '',
+      bodyType: ''
+    });
+    setSearchQuery('');
+  }, []);
+
+  const updateFilter = useCallback((key: keyof SearchFilters, value: any) => {
+    setFilters(prev => ({ ...prev, [key]: value }));
+  }, []);
+
+  // Renderizar resultado de búsqueda
+  const renderSearchResult = ({ item }: { item: VehicleResult }) => (
+    <TouchableOpacity style={styles.resultCard}>
+      <View style={styles.resultHeader}>
+        <Text style={styles.resultTitle}>{item.brand} {item.model}</Text>
+        <Text style={styles.resultPrice}>{formatCurrency(item.price)}</Text>
+      </View>
+      <View style={styles.resultDetails}>
+        <Text style={styles.resultDetail}>Año: {item.year}</Text>
+        <Text style={styles.resultDetail}>Km: {formatKilometers(item.mileage)}</Text>
+        <Text style={styles.resultDetail}>{item.fuel} | {item.transmission}</Text>
+        <Text style={styles.resultLocation}>{item.location}</Text>
+      </View>
+    </TouchableOpacity>
+  );
 
   return (
-    <ScrollView style={styles.container}>
-      {/* Barra de búsqueda estilo Facebook */}
+    <View style={styles.container}>
+      {/* Header de búsqueda */}
       <View style={styles.searchHeader}>
         <View style={styles.searchBarContainer}>
           <View style={styles.searchBar}>
             <Ionicons name="search" size={20} color="#65676B" style={styles.searchIcon} />
             <TextInput
               style={styles.searchInput}
-              placeholder="¿Qué auto estás buscando?"
+              placeholder="Buscar marca, modelo o características..."
               placeholderTextColor="#65676B"
-              value={searchText}
-              onChangeText={setSearchText}
+              value={searchQuery}
+              onChangeText={setSearchQuery}
               returnKeyType="search"
               onSubmitEditing={handleSearch}
             />
-            {searchText.length > 0 && (
+            {searchQuery.length > 0 && (
               <TouchableOpacity 
-                onPress={() => setSearchText('')}
+                onPress={() => setSearchQuery('')}
                 style={styles.clearButton}
               >
                 <Ionicons name="close-circle" size={20} color="#65676B" />
               </TouchableOpacity>
             )}
           </View>
+          <TouchableOpacity 
+            style={styles.filterToggleButton}
+            onPress={() => setShowFilters(!showFilters)}
+          >
+            <Ionicons 
+              name={showFilters ? "close" : "options"} 
+              size={20} 
+              color="#FFFFFF" 
+            />
+          </TouchableOpacity>
         </View>
       </View>
 
-      {/* Filtros principales */}
-      <View style={styles.filtersContainer}>
-        <Text style={styles.sectionTitle}>Filtros de búsqueda</Text>
-        
-        {/* Dropdowns de marca y modelo */}
-        <View style={styles.dropdownSection}>
-          <View style={styles.dropdownContainer}>
-            <Text style={styles.dropdownLabel}>Marca</Text>
-            <View style={styles.pickerContainer}>
-              <Picker
-                selectedValue={selectedBrand}
-                onValueChange={setSelectedBrand}
-                style={styles.picker}
-              >
-                {brands.map((brand, index) => (
-                  <Picker.Item key={index} label={brand} value={brand} />
-                ))}
-              </Picker>
+      <ScrollView style={styles.scrollContainer}>
+        {/* Panel de filtros expandible */}
+        {showFilters && (
+          <View style={styles.filtersPanel}>
+            <Text style={styles.filtersPanelTitle}>Filtros avanzados</Text>
+            
+            {/* Marca y Modelo */}
+            <View style={styles.filterRow}>
+              <View style={styles.filterHalf}>
+                <Text style={styles.filterLabel}>Marca</Text>
+                <View style={styles.pickerContainer}>
+                  <Picker
+                    selectedValue={filters.brand}
+                    onValueChange={(value) => updateFilter('brand', value)}
+                    style={styles.picker}
+                  >
+                    {brands.map((brand, index) => (
+                      <Picker.Item key={index} label={brand} value={brand} />
+                    ))}
+                  </Picker>
+                </View>
+              </View>
+              
+              <View style={styles.filterHalf}>
+                <Text style={styles.filterLabel}>Modelo</Text>
+                <View style={styles.pickerContainer}>
+                  <Picker
+                    selectedValue={filters.model}
+                    onValueChange={(value) => updateFilter('model', value)}
+                    style={styles.picker}
+                  >
+                    {models.map((model, index) => (
+                      <Picker.Item key={index} label={model} value={model} />
+                    ))}
+                  </Picker>
+                </View>
+              </View>
             </View>
-          </View>
 
-          <View style={styles.dropdownContainer}>
-            <Text style={styles.dropdownLabel}>Modelo</Text>
-            <View style={styles.pickerContainer}>
-              <Picker
-                selectedValue={selectedModel}
-                onValueChange={setSelectedModel}
-                style={styles.picker}
-              >
-                {models.map((model, index) => (
-                  <Picker.Item key={index} label={model} value={model} />
-                ))}
-              </Picker>
-            </View>
-          </View>
-        </View>
-
-        {/* Rangos de valores */}
-        <View style={styles.slidersSection}>
-          {/* Precio */}
-          <View style={styles.rangeContainer}>
-            <Text style={styles.rangeTitle}>Precio</Text>
-            <View style={styles.rangeValues}>
-              <Text style={styles.rangeValueText}>Desde: {formatCurrency(priceRange.min)}</Text>
-              <Text style={styles.rangeValueText}>Hasta: {formatCurrency(priceRange.max)}</Text>
-            </View>
-            <Text style={styles.rangeSubtitle}>Mínimo</Text>
-            <CustomSlider
-              value={priceRange.min}
-              onValueChange={(value) => setPriceRange(prev => ({ ...prev, min: value }))}
+            {/* Rango de precio */}
+            <RangeSlider
+              label="Precio"
+              value={[filters.priceMin, filters.priceMax]}
+              onValueChange={([min, max]) => {
+                updateFilter('priceMin', min);
+                updateFilter('priceMax', max);
+              }}
               minimumValue={1000000}
-              maximumValue={priceRange.max - 500000}
-              step={500000}
-            />
-            <Text style={styles.rangeSubtitle}>Máximo</Text>
-            <CustomSlider
-              value={priceRange.max}
-              onValueChange={(value) => setPriceRange(prev => ({ ...prev, max: value }))}
-              minimumValue={priceRange.min + 500000}
               maximumValue={100000000}
               step={500000}
+              formatValue={formatCurrency}
             />
-          </View>
 
-          {/* Kilometraje */}
-          <View style={styles.rangeContainer}>
-            <Text style={styles.rangeTitle}>Kilometraje</Text>
-            <View style={styles.rangeValues}>
-              <Text style={styles.rangeValueText}>Desde: {formatKilometers(kilometrageRange.min)}</Text>
-              <Text style={styles.rangeValueText}>Hasta: {formatKilometers(kilometrageRange.max)}</Text>
-            </View>
-            <Text style={styles.rangeSubtitle}>Mínimo</Text>
-            <CustomSlider
-              value={kilometrageRange.min}
-              onValueChange={(value) => setKilometrageRange(prev => ({ ...prev, min: value }))}
-              minimumValue={0}
-              maximumValue={kilometrageRange.max - 5000}
-              step={5000}
-            />
-            <Text style={styles.rangeSubtitle}>Máximo</Text>
-            <CustomSlider
-              value={kilometrageRange.max}
-              onValueChange={(value) => setKilometrageRange(prev => ({ ...prev, max: value }))}
-              minimumValue={kilometrageRange.min + 5000}
-              maximumValue={300000}
-              step={5000}
-            />
-          </View>
-
-          {/* Año */}
-          <View style={styles.rangeContainer}>
-            <Text style={styles.rangeTitle}>Año</Text>
-            <View style={styles.rangeValues}>
-              <Text style={styles.rangeValueText}>Desde: {yearRange.min}</Text>
-              <Text style={styles.rangeValueText}>Hasta: {yearRange.max}</Text>
-            </View>
-            <Text style={styles.rangeSubtitle}>Mínimo</Text>
-            <CustomSlider
-              value={yearRange.min}
-              onValueChange={(value) => setYearRange(prev => ({ ...prev, min: value }))}
+            {/* Rango de año */}
+            <RangeSlider
+              label="Año"
+              value={[filters.yearMin, filters.yearMax]}
+              onValueChange={([min, max]) => {
+                updateFilter('yearMin', min);
+                updateFilter('yearMax', max);
+              }}
               minimumValue={2000}
-              maximumValue={yearRange.max - 1}
-              step={1}
-            />
-            <Text style={styles.rangeSubtitle}>Máximo</Text>
-            <CustomSlider
-              value={yearRange.max}
-              onValueChange={(value) => setYearRange(prev => ({ ...prev, max: value }))}
-              minimumValue={yearRange.min + 1}
               maximumValue={2025}
               step={1}
             />
-          </View>
-        </View>
 
-        {/* Filtros adicionales en dos columnas */}
-        <View style={styles.additionalFiltersSection}>
-          <View style={styles.filtersRow}>
-            <View style={styles.filterColumn}>
-              <View style={styles.dropdownContainer}>
-                <Text style={styles.dropdownLabel}>Región</Text>
+            {/* Rango de kilometraje */}
+            <RangeSlider
+              label="Kilometraje"
+              value={[filters.mileageMin, filters.mileageMax]}
+              onValueChange={([min, max]) => {
+                updateFilter('mileageMin', min);
+                updateFilter('mileageMax', max);
+              }}
+              minimumValue={0}
+              maximumValue={300000}
+              step={5000}
+              formatValue={formatKilometers}
+            />
+
+            {/* Otros filtros */}
+            <View style={styles.filterRow}>
+              <View style={styles.filterHalf}>
+                <Text style={styles.filterLabel}>Región</Text>
                 <View style={styles.pickerContainer}>
                   <Picker
-                    selectedValue={selectedRegion}
-                    onValueChange={setSelectedRegion}
+                    selectedValue={filters.region}
+                    onValueChange={(value) => updateFilter('region', value)}
                     style={styles.picker}
                   >
                     {regions.map((region, index) => (
@@ -292,13 +388,13 @@ export default function Search() {
                   </Picker>
                 </View>
               </View>
-
-              <View style={styles.dropdownContainer}>
-                <Text style={styles.dropdownLabel}>Combustible</Text>
+              
+              <View style={styles.filterHalf}>
+                <Text style={styles.filterLabel}>Combustible</Text>
                 <View style={styles.pickerContainer}>
                   <Picker
-                    selectedValue={selectedFuel}
-                    onValueChange={setSelectedFuel}
+                    selectedValue={filters.fuel}
+                    onValueChange={(value) => updateFilter('fuel', value)}
                     style={styles.picker}
                   >
                     {fuelTypes.map((fuel, index) => (
@@ -309,83 +405,78 @@ export default function Search() {
               </View>
             </View>
 
-            <View style={styles.filterColumn}>
-              <View style={styles.dropdownContainer}>
-                <Text style={styles.dropdownLabel}>Tipo de vehículo</Text>
-                <View style={styles.pickerContainer}>
-                  <Picker
-                    selectedValue={selectedVehicleType}
-                    onValueChange={setSelectedVehicleType}
-                    style={styles.picker}
-                  >
-                    {vehicleTypes.map((type, index) => (
-                      <Picker.Item key={index} label={type} value={type} />
-                    ))}
-                  </Picker>
-                </View>
-              </View>
-
-              <View style={styles.dropdownContainer}>
-                <Text style={styles.dropdownLabel}>Transmisión</Text>
-                <View style={styles.pickerContainer}>
-                  <Picker
-                    selectedValue={selectedTransmission}
-                    onValueChange={setSelectedTransmission}
-                    style={styles.picker}
-                  >
-                    {transmissions.map((transmission, index) => (
-                      <Picker.Item key={index} label={transmission} value={transmission} />
-                    ))}
-                  </Picker>
-                </View>
-              </View>
+            {/* Botones de acción */}
+            <View style={styles.filterActions}>
+              <TouchableOpacity 
+                style={styles.clearFiltersButton}
+                onPress={clearFilters}
+              >
+                <Text style={styles.clearFiltersText}>Limpiar</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity 
+                style={styles.applyFiltersButton}
+                onPress={handleSearch}
+              >
+                <Text style={styles.applyFiltersText}>Aplicar filtros</Text>
+              </TouchableOpacity>
             </View>
           </View>
-        </View>
+        )}
 
-        {/* Botones de acción */}
-        <View style={styles.actionButtons}>
+        {/* Botón de búsqueda principal */}
+        <View style={styles.searchButtonContainer}>
           <TouchableOpacity 
-            style={styles.clearFiltersButton}
-            onPress={clearFilters}
-          >
-            <Text style={styles.clearButtonText}>Limpiar filtros</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity 
-            style={styles.searchButton}
+            style={[styles.searchButton, isLoading && styles.searchButtonDisabled]}
             onPress={handleSearch}
+            disabled={isLoading}
           >
-            <Ionicons name="search" size={20} color="#FFFFFF" />
-            <Text style={styles.searchButtonText}>Buscar</Text>
+            {isLoading ? (
+              <ActivityIndicator color="#FFFFFF" size="small" />
+            ) : (
+              <Ionicons name="search" size={20} color="#FFFFFF" />
+            )}
+            <Text style={styles.searchButtonText}>
+              {isLoading ? 'Buscando...' : 'Buscar vehículos'}
+            </Text>
           </TouchableOpacity>
         </View>
-      </View>
-    </ScrollView>
+
+        {/* Resultados de búsqueda */}
+        {searchResults.length > 0 && (
+          <View style={styles.resultsContainer}>
+            <Text style={styles.resultsTitle}>
+              {searchResults.length} vehículos encontrados
+            </Text>
+            <FlatList
+              data={searchResults}
+              renderItem={renderSearchResult}
+              keyExtractor={(item) => item.id}
+              scrollEnabled={false}
+              showsVerticalScrollIndicator={false}
+            />
+          </View>
+        )}
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F0F2F5',
+    backgroundColor: '#F8F9FA',
   },
   searchHeader: {
     backgroundColor: '#4CAF50',
     paddingHorizontal: 16,
     paddingVertical: 12,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+    paddingTop: 16,
   },
   searchBarContainer: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: 12,
   },
   searchBar: {
     flex: 1,
@@ -394,15 +485,12 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderRadius: 25,
     paddingHorizontal: 16,
-    paddingVertical: 10,
-    elevation: 1,
+    paddingVertical: 12,
+    elevation: 2,
     shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 1,
-    },
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
-    shadowRadius: 2,
+    shadowRadius: 4,
   },
   searchIcon: {
     marginRight: 12,
@@ -416,33 +504,43 @@ const styles = StyleSheet.create({
   clearButton: {
     padding: 4,
   },
-  filtersContainer: {
+  filterToggleButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  scrollContainer: {
+    flex: 1,
+  },
+  filtersPanel: {
     backgroundColor: '#FFFFFF',
     margin: 16,
     borderRadius: 16,
     padding: 20,
     elevation: 2,
     shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
-    shadowRadius: 4,
+    shadowRadius: 8,
   },
-  sectionTitle: {
+  filtersPanelTitle: {
     fontSize: 20,
     fontWeight: 'bold',
     color: '#1C1E21',
     marginBottom: 20,
   },
-  dropdownSection: {
-    marginBottom: 24,
-  },
-  dropdownContainer: {
+  filterRow: {
+    flexDirection: 'row',
+    gap: 16,
     marginBottom: 16,
   },
-  dropdownLabel: {
+  filterHalf: {
+    flex: 1,
+  },
+  filterLabel: {
     fontSize: 16,
     fontWeight: '600',
     color: '#1C1E21',
@@ -451,17 +549,15 @@ const styles = StyleSheet.create({
   pickerContainer: {
     borderWidth: 1,
     borderColor: '#E4E6EA',
-    borderRadius: 8,
+    borderRadius: 12,
     backgroundColor: '#FAFAFA',
+    overflow: 'hidden',
   },
   picker: {
     height: 50,
     color: '#1C1E21',
   },
-  slidersSection: {
-    marginBottom: 24,
-  },
-  rangeContainer: {
+  rangeSliderContainer: {
     marginBottom: 20,
     backgroundColor: '#FAFAFA',
     borderRadius: 12,
@@ -469,7 +565,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#E4E6EA',
   },
-  rangeTitle: {
+  rangeSliderLabel: {
     fontSize: 16,
     fontWeight: '600',
     color: '#1C1E21',
@@ -485,103 +581,139 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#4CAF50',
   },
-  rangeSubtitle: {
-    fontSize: 13,
-    fontWeight: '500',
-    color: '#65676B',
-    marginTop: 12,
-    marginBottom: 6,
-  },
-  customSlider: {
-    marginVertical: 8,
-  },
-  sliderTrack: {
-    height: 6,
-    backgroundColor: '#E4E6EA',
-    borderRadius: 3,
-    position: 'relative',
-    marginBottom: 8,
-  },
-  sliderProgress: {
-    height: 6,
-    backgroundColor: '#4CAF50',
-    borderRadius: 3,
-  },
-  sliderThumb: {
-    position: 'absolute',
-    top: -6,
-    width: 18,
-    height: 18,
-    backgroundColor: '#4CAF50',
-    borderRadius: 9,
-    marginLeft: -9,
-    borderWidth: 2,
-    borderColor: '#FFFFFF',
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 1,
-    },
-    shadowOpacity: 0.2,
-    shadowRadius: 2,
-  },
-  sliderControls: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  sliderButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: '#F1F8E9',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: '#4CAF50',
-  },
-  additionalFiltersSection: {
-    marginBottom: 24,
-  },
-  filtersRow: {
-    flexDirection: 'row',
-    gap: 16,
-  },
-  filterColumn: {
-    flex: 1,
-  },
-  actionButtons: {
+  sliderInputContainer: {
     flexDirection: 'row',
     gap: 12,
-    marginTop: 8,
+  },
+  sliderInputWrapper: {
+    flex: 1,
+  },
+  sliderInputLabel: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: '#65676B',
+    marginBottom: 4,
+  },
+  sliderInput: {
+    borderWidth: 1,
+    borderColor: '#E4E6EA',
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    fontSize: 14,
+    backgroundColor: '#FFFFFF',
+    color: '#1C1E21',
+  },
+  filterActions: {
+    flexDirection: 'row',
+    gap: 12,
+    marginTop: 20,
   },
   clearFiltersButton: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#F8F9FA',
     borderWidth: 2,
     borderColor: '#4CAF50',
     borderRadius: 12,
     paddingVertical: 14,
     alignItems: 'center',
+    justifyContent: 'center',
   },
-  clearButtonText: {
+  clearFiltersText: {
     color: '#4CAF50',
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: '600',
   },
-  searchButton: {
-    flex: 1,
+  applyFiltersButton: {
+    flex: 2,
     backgroundColor: '#4CAF50',
     borderRadius: 12,
     paddingVertical: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  applyFiltersText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  searchButtonContainer: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+  },
+  searchButton: {
+    backgroundColor: '#4CAF50',
+    borderRadius: 16,
+    paddingVertical: 16,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 8,
+    gap: 12,
+    elevation: 4,
+    shadowColor: '#4CAF50',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+  },
+  searchButtonDisabled: {
+    backgroundColor: '#A5D6A7',
+    elevation: 0,
+    shadowOpacity: 0,
   },
   searchButtonText: {
     color: '#FFFFFF',
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: 'bold',
+  },
+  resultsContainer: {
+    paddingHorizontal: 16,
+    paddingBottom: 20,
+  },
+  resultsTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#1C1E21',
+    marginBottom: 16,
+  },
+  resultCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+  },
+  resultHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 8,
+  },
+  resultTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#1C1E21',
+    flex: 1,
+  },
+  resultPrice: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#4CAF50',
+  },
+  resultDetails: {
+    gap: 4,
+  },
+  resultDetail: {
+    fontSize: 14,
+    color: '#65676B',
+  },
+  resultLocation: {
+    fontSize: 14,
+    color: '#4CAF50',
+    fontWeight: '500',
+    marginTop: 4,
   },
 });
