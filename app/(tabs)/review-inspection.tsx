@@ -14,7 +14,7 @@ import {
 
 export default function ReviewInspection() {
   const router = useRouter();
-  const [inspectionCode, setInspectionCode] = useState('');
+  const [rut, setRut] = useState('');
   const [vehiclePlate, setVehiclePlate] = useState('');
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [isSearching, setIsSearching] = useState(false);
@@ -63,13 +63,13 @@ export default function ReviewInspection() {
     
     // Simular búsqueda con delay
     setTimeout(() => {
-      // Filtrar resultados basados en código de inspección o patente
+      // Filtrar resultados basados en RUT o patente
       let filteredResults = mockInspections;
       
-      if (inspectionCode.trim()) {
-        filteredResults = mockInspections.filter(inspection => 
-          inspection.id.toLowerCase().includes(inspectionCode.toLowerCase())
-        );
+      if (rut.trim()) {
+        // Aquí normalmente buscarías por RUT en la base de datos
+        // Por ahora mostramos todos los resultados si hay RUT
+        filteredResults = mockInspections;
       } else if (vehiclePlate.trim()) {
         filteredResults = mockInspections.filter(inspection => 
           inspection.vehiclePlate.toLowerCase().includes(vehiclePlate.toLowerCase())
@@ -104,12 +104,12 @@ export default function ReviewInspection() {
 
       <View style={styles.formContainer}>
         <View style={styles.inputSection}>
-          <Text style={styles.inputLabel}>Código de Inspección</Text>
+          <Text style={styles.inputLabel}>RUT</Text>
           <TextInput
             style={styles.textInput}
-            value={inspectionCode}
-            onChangeText={setInspectionCode}
-            placeholder="Ej: INS-2024-001234"
+            value={rut}
+            onChangeText={setRut}
+            placeholder="Ej: 12.345.678-9"
             placeholderTextColor="#999"
           />
         </View>
