@@ -1,4 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import {
     Image,
@@ -10,6 +11,7 @@ import {
 } from 'react-native';
 
 export default function Index() {
+    const router = useRouter();
     const [userBalance] = useState(1250000); // Saldo del usuario
     const scrollViewRef = useRef<ScrollView>(null);
     const [currentIndex, setCurrentIndex] = useState(0);

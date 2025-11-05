@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import { Tabs } from "expo-router";
+import { Tabs, useRouter } from "expo-router";
 import {
   StatusBar,
   StyleSheet,
@@ -9,6 +9,12 @@ import {
 } from "react-native";
 
 export default function RootLayout() {
+  const router = useRouter();
+
+  const handleSearchPress = () => {
+    router.push('/search');
+  };
+
   return(
     <>
       <StatusBar 
@@ -21,7 +27,7 @@ export default function RootLayout() {
       <View style={styles.header}>
         <Text style={styles.appTitle}>AutoBox</Text>
         <View style={styles.headerIcons}>
-          <TouchableOpacity style={styles.headerIcon}>
+          <TouchableOpacity style={styles.headerIcon} onPress={handleSearchPress}>
             <Ionicons name="search" size={24} color="#FFFFFF" />
           </TouchableOpacity>
           <TouchableOpacity style={styles.headerIcon}>
@@ -123,6 +129,13 @@ export default function RootLayout() {
 
         <Tabs.Screen 
           name="raw-publish" 
+          options={{
+            href: null, // Esto oculta la pestaña del menú
+          }}
+        />
+
+        <Tabs.Screen 
+          name="search" 
           options={{
             href: null, // Esto oculta la pestaña del menú
           }}
