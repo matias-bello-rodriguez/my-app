@@ -57,7 +57,7 @@ export default function ForgotPasswordScreen(){
 
     return (
         <>
-            <StatusBar barStyle="dark-content" backgroundColor="#E8F5E8" />
+            <StatusBar barStyle="light-content" backgroundColor="#1C1C1E" />
             <KeyboardAvoidingView 
                 style={styles.container}
                 behavior={Platform.OS === 'ios' ? "padding" : "height"}
@@ -84,13 +84,13 @@ export default function ForgotPasswordScreen(){
                                     <>
                                         <View style={styles.inputContainer}>
                                             <View style={styles.inputWrapper}>
-                                                <Ionicons name="mail-outline" size={20} color="#4CAF50" style={styles.inputIcon} />
+                                                <Ionicons name="mail-outline" size={20} color="#FFFFFF" style={styles.inputIcon} />
                                                 <TextInput
                                                     style={styles.input}
                                                     value={email}
                                                     onChangeText={setEmail}
                                                     placeholder="Correo electrónico"
-                                                    placeholderTextColor="#999999"
+                                                    placeholderTextColor="#8E8E93"
                                                     keyboardType="email-address"
                                                     autoCapitalize="none"
                                                     autoComplete="email"
@@ -109,7 +109,7 @@ export default function ForgotPasswordScreen(){
                                 {isEmailSent && (
                                     <View style={styles.successContainer}>
                                         <View style={styles.successIcon}>
-                                            <Ionicons name="checkmark-circle" size={80} color="#4CAF50" />
+                                            <Ionicons name="checkmark-circle" size={80} color="#FFFFFF" />
                                         </View>
                                         <Text style={styles.successText}>¡Email enviado exitosamente!</Text>
                                         <Text style={styles.successSubtext}>
@@ -123,7 +123,7 @@ export default function ForgotPasswordScreen(){
                             <View style={styles.footer}>
                                 <TouchableOpacity onPress={goBackToLogin}>
                                     <Text style={styles.backToLoginText}>
-                                        <Ionicons name="arrow-back" size={16} color="#4CAF50" /> Volver al inicio de sesión
+                                        <Ionicons name="arrow-back" size={16} color="#FFFFFF" /> Volver al inicio de sesión
                                     </Text>
                                 </TouchableOpacity>
                             </View>
@@ -138,7 +138,7 @@ export default function ForgotPasswordScreen(){
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#E8F5E8', // Verde muy claro opaco
+        backgroundColor: '#1C1C1E', // Negro oscuro
     },
     scrollContainer: {
         flexGrow: 1,
@@ -160,13 +160,13 @@ const styles = StyleSheet.create({
     welcomeText: {
         fontSize: 24,
         fontWeight: 'bold',
-        color: '#333333',
+        color: '#FFFFFF',
         textAlign: 'center',
         marginBottom: 8,
     },
     subtitle: {
         fontSize: 16,
-        color: '#666666',
+        color: '#8E8E93',
         textAlign: 'center',
         marginBottom: 30,
         lineHeight: 24,
@@ -178,15 +178,15 @@ const styles = StyleSheet.create({
     inputWrapper: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: '#FFFFFF',
+        backgroundColor: '#2C2C2E',
         borderRadius: 12,
         borderWidth: 2,
-        borderColor: '#4CAF50',
+        borderColor: '#38383A',
         paddingHorizontal: 16,
         height: 56,
-        shadowColor: '#4CAF50',
+        shadowColor: '#000000',
         shadowOffset: { width: 0, height: 3 },
-        shadowOpacity: 0.1,
+        shadowOpacity: 0.2,
         shadowRadius: 6,
         elevation: 4,
     },
@@ -196,25 +196,25 @@ const styles = StyleSheet.create({
     input: {
         flex: 1,
         fontSize: 16,
-        color: '#333333',
+        color: '#FFFFFF',
         height: 56,
     },
     resetButton: {
-        backgroundColor: '#4CAF50',
+        backgroundColor: '#FFFFFF',
         borderRadius: 12,
         paddingVertical: 18,
         alignItems: 'center',
-        shadowColor: '#4CAF50',
+        shadowColor: '#000000',
         shadowOffset: { width: 0, height: 6 },
-        shadowOpacity: 0.4,
+        shadowOpacity: 0.3,
         shadowRadius: 10,
         elevation: 8,
         marginBottom: 20,
         borderWidth: 2,
-        borderColor: '#45A049',
+        borderColor: '#E0E0E0',
     },
     resetButtonText: {
-        color: '#FFFFFF',
+        color: '#1C1C1E',
         fontSize: 16,
         fontWeight: 'bold',
         letterSpacing: 1,
@@ -229,13 +229,13 @@ const styles = StyleSheet.create({
     successText: {
         fontSize: 20,
         fontWeight: 'bold',
-        color: '#4CAF50',
+        color: '#FFFFFF',
         textAlign: 'center',
         marginBottom: 10,
     },
     successSubtext: {
         fontSize: 14,
-        color: '#666666',
+        color: '#8E8E93',
         textAlign: 'center',
         lineHeight: 20,
         paddingHorizontal: 20,
@@ -247,7 +247,7 @@ const styles = StyleSheet.create({
         flex: 0.2,
     },
     backToLoginText: {
-        color: '#4CAF50',
+        color: '#FFFFFF',
         fontSize: 14,
         fontWeight: '600',
     },

@@ -21,7 +21,7 @@ function TabsContent() {
     <>
       <StatusBar 
         barStyle="light-content" 
-        backgroundColor="#4CAF50" 
+        backgroundColor="#1C1C1E" 
         translucent={false}
       />
       
@@ -42,10 +42,11 @@ function TabsContent() {
 
       <Tabs screenOptions={{
         tabBarActiveTintColor:'#FFFFFF',
-        tabBarInactiveTintColor:'#FFFFFF',
+        tabBarInactiveTintColor:'#8E8E93',
         tabBarStyle: {
-          backgroundColor: '#4CAF50',
-          borderTopWidth: 0,
+          backgroundColor: '#1C1C1E',
+          borderTopWidth: 1,
+          borderTopColor: '#38383A',
           height: 95,
           paddingBottom: 25,
           paddingTop: 10,
@@ -165,13 +166,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     paddingTop: 50, // Espacio para la status bar de iOS
-    backgroundColor: '#4CAF50',
+    backgroundColor: '#1C1C1E',
     borderBottomWidth: 1,
-    borderBottomColor: '#E4E6EA',
+    borderBottomColor: '#38383A',
     elevation: 2,
     shadowColor: '#000000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.3,
     shadowRadius: 4,
   },
   appTitle: {
@@ -188,7 +189,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
     alignItems: 'center',
     justifyContent: 'center',
   },

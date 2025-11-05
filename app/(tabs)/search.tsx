@@ -400,24 +400,32 @@ export default function Search() {
       
       <View style={styles.resultDetails}>
         <View style={styles.resultDetailRow}>
-          <Ionicons name="speedometer" size={14} color="#65676B" />
+          <Ionicons name="speedometer" size={14} color="#8E8E93" />
           <Text style={styles.resultDetailText} numberOfLines={1}>{formatKilometers(item.mileage)}</Text>
         </View>
         <View style={styles.resultDetailRow}>
-          <Ionicons name="flash" size={14} color="#65676B" />
+          <Ionicons name="flash" size={14} color="#8E8E93" />
           <Text style={styles.resultDetailText}>{item.fuel} | {item.transmission}</Text>
         </View>
         <View style={styles.resultDetailRow}>
-          <Ionicons name="location" size={14} color="#65676B" />
+          <Ionicons name="location" size={14} color="#8E8E93" />
           <Text style={styles.resultDetailText} numberOfLines={1}>{item.location}</Text>
         </View>
 
         {/* Imagen del vehículo siempre */}
         <View style={styles.vehicleImageContainer}>
           <Text style={styles.vehicleImageLabel}>Foto del vehículo:</Text>
-          <View style={styles.placeholderImage}>
-            <Ionicons name="car-sport" size={40} color="#999" />
-          </View>
+          {item.image ? (
+            <Image
+              source={{ uri: item.image }}
+              style={styles.vehicleImage}
+              resizeMode="cover"
+            />
+          ) : (
+            <View style={styles.placeholderImage}>
+              <Ionicons name="car-sport" size={40} color="#8E8E93" />
+            </View>
+          )}
         </View>
       </View>
     </TouchableOpacity>
@@ -437,12 +445,12 @@ export default function Search() {
           </TouchableOpacity>
           
           <View style={styles.searchBar}>
-            <Ionicons name="search" size={20} color="#65676B" style={styles.searchIcon} />
+            <Ionicons name="search" size={20} color="#8E8E93" style={styles.searchIcon} />
             <TextInput
               ref={searchInputRef}
               style={styles.searchInput}
               placeholder="Buscar marca, modelo o características..."
-              placeholderTextColor="#65676B"
+              placeholderTextColor="#8E8E93"
               value={searchQuery}
               onChangeText={(text) => {
                 setSearchQuery(text);
@@ -462,7 +470,7 @@ export default function Search() {
                 }}
                 style={styles.clearButton}
               >
-                <Ionicons name="close-circle" size={20} color="#65676B" />
+                <Ionicons name="close-circle" size={20} color="#8E8E93" />
               </TouchableOpacity>
             )}
           </View>
@@ -498,9 +506,9 @@ export default function Search() {
                 onPress={() => handleRecentSearchPress(searchTerm)}
                 activeOpacity={0.7}
               >
-                <Ionicons name="time" size={16} color="#65676B" />
+                <Ionicons name="time" size={16} color="#8E8E93" />
                 <Text style={styles.recentSearchText}>{searchTerm}</Text>
-                <Ionicons name="arrow-up-outline" size={16} color="#65676B" style={styles.recentSearchIcon} />
+                <Ionicons name="arrow-up-outline" size={16} color="#8E8E93" style={styles.recentSearchIcon} />
               </TouchableOpacity>
             ))}
           </View>
@@ -526,7 +534,7 @@ export default function Search() {
                   <Ionicons 
                     name={showBrandDropdown ? "chevron-up" : "chevron-down"} 
                     size={20} 
-                    color="#666" 
+                    color="#8E8E93" 
                   />
                 </TouchableOpacity>
                 
@@ -562,7 +570,7 @@ export default function Search() {
                   <Ionicons 
                     name={showModelDropdown ? "chevron-up" : "chevron-down"} 
                     size={20} 
-                    color="#666" 
+                    color="#8E8E93" 
                   />
                 </TouchableOpacity>
                 
@@ -642,7 +650,7 @@ export default function Search() {
                   <Ionicons 
                     name={showRegionDropdown ? "chevron-up" : "chevron-down"} 
                     size={20} 
-                    color="#666" 
+                    color="#8E8E93" 
                   />
                 </TouchableOpacity>
                 
@@ -678,7 +686,7 @@ export default function Search() {
                   <Ionicons 
                     name={showFuelDropdown ? "chevron-up" : "chevron-down"} 
                     size={20} 
-                    color="#666" 
+                    color="#8E8E93" 
                   />
                 </TouchableOpacity>
                 
@@ -754,10 +762,10 @@ export default function Search() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8F9FA',
+    backgroundColor: '#1C1C1E',
   },
   searchHeader: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: '#1C1C1E',
     paddingHorizontal: 16,
     paddingVertical: 12,
     paddingTop: 50, // Más padding top ya que no hay header del layout
@@ -779,14 +787,14 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#2C2C2E',
     borderRadius: 25,
     paddingHorizontal: 16,
     paddingVertical: 12,
     elevation: 2,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.3,
     shadowRadius: 4,
   },
   searchIcon: {
@@ -795,7 +803,7 @@ const styles = StyleSheet.create({
   searchInput: {
     flex: 1,
     fontSize: 16,
-    color: '#1C1E21',
+    color: '#FFFFFF',
     padding: 0,
   },
   clearButton: {
@@ -813,20 +821,20 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   filtersPanel: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#2C2C2E',
     margin: 16,
     borderRadius: 16,
     padding: 20,
     elevation: 2,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.3,
     shadowRadius: 8,
   },
   filtersPanelTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#1C1E21',
+    color: '#FFFFFF',
     marginBottom: 20,
   },
   filterRow: {
@@ -840,7 +848,7 @@ const styles = StyleSheet.create({
   filterLabel: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#1C1E21',
+    color: '#FFFFFF',
     marginBottom: 8,
   },
   pickerContainer: {
@@ -856,16 +864,16 @@ const styles = StyleSheet.create({
   },
   rangeSliderContainer: {
     marginBottom: 20,
-    backgroundColor: '#FAFAFA',
+    backgroundColor: '#38383A',
     borderRadius: 12,
     padding: 16,
     borderWidth: 1,
-    borderColor: '#E4E6EA',
+    borderColor: '#48484A',
   },
   rangeSliderLabel: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#1C1E21',
+    color: '#FFFFFF',
     marginBottom: 12,
   },
   rangeValues: {
@@ -876,7 +884,7 @@ const styles = StyleSheet.create({
   rangeValueText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#4CAF50',
+    color: '#FFFFFF',
   },
   sliderInputContainer: {
     flexDirection: 'row',
@@ -888,18 +896,18 @@ const styles = StyleSheet.create({
   sliderInputLabel: {
     fontSize: 12,
     fontWeight: '500',
-    color: '#65676B',
+    color: '#8E8E93',
     marginBottom: 4,
   },
   sliderInput: {
     borderWidth: 1,
-    borderColor: '#E4E6EA',
+    borderColor: '#48484A',
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 8,
     fontSize: 14,
-    backgroundColor: '#FFFFFF',
-    color: '#1C1E21',
+    backgroundColor: '#2C2C2E',
+    color: '#FFFFFF',
   },
   filterActions: {
     flexDirection: 'row',
@@ -950,7 +958,7 @@ const styles = StyleSheet.create({
   resultsTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#1C1E21',
+    color: '#FFFFFF',
   },
   sortButton: {
     flexDirection: 'row',
@@ -976,7 +984,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 4,
   },
   resultCard: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#2C2C2E',
     borderRadius: 12,
     padding: 12,
     marginBottom: 12,
@@ -986,10 +994,10 @@ const styles = StyleSheet.create({
       width: 0,
       height: 2,
     },
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.3,
     shadowRadius: 4,
     borderLeftWidth: 4,
-    borderLeftColor: '#4CAF50',
+    borderLeftColor: '#FFFFFF',
     width: '48%', // Para mostrar 2 cards por fila
   },
   resultHeader: {
@@ -1004,24 +1012,24 @@ const styles = StyleSheet.create({
   resultPlate: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#1C1E21',
+    color: '#FFFFFF',
     marginBottom: 2,
   },
   resultModel: {
     fontSize: 12,
-    color: '#65676B',
+    color: '#8E8E93',
   },
   resultPriceBadge: {
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 8,
     marginLeft: 8,
-    backgroundColor: '#4CAF50',
+    backgroundColor: '#FFFFFF',
   },
   resultPriceText: {
     fontSize: 10,
     fontWeight: '600',
-    color: '#FFFFFF',
+    color: '#1C1C1E',
   },
   resultDetails: {
     gap: 6,
@@ -1033,7 +1041,7 @@ const styles = StyleSheet.create({
   },
   resultDetailText: {
     fontSize: 12,
-    color: '#65676B',
+    color: '#8E8E93',
     flex: 1,
   },
   // Estilos para imagen del vehículo
@@ -1041,45 +1049,50 @@ const styles = StyleSheet.create({
     marginTop: 8,
     paddingTop: 8,
     borderTopWidth: 1,
-    borderTopColor: '#E4E6EA',
+    borderTopColor: '#48484A',
   },
   vehicleImageLabel: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#1C1E21',
+    color: '#FFFFFF',
     marginBottom: 6,
   },
   placeholderImage: {
     width: '100%',
     height: 120,
     borderRadius: 6,
-    backgroundColor: '#E8E8E8',
+    backgroundColor: '#48484A',
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  vehicleImage: {
+    width: '100%',
+    height: 120,
+    borderRadius: 6,
   },
   // Estilos para dropdown
   dropdownButton: {
     borderWidth: 1,
-    borderColor: '#E4E6EA',
+    borderColor: '#48484A',
     borderRadius: 8,
     padding: 12,
-    backgroundColor: '#FAFAFA',
+    backgroundColor: '#38383A',
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
   dropdownText: {
     fontSize: 16,
-    color: '#1C1E21',
+    color: '#FFFFFF',
   },
   placeholderText: {
-    color: '#999',
+    color: '#8E8E93',
   },
   dropdownMenu: {
     borderWidth: 1,
-    borderColor: '#E4E6EA',
+    borderColor: '#48484A',
     borderRadius: 8,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#2C2C2E',
     marginTop: 4,
     elevation: 3,
     shadowColor: '#000',
@@ -1087,7 +1100,7 @@ const styles = StyleSheet.create({
       width: 0,
       height: 2,
     },
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.3,
     shadowRadius: 4,
     maxHeight: 200,
     zIndex: 1000,
@@ -1095,22 +1108,22 @@ const styles = StyleSheet.create({
   dropdownItem: {
     padding: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#F0F2F5',
+    borderBottomColor: '#48484A',
   },
   dropdownItemText: {
     fontSize: 16,
-    color: '#1C1E21',
+    color: '#FFFFFF',
   },
   // Estilos para búsquedas recientes
   recentSearchesContainer: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#2C2C2E',
     margin: 16,
     borderRadius: 12,
     padding: 16,
     elevation: 1,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.3,
     shadowRadius: 2,
   },
   recentSearchesHeader: {
@@ -1122,11 +1135,11 @@ const styles = StyleSheet.create({
   recentSearchesTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#1C1E21',
+    color: '#FFFFFF',
   },
   clearRecentText: {
     fontSize: 14,
-    color: '#4CAF50',
+    color: '#FFFFFF',
     fontWeight: '500',
   },
   recentSearchItem: {
@@ -1140,7 +1153,7 @@ const styles = StyleSheet.create({
   recentSearchText: {
     flex: 1,
     fontSize: 15,
-    color: '#1C1E21',
+    color: '#FFFFFF',
     marginLeft: 12,
   },
   recentSearchIcon: {

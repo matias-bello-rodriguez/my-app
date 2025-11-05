@@ -59,7 +59,7 @@ export default function AuthScreen(){
 
     return (
         <>
-            <StatusBar barStyle="dark-content" backgroundColor="#E8F5E8" />
+            <StatusBar barStyle="light-content" backgroundColor="#1C1C1E" />
             <KeyboardAvoidingView 
                 style={styles.container}
                 behavior={Platform.OS === 'ios' ? "padding" : "height"}
@@ -90,13 +90,13 @@ export default function AuthScreen(){
                                 
                                 <View style={styles.inputContainer}>
                                     <View style={styles.inputWrapper}>
-                                        <Ionicons name="mail-outline" size={20} color="#4CAF50" style={styles.inputIcon} />
+                                        <Ionicons name="mail-outline" size={20} color="#FFFFFF" style={styles.inputIcon} />
                                         <TextInput
                                             style={styles.input}
                                             value={email}
                                             onChangeText={setEmail}
                                             placeholder="Correo electrónico"
-                                            placeholderTextColor="#999999"
+                                            placeholderTextColor="#8E8E93"
                                             keyboardType="email-address"
                                             autoCapitalize="none"
                                             autoComplete="email"
@@ -107,13 +107,13 @@ export default function AuthScreen(){
 
                                 <View style={styles.inputContainer}>
                                     <View style={styles.inputWrapper}>
-                                        <Ionicons name="lock-closed-outline" size={20} color="#4CAF50" style={styles.inputIcon} />
+                                        <Ionicons name="lock-closed-outline" size={20} color="#FFFFFF" style={styles.inputIcon} />
                                         <TextInput
                                             style={styles.input}
                                             value={password}
                                             onChangeText={setPassword}
                                             placeholder="Contraseña"
-                                            placeholderTextColor="#999999"
+                                            placeholderTextColor="#8E8E93"
                                             secureTextEntry={!showPassword}
                                             autoComplete="password"
                                             returnKeyType="done"
@@ -126,7 +126,7 @@ export default function AuthScreen(){
                                             <Ionicons 
                                                 name={showPassword ? "eye-outline" : "eye-off-outline"} 
                                                 size={20} 
-                                                color="#666666" 
+                                                color="#8E8E93" 
                                             />
                                         </TouchableOpacity>
                                     </View>
@@ -171,7 +171,7 @@ export default function AuthScreen(){
                                 style={styles.footer} 
                                 onPress={goToRegister}
                             >
-                                <Ionicons name="person-add" size={20} color="#4CAF50" />
+                                <Ionicons name="person-add" size={20} color="#FFFFFF" />
                                 <Text style={styles.signUpText}> ¿No tienes cuenta? Regístrate</Text>
                             </TouchableOpacity>
                         </View>
@@ -185,7 +185,7 @@ export default function AuthScreen(){
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#E8F5E8', // Verde muy claro opaco
+        backgroundColor: '#1C1C1E', // Negro oscuro
     },
     scrollContainer: {
         flexGrow: 1,
@@ -206,16 +206,16 @@ const styles = StyleSheet.create({
     },
     logoContainer: {
         alignItems: 'center',
-        backgroundColor: '#FFFFFF',
+        backgroundColor: '#2C2C2E',
         borderRadius: 25,
         padding: 15,
-        shadowColor: '#4CAF50',
+        shadowColor: '#000000',
         shadowOffset: { width: 0, height: 6 },
-        shadowOpacity: 0.15,
+        shadowOpacity: 0.3,
         shadowRadius: 12,
         elevation: 8,
         borderWidth: 2,
-        borderColor: '#4CAF50',
+        borderColor: '#38383A',
     },
     logo: {
         width:200,
@@ -241,13 +241,13 @@ const styles = StyleSheet.create({
     welcomeText: {
         fontSize: 24,
         fontWeight: 'bold',
-        color: '#333333',
+        color: '#FFFFFF',
         textAlign: 'center',
         marginBottom: 8,
     },
     subtitle: {
         fontSize: 16,
-        color: '#666666',
+        color: '#8E8E93',
         textAlign: 'center',
         marginBottom: 30,
     },
@@ -257,15 +257,15 @@ const styles = StyleSheet.create({
     inputWrapper: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: '#FFFFFF',
+        backgroundColor: '#2C2C2E',
         borderRadius: 12,
         borderWidth: 2,
-        borderColor: '#4CAF50',
+        borderColor: '#38383A',
         paddingHorizontal: 16,
         height: 56,
-        shadowColor: '#4CAF50',
+        shadowColor: '#000000',
         shadowOffset: { width: 0, height: 3 },
-        shadowOpacity: 0.1,
+        shadowOpacity: 0.2,
         shadowRadius: 6,
         elevation: 4,
     },
@@ -275,7 +275,7 @@ const styles = StyleSheet.create({
     input: {
         flex: 1,
         fontSize: 16,
-        color: '#333333',
+        color: '#FFFFFF',
         height: 56,
     },
     eyeIcon: {
@@ -286,26 +286,26 @@ const styles = StyleSheet.create({
         marginBottom: 20,
     },
     forgotPasswordText: {
-        color: '#4CAF50',
+        color: '#FFFFFF',
         fontSize: 14,
         fontWeight: '500',
     },
     loginButton: {
-        backgroundColor: '#4CAF50',
+        backgroundColor: '#FFFFFF',
         borderRadius: 12,
         paddingVertical: 18,
         alignItems: 'center',
-        shadowColor: '#4CAF50',
+        shadowColor: '#000000',
         shadowOffset: { width: 0, height: 6 },
-        shadowOpacity: 0.4,
+        shadowOpacity: 0.3,
         shadowRadius: 10,
         elevation: 8,
         marginBottom: 20,
         borderWidth: 2,
-        borderColor: '#45A049',
+        borderColor: '#E0E0E0',
     },
     loginButtonText: {
-        color: '#FFFFFF',
+        color: '#1C1C1E',
         fontSize: 16,
         fontWeight: 'bold',
         letterSpacing: 1,
@@ -317,11 +317,11 @@ const styles = StyleSheet.create({
         flex: 0.15,
     },
     footerText: {
-        color: '#666666',
+        color: '#8E8E93',
         fontSize: 14,
     },
     signUpText: {
-        color: '#4CAF50',
+        color: '#FFFFFF',
         fontSize: 14,
         fontWeight: '600',
     },
@@ -334,11 +334,11 @@ const styles = StyleSheet.create({
     dividerLine: {
         flex: 1,
         height: 1,
-        backgroundColor: '#CCCCCC',
+        backgroundColor: '#48484A',
     },
     dividerText: {
         marginHorizontal: 15,
-        color: '#666666',
+        color: '#8E8E93',
         fontSize: 14,
         fontWeight: '500',
     },
@@ -353,21 +353,21 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
-        backgroundColor: '#FFFFFF',
+        backgroundColor: '#2C2C2E',
         borderRadius: 12,
         paddingVertical: 15,
         paddingHorizontal: 10,
         borderWidth: 2,
-        borderColor: '#E0E0E0',
+        borderColor: '#38383A',
         shadowColor: '#000000',
         shadowOffset: { width: 0, height: 3 },
-        shadowOpacity: 0.1,
+        shadowOpacity: 0.2,
         shadowRadius: 6,
         elevation: 4,
     },
     socialButtonText: {
         marginLeft: 8,
-        color: '#333333',
+        color: '#FFFFFF',
         fontSize: 12,
         fontWeight: '600',
     },
