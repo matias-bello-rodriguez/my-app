@@ -7,9 +7,11 @@ import {
   TouchableOpacity,
   View
 } from "react-native";
+import { HeaderProvider, useHeader } from '../../contexts/HeaderContext';
 
-export default function RootLayout() {
+function TabsContent() {
   const router = useRouter();
+  const { isHeaderVisible } = useHeader();
 
   const handleSearchPress = () => {
     router.push('/search');
@@ -23,18 +25,20 @@ export default function RootLayout() {
         translucent={false}
       />
       
-      {/* Header estilo Facebook */}
-      <View style={styles.header}>
-        <Text style={styles.appTitle}>AutoBox</Text>
-        <View style={styles.headerIcons}>
-          <TouchableOpacity style={styles.headerIcon} onPress={handleSearchPress}>
-            <Ionicons name="search" size={24} color="#FFFFFF" />
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.headerIcon}>
-            <Ionicons name="chatbubble-outline" size={24} color="#FFFFFF" />
-          </TouchableOpacity>
+      {/* Header estilo Facebook - se oculta cuando isHeaderVisible es false */}
+      {isHeaderVisible && (
+        <View style={styles.header}>
+          <Text style={styles.appTitle}>AutoBox</Text>
+          <View style={styles.headerIcons}>
+            <TouchableOpacity style={styles.headerIcon} onPress={handleSearchPress}>
+              <Ionicons name="search" size={24} color="#FFFFFF" />
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.headerIcon}>
+              <Ionicons name="chatbubble-outline" size={24} color="#FFFFFF" />
+            </TouchableOpacity>
+          </View>
         </View>
-      </View>
+      )}
 
       <Tabs screenOptions={{
         tabBarActiveTintColor:'#FFFFFF',
@@ -142,7 +146,15 @@ export default function RootLayout() {
         />
       </Tabs>
     </>
-  )
+  );
+}
+
+export default function RootLayout() {
+  return (
+    <HeaderProvider>
+      <TabsContent />
+    </HeaderProvider>
+  );
 }
 
 const styles = StyleSheet.create({

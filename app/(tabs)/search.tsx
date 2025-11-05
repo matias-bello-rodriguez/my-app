@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Picker } from '@react-native-picker/picker';
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import {
     ActivityIndicator,
     Alert,
@@ -13,6 +13,7 @@ import {
     TouchableOpacity,
     View
 } from 'react-native';
+import { useHeader } from '../../contexts/HeaderContext';
 
 const { width } = Dimensions.get('window');
 
@@ -108,11 +109,22 @@ const RangeSlider = ({
 };
 
 export default function Search() {
+  const { hideHeader, showHeader } = useHeader();
+  
   // Estados principales
   const [searchQuery, setSearchQuery] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
   const [searchResults, setSearchResults] = useState<VehicleResult[]>([]);
+
+  // Ocultar header cuando el componente se monte y mostrarlo cuando se desmonte
+  useEffect(() => {
+    hideHeader();
+    
+    return () => {
+      showHeader();
+    };
+  }, [hideHeader, showHeader]);
   
   // Estados de filtros
   const [filters, setFilters] = useState<SearchFilters>({
@@ -471,7 +483,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#4CAF50',
     paddingHorizontal: 16,
     paddingVertical: 12,
-    paddingTop: 16,
+    paddingTop: 50, // Más padding top ya que no hay header del layout
   },
   searchBarContainer: {
     flexDirection: 'row',
