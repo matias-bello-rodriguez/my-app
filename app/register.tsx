@@ -326,12 +326,13 @@ export default function RegisterScreen(){
                             </View>
 
                             {/* Footer */}
-                            <View style={styles.footer}>
-                                <Text style={styles.footerText}>¿Ya tienes cuenta? </Text>
-                                <TouchableOpacity onPress={goToLogin}>
-                                    <Text style={styles.loginText}>Inicia sesión</Text>
-                                </TouchableOpacity>
-                            </View>
+                            <TouchableOpacity 
+                                style={styles.footer} 
+                                onPress={goToLogin}
+                            >
+                                <Ionicons name="arrow-back" size={20} color="#4CAF50" />
+                                <Text style={styles.loginText}> ¿Ya tienes cuenta? Inicia sesión</Text>
+                            </TouchableOpacity>
                         </View>
                     </ScrollView>
                 </TouchableWithoutFeedback>
@@ -463,9 +464,8 @@ const styles = StyleSheet.create({
     footer: {
         flexDirection: 'row',
         justifyContent: 'center',
-        alignItems: 'center',
-        flex: 0.13,
-        paddingTop: 10,
+        alignItems: 'flex-end',
+        flex: 0.2,
     },
     footerText: {
         color: '#666666',

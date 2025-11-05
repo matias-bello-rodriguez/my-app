@@ -36,6 +36,27 @@ export default function AuthScreen(){
         router.push('/forgot-password');
     };
 
+    const handleGoogleLogin = () => {
+        // Aquí iría la lógica de autenticación con Google
+        console.log('Google login attempt');
+        // Simular login exitoso para propósitos de demostración
+        router.replace('/(tabs)');
+    };
+
+    const handleFacebookLogin = () => {
+        // Aquí iría la lógica de autenticación con Facebook
+        console.log('Facebook login attempt');
+        // Simular login exitoso para propósitos de demostración
+        router.replace('/(tabs)');
+    };
+
+    const handleOutlookLogin = () => {
+        // Aquí iría la lógica de autenticación con Microsoft/Outlook
+        console.log('Outlook login attempt');
+        // Simular login exitoso para propósitos de demostración
+        router.replace('/(tabs)');
+    };
+
     return (
         <>
             <StatusBar barStyle="dark-content" backgroundColor="#E8F5E8" />
@@ -118,15 +139,41 @@ export default function AuthScreen(){
                                 <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
                                     <Text style={styles.loginButtonText}>INICIAR SESIÓN</Text>
                                 </TouchableOpacity>
+
+                                {/* Separador */}
+                                <View style={styles.dividerContainer}>
+                                    <View style={styles.dividerLine} />
+                                    <Text style={styles.dividerText}>O continúa con</Text>
+                                    <View style={styles.dividerLine} />
+                                </View>
+
+                                {/* Botones de redes sociales */}
+                                <View style={styles.socialButtonsContainer}>
+                                    <TouchableOpacity style={styles.socialButton} onPress={handleGoogleLogin}>
+                                        <Ionicons name="logo-google" size={24} color="#DB4437" />
+                                        <Text style={styles.socialButtonText}>Google</Text>
+                                    </TouchableOpacity>
+
+                                    <TouchableOpacity style={styles.socialButton} onPress={handleFacebookLogin}>
+                                        <Ionicons name="logo-facebook" size={24} color="#4267B2" />
+                                        <Text style={styles.socialButtonText}>Facebook</Text>
+                                    </TouchableOpacity>
+
+                                    <TouchableOpacity style={styles.socialButton} onPress={handleOutlookLogin}>
+                                        <Ionicons name="mail" size={24} color="#0078D4" />
+                                        <Text style={styles.socialButtonText}>Outlook</Text>
+                                    </TouchableOpacity>
+                                </View>
                             </View>
 
                             {/* Footer */}
-                            <View style={styles.footer}>
-                                <Text style={styles.footerText}>¿No tienes cuenta? </Text>
-                                <TouchableOpacity onPress={goToRegister}>
-                                    <Text style={styles.signUpText}>Regístrate aquí</Text>
-                                </TouchableOpacity>
-                            </View>
+                            <TouchableOpacity 
+                                style={styles.footer} 
+                                onPress={goToRegister}
+                            >
+                                <Ionicons name="person-add" size={20} color="#4CAF50" />
+                                <Text style={styles.signUpText}> ¿No tienes cuenta? Regístrate</Text>
+                            </TouchableOpacity>
                         </View>
                     </ScrollView>
                 </TouchableWithoutFeedback>
@@ -154,7 +201,7 @@ const styles = StyleSheet.create({
     },
     headerContainer: {
         alignItems: 'center',
-        flex: 0.25,
+        flex: 0.15,
         justifyContent: 'center',
     },
     logoContainer: {
@@ -189,7 +236,7 @@ const styles = StyleSheet.create({
         textTransform: 'uppercase',
     },
     formContainer: {
-        flex: 0.3,
+        flex: 0.5,
     },
     welcomeText: {
         fontSize: 24,
@@ -267,7 +314,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'center',
         alignItems: 'flex-end',
-        flex: 0.2,
+        flex: 0.15,
     },
     footerText: {
         color: '#666666',
@@ -276,6 +323,52 @@ const styles = StyleSheet.create({
     signUpText: {
         color: '#4CAF50',
         fontSize: 14,
+        fontWeight: '600',
+    },
+    // Estilos para login social
+    dividerContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginVertical: 20,
+    },
+    dividerLine: {
+        flex: 1,
+        height: 1,
+        backgroundColor: '#CCCCCC',
+    },
+    dividerText: {
+        marginHorizontal: 15,
+        color: '#666666',
+        fontSize: 14,
+        fontWeight: '500',
+    },
+    socialButtonsContainer: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        marginBottom: 20,
+        gap: 10,
+    },
+    socialButton: {
+        flex: 1,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: '#FFFFFF',
+        borderRadius: 12,
+        paddingVertical: 15,
+        paddingHorizontal: 10,
+        borderWidth: 2,
+        borderColor: '#E0E0E0',
+        shadowColor: '#000000',
+        shadowOffset: { width: 0, height: 3 },
+        shadowOpacity: 0.1,
+        shadowRadius: 6,
+        elevation: 4,
+    },
+    socialButtonText: {
+        marginLeft: 8,
+        color: '#333333',
+        fontSize: 12,
         fontWeight: '600',
     },
 });
