@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect, useRouter } from 'expo-router';
-import { useCallback, useState, useRef, useEffect } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import {
     Alert,
     Dimensions,
@@ -357,16 +357,67 @@ export default function Search() {
 
   // Renderizar resultado de búsqueda
   const renderSearchResult = ({ item }: { item: VehicleResult }) => (
-    <TouchableOpacity style={styles.resultCard}>
-      <View style={styles.resultHeader}>
-        <Text style={styles.resultTitle}>{item.brand} {item.model}</Text>
-        <Text style={styles.resultPrice}>{formatCurrency(item.price)}</Text>
+    <TouchableOpacity style={styles.resultCard} activeOpacity={0.95}>
+      {/* Imagen del vehículo */}
+      <View style={styles.resultImageContainer}>
+        <View style={styles.resultPlaceholderImage}>
+          <Ionicons name="car-sport" size={32} color="#FFFFFF" />
+        </View>
+        <View style={styles.resultBadge}>
+          <Text style={styles.resultBadgeText}>DESTACADO</Text>
+        </View>
       </View>
-      <View style={styles.resultDetails}>
-        <Text style={styles.resultDetail}>Año: {item.year}</Text>
-        <Text style={styles.resultDetail}>Km: {formatKilometers(item.mileage)}</Text>
-        <Text style={styles.resultDetail}>{item.fuel} | {item.transmission}</Text>
-        <Text style={styles.resultLocation}>{item.location}</Text>
+      
+      {/* Contenido principal */}
+      <View style={styles.resultContent}>
+        <View style={styles.resultMainInfo}>
+          <View style={styles.resultTitleContainer}>
+            <Text style={styles.resultTitle}>{item.brand} {item.model}</Text>
+            <View style={styles.resultYearBadge}>
+              <Text style={styles.resultYearText}>{item.year}</Text>
+            </View>
+          </View>
+          
+          <Text style={styles.resultPrice}>{formatCurrency(item.price)}</Text>
+        </View>
+        
+        {/* Detalles en chips */}
+        <View style={styles.resultDetailsChips}>
+          <View style={styles.resultChip}>
+            <Ionicons name="speedometer" size={14} color="#4CAF50" />
+            <Text style={styles.resultChipText}>{formatKilometers(item.mileage)}</Text>
+          </View>
+          
+          <View style={styles.resultChip}>
+            <Ionicons name="flash" size={14} color="#4CAF50" />
+            <Text style={styles.resultChipText}>{item.fuel}</Text>
+          </View>
+          
+          <View style={styles.resultChip}>
+            <Ionicons name="settings" size={14} color="#4CAF50" />
+            <Text style={styles.resultChipText}>{item.transmission}</Text>
+          </View>
+        </View>
+        
+        {/* Ubicación y acciones */}
+        <View style={styles.resultFooter}>
+          <View style={styles.resultLocationContainer}>
+            <Ionicons name="location" size={16} color="#65676B" />
+            <Text style={styles.resultLocation}>{item.location}</Text>
+          </View>
+          
+          <View style={styles.resultActions}>
+            <TouchableOpacity style={styles.resultActionButton}>
+              <Ionicons name="heart-outline" size={18} color="#65676B" />
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.resultActionButton}>
+              <Ionicons name="share-outline" size={18} color="#65676B" />
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.resultPrimaryButton}>
+              <Text style={styles.resultPrimaryButtonText}>Ver más</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
       </View>
     </TouchableOpacity>
   );
@@ -670,15 +721,23 @@ export default function Search() {
         {/* Resultados de búsqueda */}
         {searchResults.length > 0 && (
           <View style={styles.resultsContainer}>
-            <Text style={styles.resultsTitle}>
-              {searchResults.length} vehículos encontrados
-            </Text>
+            <View style={styles.resultsHeader}>
+              <Text style={styles.resultsTitle}>
+                {searchResults.length} vehículos encontrados
+              </Text>
+              <TouchableOpacity style={styles.sortButton}>
+                <Text style={styles.sortButtonText}>Ordenar</Text>
+                <Ionicons name="chevron-down" size={16} color="#1976D2" />
+              </TouchableOpacity>
+            </View>
+            
             <FlatList
               data={searchResults}
               renderItem={renderSearchResult}
               keyExtractor={(item) => item.id}
               scrollEnabled={false}
               showsVerticalScrollIndicator={false}
+              contentContainerStyle={styles.resultsList}
             />
           </View>
         )}
@@ -873,28 +932,91 @@ const styles = StyleSheet.create({
   resultsContainer: {
     paddingHorizontal: 16,
     paddingBottom: 20,
+    paddingTop: 8,
+  },
+  resultsHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+    paddingHorizontal: 4,
+    paddingTop: 12,
   },
   resultsTitle: {
     fontSize: 18,
     fontWeight: 'bold',
     color: '#1C1E21',
-    marginBottom: 16,
+  },
+  sortButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    backgroundColor: '#E3F2FD',
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#1976D2',
+  },
+  sortButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#1976D2',
+  },
+  resultsList: {
+    paddingTop: 8,
   },
   resultCard: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
-    elevation: 2,
+    borderRadius: 16,
+    marginBottom: 16,
+    elevation: 3,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
-    shadowRadius: 4,
+    shadowRadius: 8,
+    overflow: 'hidden',
   },
-  resultHeader: {
+  resultImageContainer: {
+    height: 180,
+    backgroundColor: '#F0F2F5',
+    position: 'relative',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  resultPlaceholderImage: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: '#4CAF50',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  resultBadge: {
+    position: 'absolute',
+    top: 12,
+    right: 12,
+    backgroundColor: '#FF5722',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  resultBadgeText: {
+    color: '#FFFFFF',
+    fontSize: 10,
+    fontWeight: 'bold',
+    letterSpacing: 0.5,
+  },
+  resultContent: {
+    padding: 16,
+  },
+  resultMainInfo: {
+    marginBottom: 12,
+  },
+  resultTitleContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'flex-start',
+    alignItems: 'center',
     marginBottom: 8,
   },
   resultTitle: {
@@ -902,24 +1024,83 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#1C1E21',
     flex: 1,
+    marginRight: 8,
+  },
+  resultYearBadge: {
+    backgroundColor: '#E3F2FD',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  resultYearText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#1976D2',
   },
   resultPrice: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: 'bold',
     color: '#4CAF50',
   },
-  resultDetails: {
+  resultDetailsChips: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginBottom: 16,
+  },
+  resultChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F1F8E9',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
     gap: 4,
   },
-  resultDetail: {
-    fontSize: 14,
-    color: '#65676B',
+  resultChipText: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: '#4CAF50',
+  },
+  resultFooter: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  resultLocationContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    flex: 1,
   },
   resultLocation: {
     fontSize: 14,
-    color: '#4CAF50',
+    color: '#65676B',
     fontWeight: '500',
-    marginTop: 4,
+  },
+  resultActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  resultActionButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#F5F5F5',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  resultPrimaryButton: {
+    backgroundColor: '#4CAF50',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+  },
+  resultPrimaryButtonText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: '600',
   },
   // Estilos para dropdown
   dropdownButton: {
