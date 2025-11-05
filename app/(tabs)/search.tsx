@@ -1,5 +1,4 @@
 import { Ionicons } from '@expo/vector-icons';
-import Slider from '@react-native-community/slider';
 import { Picker } from '@react-native-picker/picker';
 import { useState } from 'react';
 import {
@@ -10,6 +9,46 @@ import {
     TouchableOpacity,
     View
 } from 'react-native';
+
+// Componente slider personalizado usando TouchableOpacity
+const CustomSlider = ({ 
+  value, 
+  onValueChange, 
+  minimumValue, 
+  maximumValue, 
+  step = 1 
+}: {
+  value: number;
+  onValueChange: (value: number) => void;
+  minimumValue: number;
+  maximumValue: number;
+  step?: number;
+}) => {
+  const percentage = ((value - minimumValue) / (maximumValue - minimumValue)) * 100;
+  
+  return (
+    <View style={styles.customSlider}>
+      <View style={styles.sliderTrack}>
+        <View style={[styles.sliderProgress, { width: `${percentage}%` }]} />
+        <View style={[styles.sliderThumb, { left: `${percentage}%` }]} />
+      </View>
+      <View style={styles.sliderControls}>
+        <TouchableOpacity 
+          style={styles.sliderButton}
+          onPress={() => onValueChange(Math.max(minimumValue, value - step))}
+        >
+          <Ionicons name="remove" size={16} color="#4CAF50" />
+        </TouchableOpacity>
+        <TouchableOpacity 
+          style={styles.sliderButton}
+          onPress={() => onValueChange(Math.min(maximumValue, value + step))}
+        >
+          <Ionicons name="add" size={16} color="#4CAF50" />
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+};
 
 export default function Search() {
   const [searchText, setSearchText] = useState('');
@@ -157,105 +196,81 @@ export default function Search() {
           </View>
         </View>
 
-        {/* Sliders de rangos */}
+        {/* Rangos de valores */}
         <View style={styles.slidersSection}>
           {/* Precio */}
-          <View style={styles.sliderContainer}>
-            <Text style={styles.sliderTitle}>Precio</Text>
-            <View style={styles.sliderValues}>
-              <Text style={styles.sliderValue}>{formatCurrency(priceRange.min)}</Text>
-              <Text style={styles.sliderValue}>{formatCurrency(priceRange.max)}</Text>
+          <View style={styles.rangeContainer}>
+            <Text style={styles.rangeTitle}>Precio</Text>
+            <View style={styles.rangeValues}>
+              <Text style={styles.rangeValueText}>Desde: {formatCurrency(priceRange.min)}</Text>
+              <Text style={styles.rangeValueText}>Hasta: {formatCurrency(priceRange.max)}</Text>
             </View>
-            <View style={styles.sliderWrapper}>
-              <Slider
-                style={styles.slider}
-                minimumValue={1000000}
-                maximumValue={100000000}
-                step={500000}
-                value={priceRange.min}
-                onValueChange={(value: number) => setPriceRange(prev => ({ ...prev, min: value }))}
-                minimumTrackTintColor="#4CAF50"
-                maximumTrackTintColor="#E4E6EA"
-                thumbStyle={styles.sliderThumb}
-              />
-              <Slider
-                style={styles.slider}
-                minimumValue={1000000}
-                maximumValue={100000000}
-                step={500000}
-                value={priceRange.max}
-                onValueChange={(value: number) => setPriceRange(prev => ({ ...prev, max: value }))}
-                minimumTrackTintColor="#4CAF50"
-                maximumTrackTintColor="#E4E6EA"
-                thumbStyle={styles.sliderThumb}
-              />
-            </View>
+            <Text style={styles.rangeSubtitle}>Mínimo</Text>
+            <CustomSlider
+              value={priceRange.min}
+              onValueChange={(value) => setPriceRange(prev => ({ ...prev, min: value }))}
+              minimumValue={1000000}
+              maximumValue={priceRange.max - 500000}
+              step={500000}
+            />
+            <Text style={styles.rangeSubtitle}>Máximo</Text>
+            <CustomSlider
+              value={priceRange.max}
+              onValueChange={(value) => setPriceRange(prev => ({ ...prev, max: value }))}
+              minimumValue={priceRange.min + 500000}
+              maximumValue={100000000}
+              step={500000}
+            />
           </View>
 
           {/* Kilometraje */}
-          <View style={styles.sliderContainer}>
-            <Text style={styles.sliderTitle}>Kilometraje</Text>
-            <View style={styles.sliderValues}>
-              <Text style={styles.sliderValue}>{formatKilometers(kilometrageRange.min)}</Text>
-              <Text style={styles.sliderValue}>{formatKilometers(kilometrageRange.max)}</Text>
+          <View style={styles.rangeContainer}>
+            <Text style={styles.rangeTitle}>Kilometraje</Text>
+            <View style={styles.rangeValues}>
+              <Text style={styles.rangeValueText}>Desde: {formatKilometers(kilometrageRange.min)}</Text>
+              <Text style={styles.rangeValueText}>Hasta: {formatKilometers(kilometrageRange.max)}</Text>
             </View>
-            <View style={styles.sliderWrapper}>
-              <Slider
-                style={styles.slider}
-                minimumValue={0}
-                maximumValue={300000}
-                step={5000}
-                value={kilometrageRange.min}
-                onValueChange={(value: number) => setKilometrageRange(prev => ({ ...prev, min: value }))}
-                minimumTrackTintColor="#4CAF50"
-                maximumTrackTintColor="#E4E6EA"
-                thumbStyle={styles.sliderThumb}
-              />
-              <Slider
-                style={styles.slider}
-                minimumValue={0}
-                maximumValue={300000}
-                step={5000}
-                value={kilometrageRange.max}
-                onValueChange={(value: number) => setKilometrageRange(prev => ({ ...prev, max: value }))}
-                minimumTrackTintColor="#4CAF50"
-                maximumTrackTintColor="#E4E6EA"
-                thumbStyle={styles.sliderThumb}
-              />
-            </View>
+            <Text style={styles.rangeSubtitle}>Mínimo</Text>
+            <CustomSlider
+              value={kilometrageRange.min}
+              onValueChange={(value) => setKilometrageRange(prev => ({ ...prev, min: value }))}
+              minimumValue={0}
+              maximumValue={kilometrageRange.max - 5000}
+              step={5000}
+            />
+            <Text style={styles.rangeSubtitle}>Máximo</Text>
+            <CustomSlider
+              value={kilometrageRange.max}
+              onValueChange={(value) => setKilometrageRange(prev => ({ ...prev, max: value }))}
+              minimumValue={kilometrageRange.min + 5000}
+              maximumValue={300000}
+              step={5000}
+            />
           </View>
 
           {/* Año */}
-          <View style={styles.sliderContainer}>
-            <Text style={styles.sliderTitle}>Año</Text>
-            <View style={styles.sliderValues}>
-              <Text style={styles.sliderValue}>{yearRange.min}</Text>
-              <Text style={styles.sliderValue}>{yearRange.max}</Text>
+          <View style={styles.rangeContainer}>
+            <Text style={styles.rangeTitle}>Año</Text>
+            <View style={styles.rangeValues}>
+              <Text style={styles.rangeValueText}>Desde: {yearRange.min}</Text>
+              <Text style={styles.rangeValueText}>Hasta: {yearRange.max}</Text>
             </View>
-            <View style={styles.sliderWrapper}>
-              <Slider
-                style={styles.slider}
-                minimumValue={2000}
-                maximumValue={2025}
-                step={1}
-                value={yearRange.min}
-                onValueChange={(value: number) => setYearRange(prev => ({ ...prev, min: value }))}
-                minimumTrackTintColor="#4CAF50"
-                maximumTrackTintColor="#E4E6EA"
-                thumbStyle={styles.sliderThumb}
-              />
-              <Slider
-                style={styles.slider}
-                minimumValue={2000}
-                maximumValue={2025}
-                step={1}
-                value={yearRange.max}
-                onValueChange={(value: number) => setYearRange(prev => ({ ...prev, max: value }))}
-                minimumTrackTintColor="#4CAF50"
-                maximumTrackTintColor="#E4E6EA"
-                thumbStyle={styles.sliderThumb}
-              />
-            </View>
+            <Text style={styles.rangeSubtitle}>Mínimo</Text>
+            <CustomSlider
+              value={yearRange.min}
+              onValueChange={(value) => setYearRange(prev => ({ ...prev, min: value }))}
+              minimumValue={2000}
+              maximumValue={yearRange.max - 1}
+              step={1}
+            />
+            <Text style={styles.rangeSubtitle}>Máximo</Text>
+            <CustomSlider
+              value={yearRange.max}
+              onValueChange={(value) => setYearRange(prev => ({ ...prev, max: value }))}
+              minimumValue={yearRange.min + 1}
+              maximumValue={2025}
+              step={1}
+            />
           </View>
         </View>
 
@@ -446,37 +461,84 @@ const styles = StyleSheet.create({
   slidersSection: {
     marginBottom: 24,
   },
-  sliderContainer: {
+  rangeContainer: {
     marginBottom: 20,
+    backgroundColor: '#FAFAFA',
+    borderRadius: 12,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: '#E4E6EA',
   },
-  sliderTitle: {
+  rangeTitle: {
     fontSize: 16,
     fontWeight: '600',
     color: '#1C1E21',
-    marginBottom: 8,
+    marginBottom: 12,
   },
-  sliderValues: {
+  rangeValues: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    marginBottom: 12,
+  },
+  rangeValueText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#4CAF50',
+  },
+  rangeSubtitle: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: '#65676B',
+    marginTop: 12,
+    marginBottom: 6,
+  },
+  customSlider: {
+    marginVertical: 8,
+  },
+  sliderTrack: {
+    height: 6,
+    backgroundColor: '#E4E6EA',
+    borderRadius: 3,
+    position: 'relative',
     marginBottom: 8,
   },
-  sliderValue: {
-    fontSize: 14,
-    color: '#4CAF50',
-    fontWeight: '600',
-  },
-  sliderWrapper: {
-    marginHorizontal: 8,
-  },
-  slider: {
-    width: '100%',
-    height: 40,
-    marginVertical: 4,
+  sliderProgress: {
+    height: 6,
+    backgroundColor: '#4CAF50',
+    borderRadius: 3,
   },
   sliderThumb: {
+    position: 'absolute',
+    top: -6,
+    width: 18,
+    height: 18,
     backgroundColor: '#4CAF50',
-    width: 20,
-    height: 20,
+    borderRadius: 9,
+    marginLeft: -9,
+    borderWidth: 2,
+    borderColor: '#FFFFFF',
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.2,
+    shadowRadius: 2,
+  },
+  sliderControls: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  sliderButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#F1F8E9',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#4CAF50',
   },
   additionalFiltersSection: {
     marginBottom: 24,
