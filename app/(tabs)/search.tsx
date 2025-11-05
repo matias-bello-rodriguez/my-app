@@ -1,9 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Picker } from '@react-native-picker/picker';
-import { useRouter, useFocusEffect } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
 import { useCallback, useState } from 'react';
 import {
-    ActivityIndicator,
     Alert,
     Dimensions,
     FlatList,
@@ -115,7 +114,6 @@ export default function Search() {
   
   // Estados principales
   const [searchQuery, setSearchQuery] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
   const [searchResults, setSearchResults] = useState<VehicleResult[]>([]);
 
@@ -200,7 +198,6 @@ export default function Search() {
 
   // Manejadores de eventos
   const handleSearch = useCallback(async () => {
-    setIsLoading(true);
     try {
       // Simular búsqueda
       await new Promise(resolve => setTimeout(resolve, 1500));
@@ -234,10 +231,8 @@ export default function Search() {
       setSearchResults(mockResults);
     } catch (error) {
       Alert.alert('Error', 'Hubo un problema al realizar la búsqueda');
-    } finally {
-      setIsLoading(false);
     }
-  }, [filters, searchQuery]);
+  }, []);
 
   const clearFilters = useCallback(() => {
     setFilters({
@@ -457,24 +452,6 @@ export default function Search() {
           </View>
         )}
 
-        {/* Botón de búsqueda principal */}
-        <View style={styles.searchButtonContainer}>
-          <TouchableOpacity 
-            style={[styles.searchButton, isLoading && styles.searchButtonDisabled]}
-            onPress={handleSearch}
-            disabled={isLoading}
-          >
-            {isLoading ? (
-              <ActivityIndicator color="#FFFFFF" size="small" />
-            ) : (
-              <Ionicons name="search" size={20} color="#FFFFFF" />
-            )}
-            <Text style={styles.searchButtonText}>
-              {isLoading ? 'Buscando...' : 'Buscar vehículos'}
-            </Text>
-          </TouchableOpacity>
-        </View>
-
         {/* Resultados de búsqueda */}
         {searchResults.length > 0 && (
           <View style={styles.resultsContainer}>
@@ -677,34 +654,6 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '600',
-  },
-  searchButtonContainer: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-  },
-  searchButton: {
-    backgroundColor: '#4CAF50',
-    borderRadius: 16,
-    paddingVertical: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 12,
-    elevation: 4,
-    shadowColor: '#4CAF50',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-  },
-  searchButtonDisabled: {
-    backgroundColor: '#A5D6A7',
-    elevation: 0,
-    shadowOpacity: 0,
-  },
-  searchButtonText: {
-    color: '#FFFFFF',
-    fontSize: 18,
-    fontWeight: 'bold',
   },
   resultsContainer: {
     paddingHorizontal: 16,
