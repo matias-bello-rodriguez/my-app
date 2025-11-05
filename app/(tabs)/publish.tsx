@@ -85,23 +85,6 @@ export default function Publish() {
         ))}
       </View>
 
-      <View style={styles.infoCard}>
-        <Text style={styles.infoTitle}>¿Necesitas ayuda?</Text>
-        <View style={styles.infoItems}>
-          <View style={styles.infoItem}>
-            <Ionicons name="call" size={20} color="#4CAF50" />
-            <Text style={styles.infoText}>Contacta a nuestros asesores</Text>
-          </View>
-          <View style={styles.infoItem}>
-            <Ionicons name="chatbubble" size={20} color="#4CAF50" />
-            <Text style={styles.infoText}>Chat en línea disponible</Text>
-          </View>
-          <View style={styles.infoItem}>
-            <Ionicons name="shield-checkmark" size={20} color="#4CAF50" />
-            <Text style={styles.infoText}>Transacciones 100% seguras</Text>
-          </View>
-        </View>
-      </View>
     </ScrollView>
   );
 }
