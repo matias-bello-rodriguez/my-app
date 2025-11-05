@@ -116,14 +116,6 @@ export default function InspectionPayment() {
             </View>
 
             <View style={styles.detailRow}>
-              <Ionicons name="time" size={20} color="#66BB6A" />
-              <View style={styles.detailContent}>
-                <Text style={styles.detailLabel}>Duración</Text>
-                <Text style={styles.detailValue}>{inspectionDetails.duration}</Text>
-              </View>
-            </View>
-
-            <View style={styles.detailRow}>
               <Ionicons name="document-text" size={20} color="#66BB6A" />
               <View style={styles.detailContent}>
                 <Text style={styles.detailLabel}>Vehículo</Text>
@@ -240,7 +232,10 @@ export default function InspectionPayment() {
             </TouchableOpacity>
 
             <TouchableOpacity 
-              style={[styles.payButton, !selectedPaymentMethod && styles.disabledButton]} 
+              style={[
+                styles.payButton, 
+                !selectedPaymentMethod && styles.disabledButton
+              ]} 
               onPress={handlePayment}
               activeOpacity={0.8}
               disabled={!selectedPaymentMethod}
@@ -424,6 +419,8 @@ const styles = StyleSheet.create({
   },
   disabledButton: {
     backgroundColor: '#CCC',
+    borderColor: '#999',
+    shadowColor: '#999',
     opacity: 0.6,
   },
   nextButton: {
