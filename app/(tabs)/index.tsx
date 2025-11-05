@@ -1,12 +1,12 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
 import {
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View
+    ScrollView,
+    StatusBar,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View
 } from 'react-native';
 
 export default function Index() {
@@ -52,146 +52,211 @@ export default function Index() {
         }).format(amount);
     };
 
-    const CarCard = ({ car, showStatus = false, showLocation = false, showInspection = false, showTime = false }: any) => (
-        <TouchableOpacity style={styles.carCard}>
-            <View style={styles.carImageContainer}>
-                <Text style={styles.carEmoji}>{car.image}</Text>
-            </View>
-            <View style={styles.carInfo}>
-                <Text style={styles.carModel}>{car.model}</Text>
-                <Text style={styles.carPrice}>{car.price}</Text>
-                {showStatus && <Text style={styles.carStatus}>{car.status}</Text>}
-                {showLocation && <Text style={styles.carLocation}>📍 {car.location}</Text>}
-                {showInspection && <Text style={styles.carInspection}>{car.inspection}</Text>}
-                {showTime && <Text style={styles.carTime}>{car.time}</Text>}
-            </View>
-        </TouchableOpacity>
-    );
-
     return (
         <>
-            <StatusBar barStyle="dark-content" backgroundColor="#E8F5E8" />
+            <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
             <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-                {/* Header */}
+                {/* Header estilo Facebook */}
                 <View style={styles.header}>
-                    <View style={styles.userInfo}>
+                    <Text style={styles.appTitle}>AutoBox</Text>
+                    <View style={styles.headerIcons}>
+                        <TouchableOpacity style={styles.headerIcon}>
+                            <Ionicons name="search" size={24} color="#1C1E21" />
+                        </TouchableOpacity>
+                        <TouchableOpacity style={styles.headerIcon}>
+                            <Ionicons name="chatbubble-outline" size={24} color="#1C1E21" />
+                        </TouchableOpacity>
+                    </View>
+                </View>
+
+                {/* Barra de estado del usuario */}
+                <View style={styles.userStatusBar}>
+                    <View style={styles.userStatusContent}>
                         <View style={styles.avatar}>
-                            <Ionicons name="person" size={24} color="#FFFFFF" />
+                            <Ionicons name="person" size={20} color="#FFFFFF" />
                         </View>
-                        <View style={styles.userDetails}>
-                            <Text style={styles.greeting}>¡Hola, Usuario!</Text>
-                            <Text style={styles.balance}>{formatCurrency(userBalance)}</Text>
-                        </View>
+                        <Text style={styles.statusText}>¿Qué auto estás buscando hoy?</Text>
                     </View>
-                    <View style={styles.headerActions}>
-                        <TouchableOpacity style={styles.actionButton}>
-                            <Ionicons name="chatbubble-outline" size={20} color="#4CAF50" />
-                        </TouchableOpacity>
-                        <TouchableOpacity style={styles.actionButton}>
-                            <Ionicons name="notifications-outline" size={20} color="#4CAF50" />
-                            <View style={styles.notificationBadge}>
-                                <Text style={styles.badgeText}>3</Text>
-                            </View>
-                        </TouchableOpacity>
-                    </View>
+                    <Text style={styles.balanceText}>{formatCurrency(userBalance)}</Text>
                 </View>
 
-                {/* Botones principales */}
-                <View style={styles.mainButtons}>
-                    <TouchableOpacity style={[styles.mainButton, { backgroundColor: '#4CAF50' }]}>
-                        <View style={styles.mechanicIcon}>
-                            <Ionicons name="person" size={30} color="#FFFFFF" />
-                            <View style={styles.mechanicHat}>
-                                <Text style={styles.hatText}>🧢</Text>
-                            </View>
-                        </View>
-                        <Text style={styles.mainButtonText}>Solicitar{'\n'}mecánico</Text>
-                    </TouchableOpacity>
-
-                    <TouchableOpacity style={[styles.mainButton, { backgroundColor: '#F44336' }]}>
-                        <View style={styles.inspectionIcon}>
-                            <Ionicons name="search" size={30} color="#FFFFFF" />
-                            <Text style={styles.carIcon}>🚗</Text>
-                        </View>
-                        <Text style={styles.mainButtonText}>Revisar{'\n'}inspección</Text>
-                    </TouchableOpacity>
-
-                    <TouchableOpacity style={[styles.mainButton, { backgroundColor: '#4CAF50' }]}>
-                        <View style={styles.sellIcon}>
-                            <Text style={styles.carIcon}>🚗</Text>
-                            <Ionicons name="logo-usd" size={20} color="#FFD700" style={styles.dollarSign} />
-                        </View>
-                        <Text style={styles.mainButtonText}>Vender{'\n'}mi auto</Text>
-                    </TouchableOpacity>
-                </View>
-
-                {/* Barra de marcas */}
-                <View style={styles.brandsSection}>
-                    <Text style={styles.sectionTitle}>Marcas populares</Text>
-                    <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.brandsScroll}>
+                {/* Navegación rápida */}
+                <View style={styles.quickNav}>
+                    <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.quickNavScroll}>
                         {brands.map((brand, index) => (
-                            <TouchableOpacity key={index} style={styles.brandItem}>
-                                <Text style={styles.brandLogo}>{brand.logo}</Text>
-                                <Text style={styles.brandName}>{brand.name}</Text>
+                            <TouchableOpacity key={index} style={styles.quickNavItem}>
+                                <Text style={styles.quickNavEmoji}>{brand.logo}</Text>
+                                <Text style={styles.quickNavText}>{brand.name}</Text>
                             </TouchableOpacity>
                         ))}
                     </ScrollView>
                 </View>
 
+                {/* Posts estilo feed */}
                 {/* Mis autos en venta */}
-                <View style={styles.section}>
-                    <Text style={[styles.sectionTitle, { color: '#2196F3' }]}>Mis autos en venta</Text>
-                    <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                <View style={styles.feedPost}>
+                    <View style={styles.postHeader}>
+                        <View style={styles.postUserInfo}>
+                            <View style={styles.postAvatar}>
+                                <Ionicons name="person" size={16} color="#FFFFFF" />
+                            </View>
+                            <View>
+                                <Text style={styles.postUserName}>Mis autos en venta</Text>
+                                <Text style={styles.postTime}>Hace 5 minutos</Text>
+                            </View>
+                        </View>
+                        <TouchableOpacity>
+                            <Ionicons name="ellipsis-horizontal" size={20} color="#65676B" />
+                        </TouchableOpacity>
+                    </View>
+                    <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.feedCarousel}>
                         {myCars.map((car) => (
-                            <CarCard key={car.id} car={car} showStatus={true} />
+                            <TouchableOpacity key={car.id} style={styles.feedCarCard}>
+                                <Text style={styles.feedCarEmoji}>{car.image}</Text>
+                                <Text style={styles.feedCarModel}>{car.model}</Text>
+                                <Text style={styles.feedCarPrice}>{car.price}</Text>
+                                <Text style={styles.feedCarStatus}>{car.status}</Text>
+                            </TouchableOpacity>
                         ))}
-                        <TouchableOpacity style={styles.addCarCard}>
-                            <Ionicons name="add-circle-outline" size={40} color="#4CAF50" />
-                            <Text style={styles.addCarText}>Agregar auto</Text>
+                        <TouchableOpacity style={styles.addCarFeedCard}>
+                            <Ionicons name="add" size={30} color="#4CAF50" />
+                            <Text style={styles.addCarFeedText}>Agregar</Text>
                         </TouchableOpacity>
                     </ScrollView>
+                    <View style={styles.postActions}>
+                        <TouchableOpacity style={styles.postAction}>
+                            <Ionicons name="heart-outline" size={20} color="#65676B" />
+                            <Text style={styles.postActionText}>Me gusta</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity style={styles.postAction}>
+                            <Ionicons name="chatbubble-outline" size={20} color="#65676B" />
+                            <Text style={styles.postActionText}>Comentar</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity style={styles.postAction}>
+                            <Ionicons name="share-outline" size={20} color="#65676B" />
+                            <Text style={styles.postActionText}>Compartir</Text>
+                        </TouchableOpacity>
+                    </View>
                 </View>
 
-                {/* Mis favoritos */}
-                <View style={styles.section}>
-                    <Text style={[styles.sectionTitle, { color: '#4CAF50' }]}>Mis favoritos</Text>
-                    <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                {/* Favoritos */}
+                <View style={styles.feedPost}>
+                    <View style={styles.postHeader}>
+                        <View style={styles.postUserInfo}>
+                            <View style={[styles.postAvatar, { backgroundColor: '#F44336' }]}>
+                                <Ionicons name="heart" size={16} color="#FFFFFF" />
+                            </View>
+                            <View>
+                                <Text style={styles.postUserName}>Mis favoritos</Text>
+                                <Text style={styles.postTime}>Actualizados</Text>
+                            </View>
+                        </View>
+                    </View>
+                    <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.feedCarousel}>
                         {favorites.map((car) => (
-                            <CarCard key={car.id} car={car} showLocation={true} />
+                            <TouchableOpacity key={car.id} style={styles.feedCarCard}>
+                                <Text style={styles.feedCarEmoji}>{car.image}</Text>
+                                <Text style={styles.feedCarModel}>{car.model}</Text>
+                                <Text style={styles.feedCarPrice}>{car.price}</Text>
+                                <Text style={styles.feedCarLocation}>📍 {car.location}</Text>
+                            </TouchableOpacity>
                         ))}
                     </ScrollView>
+                    <View style={styles.postActions}>
+                        <TouchableOpacity style={styles.postAction}>
+                            <Ionicons name="heart" size={20} color="#F44336" />
+                            <Text style={[styles.postActionText, { color: '#F44336' }]}>Me gusta</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity style={styles.postAction}>
+                            <Ionicons name="chatbubble-outline" size={20} color="#65676B" />
+                            <Text style={styles.postActionText}>Comentar</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity style={styles.postAction}>
+                            <Ionicons name="share-outline" size={20} color="#65676B" />
+                            <Text style={styles.postActionText}>Compartir</Text>
+                        </TouchableOpacity>
+                    </View>
                 </View>
 
-                {/* Publicados con inspección mecánica */}
-                <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>Publicados con inspección mecánica</Text>
-                    <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                {/* Inspecciones mecánicas */}
+                <View style={styles.feedPost}>
+                    <View style={styles.postHeader}>
+                        <View style={styles.postUserInfo}>
+                            <View style={[styles.postAvatar, { backgroundColor: '#2196F3' }]}>
+                                <Ionicons name="checkmark-circle" size={16} color="#FFFFFF" />
+                            </View>
+                            <View>
+                                <Text style={styles.postUserName}>Autos con inspección mecánica</Text>
+                                <Text style={styles.postTime}>Verificados ✅</Text>
+                            </View>
+                        </View>
+                    </View>
+                    <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.feedCarousel}>
                         {inspectedCars.map((car) => (
-                            <CarCard key={car.id} car={car} showInspection={true} />
+                            <TouchableOpacity key={car.id} style={styles.feedCarCard}>
+                                <Text style={styles.feedCarEmoji}>{car.image}</Text>
+                                <Text style={styles.feedCarModel}>{car.model}</Text>
+                                <Text style={styles.feedCarPrice}>{car.price}</Text>
+                                <Text style={styles.feedCarInspection}>{car.inspection}</Text>
+                            </TouchableOpacity>
                         ))}
                     </ScrollView>
+                    <View style={styles.postActions}>
+                        <TouchableOpacity style={styles.postAction}>
+                            <Ionicons name="heart-outline" size={20} color="#65676B" />
+                            <Text style={styles.postActionText}>Me gusta</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity style={styles.postAction}>
+                            <Ionicons name="chatbubble-outline" size={20} color="#65676B" />
+                            <Text style={styles.postActionText}>Comentar</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity style={styles.postAction}>
+                            <Ionicons name="share-outline" size={20} color="#65676B" />
+                            <Text style={styles.postActionText}>Compartir</Text>
+                        </TouchableOpacity>
+                    </View>
                 </View>
 
                 {/* Últimos publicados */}
-                <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>Últimos publicados</Text>
-                    <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                <View style={styles.feedPost}>
+                    <View style={styles.postHeader}>
+                        <View style={styles.postUserInfo}>
+                            <View style={[styles.postAvatar, { backgroundColor: '#FF9800' }]}>
+                                <Ionicons name="time" size={16} color="#FFFFFF" />
+                            </View>
+                            <View>
+                                <Text style={styles.postUserName}>Últimos publicados</Text>
+                                <Text style={styles.postTime}>Recién agregados</Text>
+                            </View>
+                        </View>
+                    </View>
+                    <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.feedCarousel}>
                         {latestCars.map((car) => (
-                            <CarCard key={car.id} car={car} showTime={true} />
+                            <TouchableOpacity key={car.id} style={styles.feedCarCard}>
+                                <Text style={styles.feedCarEmoji}>{car.image}</Text>
+                                <Text style={styles.feedCarModel}>{car.model}</Text>
+                                <Text style={styles.feedCarPrice}>{car.price}</Text>
+                                <Text style={styles.feedCarTime}>{car.time}</Text>
+                            </TouchableOpacity>
                         ))}
                     </ScrollView>
+                    <View style={styles.postActions}>
+                        <TouchableOpacity style={styles.postAction}>
+                            <Ionicons name="heart-outline" size={20} color="#65676B" />
+                            <Text style={styles.postActionText}>Me gusta</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity style={styles.postAction}>
+                            <Ionicons name="chatbubble-outline" size={20} color="#65676B" />
+                            <Text style={styles.postActionText}>Comentar</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity style={styles.postAction}>
+                            <Ionicons name="share-outline" size={20} color="#65676B" />
+                            <Text style={styles.postActionText}>Compartir</Text>
+                        </TouchableOpacity>
+                    </View>
                 </View>
 
-                {/* Botón final */}
-                <TouchableOpacity style={styles.finalButton}>
-                    <View style={styles.finalButtonContent}>
-                        <Ionicons name="flash" size={24} color="#FFFFFF" />
-                        <Text style={styles.finalButtonText}>Económicos y rendidores</Text>
-                        <Ionicons name="arrow-forward" size={20} color="#FFFFFF" />
-                    </View>
-                </TouchableOpacity>
-
-                {/* Espacio final */}
+                {/* Espaciado final */}
                 <View style={styles.bottomSpace} />
             </ScrollView>
         </>
@@ -201,340 +266,229 @@ export default function Index() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#E8F5E8',
+        backgroundColor: '#F0F2F5',
     },
     header: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        paddingHorizontal: 24,
-        paddingVertical: 20,
+        paddingHorizontal: 16,
+        paddingVertical: 12,
         backgroundColor: '#FFFFFF',
-        shadowColor: '#4CAF50',
-        shadowOffset: { width: 0, height: 6 },
-        shadowOpacity: 0.15,
-        shadowRadius: 12,
-        elevation: 8,
-        borderBottomWidth: 2,
-        borderBottomColor: '#4CAF50',
+        borderBottomWidth: 1,
+        borderBottomColor: '#E4E6EA',
+        elevation: 2,
+        shadowColor: '#000000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
     },
-    userInfo: {
+    appTitle: {
+        fontSize: 24,
+        fontWeight: 'bold',
+        color: '#1877F2',
+        letterSpacing: 0.5,
+    },
+    headerIcons: {
+        flexDirection: 'row',
+        gap: 16,
+    },
+    headerIcon: {
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+        backgroundColor: '#F0F2F5',
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    userStatusBar: {
+        backgroundColor: '#FFFFFF',
+        paddingHorizontal: 16,
+        paddingVertical: 12,
         flexDirection: 'row',
         alignItems: 'center',
+        justifyContent: 'space-between',
+        borderBottomWidth: 1,
+        borderBottomColor: '#E4E6EA',
+    },
+    userStatusContent: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        flex: 1,
     },
     avatar: {
-        width: 55,
-        height: 55,
-        borderRadius: 27.5,
+        width: 40,
+        height: 40,
+        borderRadius: 20,
         backgroundColor: '#4CAF50',
         alignItems: 'center',
         justifyContent: 'center',
-        marginRight: 15,
-        shadowColor: '#4CAF50',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.3,
-        shadowRadius: 8,
-        elevation: 6,
-        borderWidth: 2,
-        borderColor: '#45A049',
+        marginRight: 12,
     },
-    avatarText: {
-        fontSize: 24,
-        color: '#FFFFFF',
-    },
-    userDetails: {
+    statusText: {
+        fontSize: 16,
+        color: '#65676B',
         flex: 1,
     },
-    greeting: {
-        fontSize: 18,
+    balanceText: {
+        fontSize: 14,
+        color: '#4CAF50',
         fontWeight: 'bold',
-        color: '#333333',
+    },
+    quickNav: {
+        backgroundColor: '#FFFFFF',
+        paddingVertical: 12,
+        borderBottomWidth: 1,
+        borderBottomColor: '#E4E6EA',
+    },
+    quickNavScroll: {
+        paddingHorizontal: 16,
+    },
+    quickNavItem: {
+        alignItems: 'center',
+        marginRight: 20,
+        paddingHorizontal: 12,
+        paddingVertical: 8,
+    },
+    quickNavEmoji: {
+        fontSize: 24,
         marginBottom: 4,
     },
-    balance: {
-        fontSize: 16,
-        color: '#4CAF50',
-        fontWeight: 'bold',
+    quickNavText: {
+        fontSize: 12,
+        color: '#65676B',
+        fontWeight: '500',
     },
-    headerActions: {
-        flexDirection: 'row',
-        gap: 12,
-    },
-    actionButton: {
-        width: 48,
-        height: 48,
-        borderRadius: 24,
-        backgroundColor: '#E8F5E8',
-        alignItems: 'center',
-        justifyContent: 'center',
-        position: 'relative',
-        borderWidth: 2,
-        borderColor: '#4CAF50',
-        shadowColor: '#4CAF50',
-        shadowOffset: { width: 0, height: 3 },
-        shadowOpacity: 0.2,
-        shadowRadius: 6,
-        elevation: 4,
-    },
-    notificationBadge: {
-        position: 'absolute',
-        top: 2,
-        right: 2,
-        backgroundColor: '#FF5722',
-        borderRadius: 10,
-        width: 20,
-        height: 20,
-        alignItems: 'center',
-        justifyContent: 'center',
-        borderWidth: 2,
-        borderColor: '#FFFFFF',
-    },
-    badgeText: {
-        fontSize: 10,
-        color: '#FFFFFF',
-        fontWeight: 'bold',
-    },
-    mainButtons: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        paddingHorizontal: 24,
-        paddingVertical: 30,
-        gap: 15,
-    },
-    mainButton: {
-        flex: 1,
-        aspectRatio: 1,
-        borderRadius: 16,
-        alignItems: 'center',
-        justifyContent: 'center',
-        shadowColor: '#4CAF50',
-        shadowOffset: { width: 0, height: 6 },
-        shadowOpacity: 0.4,
-        shadowRadius: 10,
-        elevation: 8,
-        borderWidth: 2,
-        borderColor: '#45A049',
-    },
-    mainButtonText: {
-        color: '#FFFFFF',
-        fontSize: 14,
-        fontWeight: 'bold',
-        textAlign: 'center',
-        marginTop: 12,
-        letterSpacing: 0.5,
-    },
-    mechanicIcon: {
-        position: 'relative',
-        alignItems: 'center',
-    },
-    mechanicHat: {
-        position: 'absolute',
-        top: -10,
-        left: 5,
-    },
-    hatText: {
-        fontSize: 16,
-    },
-    inspectionIcon: {
-        position: 'relative',
-        alignItems: 'center',
-    },
-    sellIcon: {
-        position: 'relative',
-        alignItems: 'center',
-    },
-    carIcon: {
-        fontSize: 24,
-        position: 'absolute',
-        top: 5,
-    },
-    dollarSign: {
-        position: 'absolute',
-        top: -5,
-        right: -10,
-    },
-    brandsSection: {
-        paddingVertical: 25,
+    feedPost: {
         backgroundColor: '#FFFFFF',
-        marginVertical: 20,
-        marginHorizontal: 24,
-        borderRadius: 16,
-        shadowColor: '#4CAF50',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.15,
-        shadowRadius: 8,
-        elevation: 6,
-        borderWidth: 1,
-        borderColor: '#E8F5E8',
+        marginVertical: 4,
+        borderRadius: 0,
     },
-    sectionTitle: {
-        fontSize: 20,
-        fontWeight: 'bold',
-        color: '#333333',
-        paddingHorizontal: 24,
-        marginBottom: 18,
-        letterSpacing: 0.5,
-    },
-    brandsScroll: {
-        paddingLeft: 24,
-    },
-    brandItem: {
+    postHeader: {
+        flexDirection: 'row',
         alignItems: 'center',
-        marginRight: 25,
-        width: 80,
-        backgroundColor: '#E8F5E8',
-        borderRadius: 12,
+        justifyContent: 'space-between',
+        paddingHorizontal: 16,
         paddingVertical: 12,
-        borderWidth: 1,
-        borderColor: '#4CAF50',
     },
-    brandLogo: {
-        fontSize: 28,
+    postUserInfo: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    postAvatar: {
+        width: 32,
+        height: 32,
+        borderRadius: 16,
+        backgroundColor: '#4CAF50',
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginRight: 12,
+    },
+    postUserName: {
+        fontSize: 15,
+        fontWeight: '600',
+        color: '#1C1E21',
+    },
+    postTime: {
+        fontSize: 13,
+        color: '#65676B',
+        marginTop: 2,
+    },
+    feedCarousel: {
+        paddingLeft: 16,
+        paddingBottom: 12,
+    },
+    feedCarCard: {
+        width: 160,
+        backgroundColor: '#F0F2F5',
+        borderRadius: 12,
+        marginRight: 12,
+        padding: 12,
+        alignItems: 'center',
+    },
+    feedCarEmoji: {
+        fontSize: 40,
         marginBottom: 8,
     },
-    brandName: {
-        fontSize: 12,
-        color: '#333333',
-        textAlign: 'center',
+    feedCarModel: {
+        fontSize: 14,
         fontWeight: '600',
+        color: '#1C1E21',
+        textAlign: 'center',
+        marginBottom: 4,
     },
-    section: {
-        paddingVertical: 25,
-        backgroundColor: '#FFFFFF',
-        marginVertical: 10,
-        marginHorizontal: 24,
-        borderRadius: 16,
-        shadowColor: '#4CAF50',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.15,
-        shadowRadius: 8,
-        elevation: 6,
-        borderWidth: 1,
-        borderColor: '#E8F5E8',
-    },
-    carCard: {
-        width: 220,
-        backgroundColor: '#FFFFFF',
-        borderRadius: 16,
-        marginLeft: 24,
-        shadowColor: '#4CAF50',
-        shadowOffset: { width: 0, height: 6 },
-        shadowOpacity: 0.2,
-        shadowRadius: 10,
-        elevation: 8,
-        overflow: 'hidden',
-        borderWidth: 2,
-        borderColor: '#E8F5E8',
-    },
-    carImageContainer: {
-        height: 130,
-        backgroundColor: '#E8F5E8',
-        alignItems: 'center',
-        justifyContent: 'center',
-        borderBottomWidth: 1,
-        borderBottomColor: '#4CAF50',
-    },
-    carEmoji: {
-        fontSize: 52,
-    },
-    carInfo: {
-        padding: 16,
-    },
-    carModel: {
+    feedCarPrice: {
         fontSize: 16,
         fontWeight: 'bold',
-        color: '#333333',
-        marginBottom: 6,
-        letterSpacing: 0.3,
-    },
-    carPrice: {
-        fontSize: 18,
-        fontWeight: 'bold',
         color: '#4CAF50',
-        marginBottom: 6,
+        marginBottom: 4,
     },
-    carStatus: {
-        fontSize: 13,
+    feedCarStatus: {
+        fontSize: 12,
         color: '#2196F3',
-        fontWeight: '600',
         backgroundColor: '#E3F2FD',
         paddingHorizontal: 8,
-        paddingVertical: 4,
-        borderRadius: 8,
-        alignSelf: 'flex-start',
+        paddingVertical: 2,
+        borderRadius: 4,
     },
-    carLocation: {
-        fontSize: 13,
-        color: '#666666',
-        fontWeight: '500',
+    feedCarLocation: {
+        fontSize: 12,
+        color: '#65676B',
     },
-    carInspection: {
-        fontSize: 13,
+    feedCarInspection: {
+        fontSize: 12,
         color: '#4CAF50',
-        fontWeight: '600',
         backgroundColor: '#E8F5E8',
         paddingHorizontal: 8,
-        paddingVertical: 4,
-        borderRadius: 8,
-        alignSelf: 'flex-start',
+        paddingVertical: 2,
+        borderRadius: 4,
     },
-    carTime: {
-        fontSize: 13,
-        color: '#666666',
+    feedCarTime: {
+        fontSize: 12,
+        color: '#65676B',
         fontStyle: 'italic',
-        fontWeight: '500',
     },
-    addCarCard: {
-        width: 220,
-        height: 200,
-        backgroundColor: '#E8F5E8',
-        borderRadius: 16,
-        marginLeft: 24,
-        borderWidth: 3,
-        borderColor: '#4CAF50',
-        borderStyle: 'dashed',
+    addCarFeedCard: {
+        width: 160,
+        backgroundColor: '#F0F2F5',
+        borderRadius: 12,
+        marginRight: 12,
+        padding: 12,
         alignItems: 'center',
         justifyContent: 'center',
-        shadowColor: '#4CAF50',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.2,
-        shadowRadius: 8,
-        elevation: 6,
-    },
-    addCarText: {
-        fontSize: 16,
-        color: '#4CAF50',
-        fontWeight: 'bold',
-        marginTop: 12,
-        letterSpacing: 0.5,
-    },
-    finalButton: {
-        marginHorizontal: 24,
-        marginVertical: 30,
-        backgroundColor: '#4CAF50',
-        borderRadius: 16,
-        padding: 24,
-        shadowColor: '#4CAF50',
-        shadowOffset: { width: 0, height: 6 },
-        shadowOpacity: 0.4,
-        shadowRadius: 12,
-        elevation: 8,
         borderWidth: 2,
-        borderColor: '#45A049',
+        borderColor: '#4CAF50',
+        borderStyle: 'dashed',
+        height: 140,
     },
-    finalButtonContent: {
+    addCarFeedText: {
+        fontSize: 14,
+        color: '#4CAF50',
+        fontWeight: '600',
+        marginTop: 8,
+    },
+    postActions: {
+        flexDirection: 'row',
+        borderTopWidth: 1,
+        borderTopColor: '#E4E6EA',
+        paddingVertical: 8,
+        paddingHorizontal: 16,
+    },
+    postAction: {
+        flex: 1,
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
+        paddingVertical: 8,
+        borderRadius: 8,
     },
-    finalButtonText: {
-        color: '#FFFFFF',
-        fontSize: 18,
-        fontWeight: 'bold',
-        marginHorizontal: 15,
-        letterSpacing: 1,
+    postActionText: {
+        fontSize: 14,
+        color: '#65676B',
+        fontWeight: '600',
+        marginLeft: 6,
     },
     bottomSpace: {
-        height: 40,
+        height: 20,
     },
 });
