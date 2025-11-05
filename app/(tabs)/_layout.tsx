@@ -19,24 +19,29 @@ export default function RootLayout() {
         <Text style={styles.appTitle}>AutoBox</Text>
         <View style={styles.headerIcons}>
           <TouchableOpacity style={styles.headerIcon}>
-            <Ionicons name="search" size={24} color="#1C1E21" />
+            <Ionicons name="search" size={24} color="#FFFFFF" />
           </TouchableOpacity>
           <TouchableOpacity style={styles.headerIcon}>
-            <Ionicons name="chatbubble-outline" size={24} color="#1C1E21" />
+            <Ionicons name="chatbubble-outline" size={24} color="#FFFFFF" />
           </TouchableOpacity>
         </View>
       </View>
 
       <Tabs screenOptions={{
-        tabBarActiveTintColor:'coral',
+        tabBarActiveTintColor:'#FFFFFF',
+        tabBarInactiveTintColor:'rgba(255, 255, 255, 0.6)',
+        tabBarStyle: {
+          backgroundColor: '#4CAF50',
+          borderTopWidth: 0,
+        },
         headerShown: false, // Ocultar el header de las tabs
       }}> 
         <Tabs.Screen 
           name="index" 
           options={{
             title: 'Home', 
-            tabBarIcon: () => 
-              (<FontAwesome5 name="home" size={24} color="black"/>), 
+            tabBarIcon: ({ color }) => 
+              (<FontAwesome5 name="home" size={24} color={color}/>), 
           }}
         />
         
@@ -44,8 +49,8 @@ export default function RootLayout() {
           name="auth" 
           options={{
             title: 'auth',
-            tabBarIcon: () => 
-              (<FontAwesome5 name="sign-in-alt" size={24} color="black"/>),
+            tabBarIcon: ({ color }) => 
+              (<FontAwesome5 name="sign-in-alt" size={24} color={color}/>),
           }}
         />
       </Tabs>
@@ -60,7 +65,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 16,
     paddingVertical: 12,
-    backgroundColor: '#FFFFFF',
+    paddingTop: 50, // Espacio para la status bar de iOS
+    backgroundColor: '#4CAF50',
     borderBottomWidth: 1,
     borderBottomColor: '#E4E6EA',
     elevation: 2,
@@ -72,7 +78,7 @@ const styles = StyleSheet.create({
   appTitle: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#1877F2',
+    color: '#FFFFFF',
     letterSpacing: 0.5,
   },
   headerIcons: {
@@ -83,7 +89,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#F0F2F5',
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
     alignItems: 'center',
     justifyContent: 'center',
   },
