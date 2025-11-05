@@ -14,6 +14,8 @@ export default function Index() {
     const scrollViewRef = useRef<ScrollView>(null);
     const [currentIndex, setCurrentIndex] = useState(0);
     const [isUserScrolling, setIsUserScrolling] = useState(false);
+    const [showBalance, setShowBalance] = useState(false);
+    const [userName] = useState('Matías'); // Nombre del usuario
 
     // Datos mock para las secciones
     const brands = [
@@ -135,6 +137,17 @@ export default function Index() {
         }, 2000); // Reanudar auto-scroll después de 2 segundos
     };
 
+    const toggleBalanceVisibility = () => {
+        setShowBalance(!showBalance);
+    };
+
+    const getGreetingMessage = () => {
+        const hour = new Date().getHours();
+        if (hour < 12) return `¡Buenos días, ${userName}!`;
+        if (hour < 18) return `¡Buenas tardes, ${userName}!`;
+        return `¡Buenas noches, ${userName}!`;
+    };
+
     return (
         <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
                 {/* Barra de estado del usuario */}
@@ -143,9 +156,48 @@ export default function Index() {
                         <View style={styles.avatar}>
                             <Ionicons name="person" size={20} color="#FFFFFF" />
                         </View>
-                        <Text style={styles.statusText}>¿Qué auto estás buscando hoy?</Text>
+                        <Text style={styles.statusText}>{getGreetingMessage()}</Text>
                     </View>
-                    <Text style={styles.balanceText}>{formatCurrency(userBalance)}</Text>
+                    <View style={styles.balanceContainer}>
+                        <Text style={styles.balanceLabel}>Saldo:</Text>
+                        <Text style={styles.balanceText}>
+                            {showBalance ? formatCurrency(userBalance) : '••••••'}
+                        </Text>
+                        <TouchableOpacity onPress={toggleBalanceVisibility} style={styles.eyeButton}>
+                            <Ionicons 
+                                name={showBalance ? "eye" : "eye-off"} 
+                                size={18} 
+                                color="#65676B" 
+                            />
+                        </TouchableOpacity>
+                    </View>
+                </View>
+
+                {/* Cards de servicios estilo Reels */}
+                <View style={styles.reelsContainer}>
+                    <TouchableOpacity style={[styles.reelCard, { backgroundColor: '#42A5F5' }]} activeOpacity={0.8}>
+                        <View style={styles.reelGradient}>
+                            <Ionicons name="construct" size={28} color="#FFFFFF" />
+                            <Text style={styles.reelTitle}>Solicitar</Text>
+                            <Text style={styles.reelSubtitle}>Mecánico</Text>
+                        </View>
+                    </TouchableOpacity>
+                    
+                    <TouchableOpacity style={[styles.reelCard, { backgroundColor: '#66BB6A' }]} activeOpacity={0.8}>
+                        <View style={styles.reelGradient}>
+                            <Ionicons name="checkmark-circle" size={28} color="#FFFFFF" />
+                            <Text style={styles.reelTitle}>Revisar</Text>
+                            <Text style={styles.reelSubtitle}>Inspección</Text>
+                        </View>
+                    </TouchableOpacity>
+                    
+                    <TouchableOpacity style={[styles.reelCard, { backgroundColor: '#8E8E93' }]} activeOpacity={0.8}>
+                        <View style={styles.reelGradient}>
+                            <Ionicons name="car-sport" size={28} color="#FFFFFF" />
+                            <Text style={styles.reelTitle}>Vender</Text>
+                            <Text style={styles.reelSubtitle}>Mi Auto</Text>
+                        </View>
+                    </TouchableOpacity>
                 </View>
 
                 {/* Navegación rápida */}
@@ -385,6 +437,20 @@ const styles = StyleSheet.create({
         fontSize: 14,
         color: '#4CAF50',
         fontWeight: 'bold',
+        marginRight: 8,
+    },
+    balanceContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    balanceLabel: {
+        fontSize: 12,
+        color: '#65676B',
+        marginRight: 4,
+    },
+    eyeButton: {
+        padding: 4,
+        marginLeft: 4,
     },
     quickNav: {
         backgroundColor: '#FFFFFF',
@@ -543,5 +609,51 @@ const styles = StyleSheet.create({
     },
     bottomSpace: {
         height: 20,
+    },
+    reelsContainer: {
+        flexDirection: 'row',
+        paddingHorizontal: 16,
+        paddingVertical: 8,
+        gap: 8,
+        backgroundColor: '#FFFFFF',
+        borderBottomWidth: 1,
+        borderBottomColor: '#E4E6EA',
+    },
+    reelCard: {
+        flex: 1,
+        height: 100,
+        borderRadius: 12,
+        overflow: 'hidden',
+        elevation: 1,
+        shadowColor: '#000',
+        shadowOffset: {
+            width: 0,
+            height: 1,
+        },
+        shadowOpacity: 0.15,
+        shadowRadius: 2,
+    },
+    reelGradient: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        paddingHorizontal: 8,
+        paddingVertical: 12,
+        position: 'relative',
+    },
+    reelTitle: {
+        fontSize: 14,
+        fontWeight: '600',
+        color: '#FFFFFF',
+        marginTop: 6,
+        textAlign: 'center',
+    },
+    reelSubtitle: {
+        fontSize: 12,
+        color: '#FFFFFF',
+        opacity: 0.85,
+        textAlign: 'center',
+        marginTop: 1,
+        fontWeight: '400',
     },
 });
