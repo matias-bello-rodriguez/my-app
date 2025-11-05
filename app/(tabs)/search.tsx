@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Picker } from '@react-native-picker/picker';
-import { useRouter } from 'expo-router';
-import { useCallback, useEffect, useState } from 'react';
+import { useRouter, useFocusEffect } from 'expo-router';
+import { useCallback, useState } from 'react';
 import {
     ActivityIndicator,
     Alert,
@@ -119,17 +119,22 @@ export default function Search() {
   const [showFilters, setShowFilters] = useState(false);
   const [searchResults, setSearchResults] = useState<VehicleResult[]>([]);
 
-  // Ocultar header cuando el componente se monte y mostrarlo cuando se desmonte
-  useEffect(() => {
-    hideHeader();
-    
-    return () => {
-      showHeader();
-    };
-  }, [hideHeader, showHeader]);
+  // Ocultar header cuando la pantalla esté enfocada y mostrarlo cuando se desenfoque
+  useFocusEffect(
+    useCallback(() => {
+      // Cuando la pantalla se enfoca (se abre)
+      hideHeader();
+      
+      // Cuando la pantalla se desenfoca (se cierra o navega a otra)
+      return () => {
+        showHeader();
+      };
+    }, [hideHeader, showHeader])
+  );
 
   // Función para volver atrás
   const handleGoBack = () => {
+    showHeader(); // Mostrar header antes de navegar
     router.back();
   };
   
