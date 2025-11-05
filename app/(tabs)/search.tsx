@@ -1,5 +1,4 @@
 import { Ionicons } from '@expo/vector-icons';
-import { Picker } from '@react-native-picker/picker';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { useCallback, useState } from 'react';
 import {
@@ -117,6 +116,12 @@ export default function Search() {
   const [showFilters, setShowFilters] = useState(false);
   const [searchResults, setSearchResults] = useState<VehicleResult[]>([]);
 
+  // Estados para dropdowns
+  const [showBrandDropdown, setShowBrandDropdown] = useState(false);
+  const [showModelDropdown, setShowModelDropdown] = useState(false);
+  const [showRegionDropdown, setShowRegionDropdown] = useState(false);
+  const [showFuelDropdown, setShowFuelDropdown] = useState(false);
+
   // Ocultar header cuando la pantalla esté enfocada y mostrarlo cuando se desenfoque
   useFocusEffect(
     useCallback(() => {
@@ -157,22 +162,77 @@ export default function Search() {
 
   // Datos estáticos
   const brands = [
-    'Todas las marcas', 'Toyota', 'BMW', 'Mercedes-Benz', 'Honda', 'Hyundai', 
-    'Nissan', 'Volkswagen', 'Mazda', 'Chevrolet', 'Kia', 'Subaru', 'Lexus'
+    { id: '', name: 'Todas las marcas' },
+    { id: 'toyota', name: 'Toyota' },
+    { id: 'bmw', name: 'BMW' },
+    { id: 'mercedes', name: 'Mercedes-Benz' },
+    { id: 'honda', name: 'Honda' },
+    { id: 'hyundai', name: 'Hyundai' },
+    { id: 'nissan', name: 'Nissan' },
+    { id: 'volkswagen', name: 'Volkswagen' },
+    { id: 'mazda', name: 'Mazda' },
+    { id: 'chevrolet', name: 'Chevrolet' },
+    { id: 'kia', name: 'Kia' },
+    { id: 'subaru', name: 'Subaru' },
+    { id: 'lexus', name: 'Lexus' },
+    { id: 'audi', name: 'Audi' },
+    { id: 'ford', name: 'Ford' },
+    { id: 'peugeot', name: 'Peugeot' },
+    { id: 'renault', name: 'Renault' },
+    { id: 'mitsubishi', name: 'Mitsubishi' },
   ];
 
   const models = [
-    'Todos los modelos', 'Corolla', 'Camry', 'RAV4', 'Highlander', 'Prius',
-    'Civic', 'Accord', 'CR-V', 'Pilot', 'Fit'
+    { id: '', name: 'Todos los modelos' },
+    { id: 'corolla', name: 'Corolla' },
+    { id: 'camry', name: 'Camry' },
+    { id: 'rav4', name: 'RAV4' },
+    { id: 'highlander', name: 'Highlander' },
+    { id: 'prius', name: 'Prius' },
+    { id: 'civic', name: 'Civic' },
+    { id: 'accord', name: 'Accord' },
+    { id: 'crv', name: 'CR-V' },
+    { id: 'pilot', name: 'Pilot' },
+    { id: 'fit', name: 'Fit' },
+    { id: 'x1', name: 'X1' },
+    { id: 'x3', name: 'X3' },
+    { id: 'serie3', name: 'Serie 3' },
+    { id: 'clase_c', name: 'Clase C' },
+    { id: 'clase_e', name: 'Clase E' },
+    { id: 'elantra', name: 'Elantra' },
+    { id: 'tucson', name: 'Tucson' },
+    { id: 'santa_fe', name: 'Santa Fe' },
   ];
 
   const regions = [
-    'Todas las regiones', 'Región Metropolitana', 'Valparaíso', 'Biobío', 
-    'Araucanía', 'Los Lagos', 'Maule', 'O\'Higgins', 'Antofagasta', 'Atacama'
+    { id: '', name: 'Todas las regiones' },
+    { id: 'rm', name: 'Región Metropolitana' },
+    { id: 'valparaiso', name: 'Valparaíso' },
+    { id: 'biobio', name: 'Biobío' },
+    { id: 'araucania', name: 'Araucanía' },
+    { id: 'los_lagos', name: 'Los Lagos' },
+    { id: 'maule', name: 'Maule' },
+    { id: 'ohiggins', name: 'O\'Higgins' },
+    { id: 'antofagasta', name: 'Antofagasta' },
+    { id: 'atacama', name: 'Atacama' },
+    { id: 'coquimbo', name: 'Coquimbo' },
+    { id: 'los_rios', name: 'Los Ríos' },
+    { id: 'aysen', name: 'Aysén' },
+    { id: 'magallanes', name: 'Magallanes' },
+    { id: 'arica', name: 'Arica y Parinacota' },
+    { id: 'tarapaca', name: 'Tarapacá' },
   ];
 
   const fuelTypes = [
-    'Todos los combustibles', 'Gasolina', 'Diésel', 'Híbrido', 'Eléctrico', 'GNC', 'GLP'
+    { id: '', name: 'Todos los combustibles' },
+    { id: 'gasolina', name: 'Gasolina' },
+    { id: 'diesel', name: 'Diésel' },
+    { id: 'hibrido', name: 'Híbrido' },
+    { id: 'electrico', name: 'Eléctrico' },
+    { id: 'gnc', name: 'GNC (Gas Natural)' },
+    { id: 'glp', name: 'GLP (Gas Licuado)' },
+    { id: 'hibrido_enchufable', name: 'Híbrido Enchufable' },
+    { id: 'gasolina_etanol', name: 'Gasolina + Etanol' },
   ];
 
   const bodyTypes = [
@@ -330,32 +390,74 @@ export default function Search() {
             <View style={styles.filterRow}>
               <View style={styles.filterHalf}>
                 <Text style={styles.filterLabel}>Marca</Text>
-                <View style={styles.pickerContainer}>
-                  <Picker
-                    selectedValue={filters.brand}
-                    onValueChange={(value) => updateFilter('brand', value)}
-                    style={styles.picker}
-                  >
-                    {brands.map((brand, index) => (
-                      <Picker.Item key={index} label={brand} value={brand} />
+                <TouchableOpacity 
+                  style={styles.dropdownButton}
+                  onPress={() => setShowBrandDropdown(!showBrandDropdown)}
+                  activeOpacity={0.7}
+                >
+                  <Text style={[styles.dropdownText, !filters.brand && styles.placeholderText]}>
+                    {filters.brand ? brands.find(brand => brand.id === filters.brand)?.name : 'Selecciona una marca'}
+                  </Text>
+                  <Ionicons 
+                    name={showBrandDropdown ? "chevron-up" : "chevron-down"} 
+                    size={20} 
+                    color="#666" 
+                  />
+                </TouchableOpacity>
+                
+                {showBrandDropdown && (
+                  <View style={styles.dropdownMenu}>
+                    {brands.map((brand) => (
+                      <TouchableOpacity
+                        key={brand.id}
+                        style={styles.dropdownItem}
+                        onPress={() => {
+                          updateFilter('brand', brand.id);
+                          setShowBrandDropdown(false);
+                        }}
+                        activeOpacity={0.7}
+                      >
+                        <Text style={styles.dropdownItemText}>{brand.name}</Text>
+                      </TouchableOpacity>
                     ))}
-                  </Picker>
-                </View>
+                  </View>
+                )}
               </View>
               
               <View style={styles.filterHalf}>
                 <Text style={styles.filterLabel}>Modelo</Text>
-                <View style={styles.pickerContainer}>
-                  <Picker
-                    selectedValue={filters.model}
-                    onValueChange={(value) => updateFilter('model', value)}
-                    style={styles.picker}
-                  >
-                    {models.map((model, index) => (
-                      <Picker.Item key={index} label={model} value={model} />
+                <TouchableOpacity 
+                  style={styles.dropdownButton}
+                  onPress={() => setShowModelDropdown(!showModelDropdown)}
+                  activeOpacity={0.7}
+                >
+                  <Text style={[styles.dropdownText, !filters.model && styles.placeholderText]}>
+                    {filters.model ? models.find(model => model.id === filters.model)?.name : 'Selecciona un modelo'}
+                  </Text>
+                  <Ionicons 
+                    name={showModelDropdown ? "chevron-up" : "chevron-down"} 
+                    size={20} 
+                    color="#666" 
+                  />
+                </TouchableOpacity>
+                
+                {showModelDropdown && (
+                  <View style={styles.dropdownMenu}>
+                    {models.map((model) => (
+                      <TouchableOpacity
+                        key={model.id}
+                        style={styles.dropdownItem}
+                        onPress={() => {
+                          updateFilter('model', model.id);
+                          setShowModelDropdown(false);
+                        }}
+                        activeOpacity={0.7}
+                      >
+                        <Text style={styles.dropdownItemText}>{model.name}</Text>
+                      </TouchableOpacity>
                     ))}
-                  </Picker>
-                </View>
+                  </View>
+                )}
               </View>
             </View>
 
@@ -404,32 +506,74 @@ export default function Search() {
             <View style={styles.filterRow}>
               <View style={styles.filterHalf}>
                 <Text style={styles.filterLabel}>Región</Text>
-                <View style={styles.pickerContainer}>
-                  <Picker
-                    selectedValue={filters.region}
-                    onValueChange={(value) => updateFilter('region', value)}
-                    style={styles.picker}
-                  >
-                    {regions.map((region, index) => (
-                      <Picker.Item key={index} label={region} value={region} />
+                <TouchableOpacity 
+                  style={styles.dropdownButton}
+                  onPress={() => setShowRegionDropdown(!showRegionDropdown)}
+                  activeOpacity={0.7}
+                >
+                  <Text style={[styles.dropdownText, !filters.region && styles.placeholderText]}>
+                    {filters.region ? regions.find(region => region.id === filters.region)?.name : 'Selecciona una región'}
+                  </Text>
+                  <Ionicons 
+                    name={showRegionDropdown ? "chevron-up" : "chevron-down"} 
+                    size={20} 
+                    color="#666" 
+                  />
+                </TouchableOpacity>
+                
+                {showRegionDropdown && (
+                  <View style={styles.dropdownMenu}>
+                    {regions.map((region) => (
+                      <TouchableOpacity
+                        key={region.id}
+                        style={styles.dropdownItem}
+                        onPress={() => {
+                          updateFilter('region', region.id);
+                          setShowRegionDropdown(false);
+                        }}
+                        activeOpacity={0.7}
+                      >
+                        <Text style={styles.dropdownItemText}>{region.name}</Text>
+                      </TouchableOpacity>
                     ))}
-                  </Picker>
-                </View>
+                  </View>
+                )}
               </View>
               
               <View style={styles.filterHalf}>
                 <Text style={styles.filterLabel}>Combustible</Text>
-                <View style={styles.pickerContainer}>
-                  <Picker
-                    selectedValue={filters.fuel}
-                    onValueChange={(value) => updateFilter('fuel', value)}
-                    style={styles.picker}
-                  >
-                    {fuelTypes.map((fuel, index) => (
-                      <Picker.Item key={index} label={fuel} value={fuel} />
+                <TouchableOpacity 
+                  style={styles.dropdownButton}
+                  onPress={() => setShowFuelDropdown(!showFuelDropdown)}
+                  activeOpacity={0.7}
+                >
+                  <Text style={[styles.dropdownText, !filters.fuel && styles.placeholderText]}>
+                    {filters.fuel ? fuelTypes.find(fuel => fuel.id === filters.fuel)?.name : 'Selecciona combustible'}
+                  </Text>
+                  <Ionicons 
+                    name={showFuelDropdown ? "chevron-up" : "chevron-down"} 
+                    size={20} 
+                    color="#666" 
+                  />
+                </TouchableOpacity>
+                
+                {showFuelDropdown && (
+                  <View style={styles.dropdownMenu}>
+                    {fuelTypes.map((fuel) => (
+                      <TouchableOpacity
+                        key={fuel.id}
+                        style={styles.dropdownItem}
+                        onPress={() => {
+                          updateFilter('fuel', fuel.id);
+                          setShowFuelDropdown(false);
+                        }}
+                        activeOpacity={0.7}
+                      >
+                        <Text style={styles.dropdownItemText}>{fuel.name}</Text>
+                      </TouchableOpacity>
                     ))}
-                  </Picker>
-                </View>
+                  </View>
+                )}
               </View>
             </View>
 
@@ -705,5 +849,49 @@ const styles = StyleSheet.create({
     color: '#4CAF50',
     fontWeight: '500',
     marginTop: 4,
+  },
+  // Estilos para dropdown
+  dropdownButton: {
+    borderWidth: 1,
+    borderColor: '#E4E6EA',
+    borderRadius: 8,
+    padding: 12,
+    backgroundColor: '#FAFAFA',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  dropdownText: {
+    fontSize: 16,
+    color: '#1C1E21',
+  },
+  placeholderText: {
+    color: '#999',
+  },
+  dropdownMenu: {
+    borderWidth: 1,
+    borderColor: '#E4E6EA',
+    borderRadius: 8,
+    backgroundColor: '#FFFFFF',
+    marginTop: 4,
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    maxHeight: 200,
+    zIndex: 1000,
+  },
+  dropdownItem: {
+    padding: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F0F2F5',
+  },
+  dropdownItemText: {
+    fontSize: 16,
+    color: '#1C1E21',
   },
 });

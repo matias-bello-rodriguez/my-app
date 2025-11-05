@@ -157,55 +157,53 @@ export default function ReviewInspection() {
             }
           </Text>
           
-          {searchResults.map((inspection) => (
-            <TouchableOpacity 
-              key={inspection.id} 
-              style={styles.resultCard}
-              activeOpacity={0.8}
-              onPress={() => handleInspectionPress(inspection)}
-            >
-              <View style={styles.resultHeader}>
-                <View style={styles.resultMainInfo}>
-                  <Text style={styles.resultPlate}>{inspection.vehiclePlate}</Text>
-                  <Text style={styles.resultModel}>{inspection.vehicleModel}</Text>
+          <View style={styles.resultsGrid}>
+            {searchResults.map((inspection) => (
+              <TouchableOpacity 
+                key={inspection.id} 
+                style={styles.resultCard}
+                activeOpacity={0.8}
+                onPress={() => handleInspectionPress(inspection)}
+              >
+                <View style={styles.resultHeader}>
+                  <View style={styles.resultMainInfo}>
+                    <Text style={styles.resultPlate}>{inspection.vehiclePlate}</Text>
+                    <Text style={styles.resultModel} numberOfLines={2}>{inspection.vehicleModel}</Text>
+                  </View>
+                  <View style={[styles.statusBadge, { backgroundColor: inspection.statusColor }]}>
+                    <Text style={styles.statusBadgeText}>{inspection.status}</Text>
+                  </View>
                 </View>
-                <View style={[styles.statusBadge, { backgroundColor: inspection.statusColor }]}>
-                  <Text style={styles.statusBadgeText}>{inspection.status}</Text>
-                </View>
-              </View>
-              
-              <View style={styles.resultDetails}>
-                <View style={styles.resultDetailRow}>
-                  <Ionicons name="document-text" size={16} color="#65676B" />
-                  <Text style={styles.resultDetailText}>Código: {inspection.id}</Text>
-                </View>
-                <View style={styles.resultDetailRow}>
-                  <Ionicons name="calendar" size={16} color="#65676B" />
-                  <Text style={styles.resultDetailText}>Fecha: {inspection.inspectionDate}</Text>
-                </View>
-                <View style={styles.resultDetailRow}>
-                  <Ionicons name="location" size={16} color="#65676B" />
-                  <Text style={styles.resultDetailText}>{inspection.location}</Text>
-                </View>
-                <View style={styles.resultDetailRow}>
-                  <Ionicons name="cash" size={16} color="#65676B" />
-                  <Text style={styles.resultDetailText}>{inspection.price}</Text>
-                </View>
+                
+                <View style={styles.resultDetails}>
+                  <View style={styles.resultDetailRow}>
+                    <Ionicons name="calendar" size={14} color="#65676B" />
+                    <Text style={styles.resultDetailText}>Fecha: {inspection.inspectionDate}</Text>
+                  </View>
+                  <View style={styles.resultDetailRow}>
+                    <Ionicons name="location" size={14} color="#65676B" />
+                    <Text style={styles.resultDetailText} numberOfLines={1}>{inspection.location}</Text>
+                  </View>
 
-                {/* Mostrar imagen solo si la inspección está completada */}
-                {inspection.status === 'Completado' && inspection.vehicleImage && (
+                  {/* Mostrar imagen del vehículo siempre */}
                   <View style={styles.vehicleImageContainer}>
                     <Text style={styles.vehicleImageLabel}>Foto del vehículo:</Text>
-                    <Image 
-                      source={{ uri: inspection.vehicleImage }}
-                      style={styles.vehicleImage}
-                      resizeMode="cover"
-                    />
+                    {inspection.status === 'Completado' && inspection.vehicleImage ? (
+                      <Image 
+                        source={{ uri: inspection.vehicleImage }}
+                        style={styles.vehicleImage}
+                        resizeMode="cover"
+                      />
+                    ) : (
+                      <View style={styles.placeholderImage}>
+                        <Ionicons name="car" size={40} color="#999" />
+                      </View>
+                    )}
                   </View>
-                )}
-              </View>
-            </TouchableOpacity>
-          ))}
+                </View>
+              </TouchableOpacity>
+            ))}
+          </View>
         </View>
       )}
     </ScrollView>
@@ -382,10 +380,15 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     paddingHorizontal: 4,
   },
+  resultsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+  },
   resultCard: {
     backgroundColor: '#FFFFFF',
     borderRadius: 12,
-    padding: 16,
+    padding: 12,
     marginBottom: 12,
     elevation: 2,
     shadowColor: '#000',
@@ -397,67 +400,76 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     borderLeftWidth: 4,
     borderLeftColor: '#4CAF50',
+    width: '48%', // Para mostrar 2 cards por fila
   },
   resultHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginBottom: 12,
+    marginBottom: 8,
   },
   resultMainInfo: {
     flex: 1,
   },
   resultPlate: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: 'bold',
     color: '#1C1E21',
-    marginBottom: 4,
+    marginBottom: 2,
   },
   resultModel: {
-    fontSize: 14,
+    fontSize: 12,
     color: '#65676B',
   },
   statusBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
-    marginLeft: 12,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 8,
+    marginLeft: 8,
   },
   statusBadgeText: {
-    fontSize: 12,
+    fontSize: 10,
     fontWeight: '600',
     color: '#FFFFFF',
   },
   resultDetails: {
-    gap: 8,
+    gap: 6,
   },
   resultDetailRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 6,
   },
   resultDetailText: {
-    fontSize: 14,
+    fontSize: 12,
     color: '#65676B',
     flex: 1,
   },
   // Estilos para imagen del vehículo
   vehicleImageContainer: {
-    marginTop: 12,
-    paddingTop: 12,
+    marginTop: 8,
+    paddingTop: 8,
     borderTopWidth: 1,
     borderTopColor: '#E4E6EA',
   },
   vehicleImageLabel: {
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: '600',
     color: '#1C1E21',
-    marginBottom: 8,
+    marginBottom: 6,
   },
   vehicleImage: {
     width: '100%',
-    height: 200,
-    borderRadius: 8,
+    height: 120,
+    borderRadius: 6,
     backgroundColor: '#F0F2F5',
+  },
+  placeholderImage: {
+    width: '100%',
+    height: 120,
+    borderRadius: 6,
+    backgroundColor: '#E8E8E8',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });
