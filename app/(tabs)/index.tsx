@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
+    Image,
     ScrollView,
     StyleSheet,
     Text,
@@ -10,18 +11,86 @@ import {
 
 export default function Index() {
     const [userBalance] = useState(1250000); // Saldo del usuario
+    const scrollViewRef = useRef<ScrollView>(null);
+    const [currentIndex, setCurrentIndex] = useState(0);
+    const [isUserScrolling, setIsUserScrolling] = useState(false);
 
     // Datos mock para las secciones
     const brands = [
-        { name: 'Mazda', logo: '🚗' },
-        { name: 'Hyundai', logo: '🚙' },
-        { name: 'Nissan', logo: '🚕' },
-        { name: 'Ford', logo: '🚐' },
-        { name: 'Toyota', logo: '🚗' },
-        { name: 'Chevrolet', logo: '🚙' },
-        { name: 'Honda', logo: '🚕' },
-        { name: 'BMW', logo: '🚗' }
+        { 
+            name: 'Toyota', 
+            logo: 'https://cdn.freebiesupply.com/logos/large/2x/toyota-1-logo-png-transparent.png'
+        },
+        { 
+            name: 'BMW', 
+            logo: 'https://logos-world.net/wp-content/uploads/2020/04/BMW-Logo.png'
+        },
+        { 
+            name: 'Mercedes', 
+            logo: 'https://cdn.freebiesupply.com/logos/large/2x/mercedes-benz-6-logo-png-transparent.png'
+        },
+        { 
+            name: 'Honda', 
+            logo: 'https://cdn.freebiesupply.com/logos/large/2x/honda-2-logo-png-transparent.png'
+        },
+        { 
+            name: 'Hyundai', 
+            logo: 'https://cdn.freebiesupply.com/logos/large/2x/hyundai-logo-png-transparent.png'
+        },
+        { 
+            name: 'Nissan', 
+            logo: 'https://cdn.freebiesupply.com/logos/large/2x/nissan-logo-png-transparent.png'
+        },
+        { 
+            name: 'Volkswagen', 
+            logo: 'https://cdn.freebiesupply.com/logos/large/2x/volkswagen-logo-png-transparent.png'
+        },
+        { 
+            name: 'Mazda', 
+            logo: 'https://logos-world.net/wp-content/uploads/2020/05/Mazda-Logo.png'
+        },
+        { 
+            name: 'Chevrolet', 
+            logo: 'https://cdn.freebiesupply.com/logos/large/2x/chevrolet-logo-png-transparent.png'
+        },
+        { 
+            name: 'Kia', 
+            logo: 'https://cdn.freebiesupply.com/logos/large/2x/kia-logo-png-transparent.png'
+        },
+        { 
+            name: 'Subaru', 
+            logo: 'https://cdn.freebiesupply.com/logos/large/2x/subaru-logo-png-transparent.png'
+        },
+        { 
+            name: 'Lexus', 
+            logo: 'https://cdn.freebiesupply.com/logos/large/2x/lexus-logo-png-transparent.png'
+        },
+        { 
+            name: 'Peugeot', 
+            logo: 'https://cdn.freebiesupply.com/logos/large/2x/peugeot-2-logo-png-transparent.png'
+        },
+        { 
+            name: 'Renault', 
+            logo: 'https://cdn.freebiesupply.com/logos/large/2x/renault-logo-png-transparent.png'
+        }
     ];
+
+    // Auto-scroll para las marcas
+    useEffect(() => {
+        const interval = setInterval(() => {
+            if (!isUserScrolling && scrollViewRef.current) {
+                const nextIndex = (currentIndex + 1) % brands.length;
+                const itemWidth = 84; // ancho del item + margin
+                scrollViewRef.current.scrollTo({
+                    x: nextIndex * itemWidth,
+                    animated: true,
+                });
+                setCurrentIndex(nextIndex);
+            }
+        }, 3000); // Cambiar cada 3 segundos
+
+        return () => clearInterval(interval);
+    }, [currentIndex, isUserScrolling, brands.length]);
 
     const myCars = [
         { id: 1, model: 'Mazda 3 2020', price: '$12.500.000', image: '🚗', status: 'En venta' },
@@ -51,6 +120,21 @@ export default function Index() {
         }).format(amount);
     };
 
+    const handleBrandPress = (brandName: string) => {
+        console.log(`Marca seleccionada: ${brandName}`);
+        // Aquí puedes agregar la lógica para filtrar por marca
+    };
+
+    const handleScrollBegin = () => {
+        setIsUserScrolling(true);
+    };
+
+    const handleScrollEnd = () => {
+        setTimeout(() => {
+            setIsUserScrolling(false);
+        }, 2000); // Reanudar auto-scroll después de 2 segundos
+    };
+
     return (
         <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
                 {/* Barra de estado del usuario */}
@@ -66,11 +150,28 @@ export default function Index() {
 
                 {/* Navegación rápida */}
                 <View style={styles.quickNav}>
-                    <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.quickNavScroll}>
+                    <ScrollView 
+                        ref={scrollViewRef}
+                        horizontal 
+                        showsHorizontalScrollIndicator={false} 
+                        style={styles.quickNavScroll}
+                        onScrollBeginDrag={handleScrollBegin}
+                        onScrollEndDrag={handleScrollEnd}
+                        onMomentumScrollEnd={handleScrollEnd}
+                        decelerationRate="fast"
+                    >
                         {brands.map((brand, index) => (
-                            <TouchableOpacity key={index} style={styles.quickNavItem}>
-                                <Text style={styles.quickNavEmoji}>{brand.logo}</Text>
-                                <Text style={styles.quickNavText}>{brand.name}</Text>
+                            <TouchableOpacity 
+                                key={index} 
+                                style={styles.quickNavItem}
+                                onPress={() => handleBrandPress(brand.name)}
+                                activeOpacity={0.7}
+                            >
+                                <Image 
+                                    source={{ uri: brand.logo }} 
+                                    style={styles.brandLogo}
+                                    resizeMode="contain"
+                                />
                             </TouchableOpacity>
                         ))}
                     </ScrollView>
@@ -299,10 +400,12 @@ const styles = StyleSheet.create({
         marginRight: 20,
         paddingHorizontal: 12,
         paddingVertical: 8,
+        width: 64, // Ancho fijo para el cálculo del auto-scroll
     },
-    quickNavEmoji: {
-        fontSize: 24,
-        marginBottom: 4,
+    brandLogo: {
+        width: 48,
+        height: 48,
+        marginBottom: 8,
     },
     quickNavText: {
         fontSize: 12,
