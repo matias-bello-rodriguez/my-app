@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import {
-    Image,
+    Alert,
     Keyboard,
     KeyboardAvoidingView,
     Platform,
@@ -14,7 +14,6 @@ import {
     TouchableOpacity,
     TouchableWithoutFeedback,
     View,
-    Alert,
 } from "react-native";
 
 export default function ForgotPasswordScreen(){
@@ -71,17 +70,6 @@ export default function ForgotPasswordScreen(){
                         keyboardShouldPersistTaps="handled"
                     >
                         <View style={styles.content}>
-                            {/* Header con logo */}
-                            <View style={styles.headerContainer}>
-                                <View style={styles.logoContainer}>
-                                    <Image 
-                                        source={require('../assets/images/logo.jpeg')} 
-                                        style={styles.logo}
-                                        resizeMode="contain"
-                                    />
-                                </View>
-                            </View>
-
                             {/* Formulario */}
                             <View style={styles.formContainer}>
                                 <Text style={styles.welcomeText}>¿Olvidaste tu contraseña?</Text>
@@ -133,9 +121,10 @@ export default function ForgotPasswordScreen(){
 
                             {/* Footer */}
                             <View style={styles.footer}>
-                                <TouchableOpacity onPress={goBackToLogin} style={styles.backToLoginButton}>
-                                    <Ionicons name="arrow-back" size={20} color="#4CAF50" style={styles.backIcon} />
-                                    <Text style={styles.backToLoginText}>Volver al inicio de sesión</Text>
+                                <TouchableOpacity onPress={goBackToLogin}>
+                                    <Text style={styles.backToLoginText}>
+                                        <Ionicons name="arrow-back" size={16} color="#4CAF50" /> Volver al inicio de sesión
+                                    </Text>
                                 </TouchableOpacity>
                             </View>
                         </View>
@@ -163,32 +152,10 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         minHeight: '100%',
     },
-    headerContainer: {
-        alignItems: 'center',
-        flex: 0.25,
-        justifyContent: 'center',
-    },
-    logoContainer: {
-        alignItems: 'center',
-        backgroundColor: '#FFFFFF',
-        borderRadius: 25,
-        padding: 15,
-        shadowColor: '#4CAF50',
-        shadowOffset: { width: 0, height: 6 },
-        shadowOpacity: 0.15,
-        shadowRadius: 12,
-        elevation: 8,
-        borderWidth: 2,
-        borderColor: '#4CAF50',
-    },
-    logo: {
-        width: 200,
-        height: 200,
-        borderRadius: 40,
-    },
     formContainer: {
-        flex: 0.5,
+        flex: 0.8,
         justifyContent: 'center',
+        paddingVertical: 40,
     },
     welcomeText: {
         fontSize: 24,
@@ -274,25 +241,14 @@ const styles = StyleSheet.create({
         paddingHorizontal: 20,
     },
     footer: {
-        alignItems: 'center',
-        flex: 0.25,
-        justifyContent: 'flex-end',
-        paddingBottom: 20,
-    },
-    backToLoginButton: {
         flexDirection: 'row',
-        alignItems: 'center',
-        paddingVertical: 12,
-        paddingHorizontal: 20,
-        borderRadius: 8,
-        backgroundColor: 'rgba(76, 175, 80, 0.1)',
-    },
-    backIcon: {
-        marginRight: 8,
+        justifyContent: 'center',
+        alignItems: 'flex-end',
+        flex: 0.2,
     },
     backToLoginText: {
         color: '#4CAF50',
-        fontSize: 16,
+        fontSize: 14,
         fontWeight: '600',
     },
 });
