@@ -1,7 +1,10 @@
 import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 export default function Publish() {
+  const router = useRouter();
+  
   const publishOptions = [
     {
       id: 'with-inspection',
@@ -20,21 +23,18 @@ export default function Publish() {
       iconColor: '#2196F3',
       backgroundColor: '#E3F2FD',
       borderColor: '#2196F3'
-    },
-    {
-      id: 'auction',
-      title: 'Subastar mi Auto',
-      description: 'Pon tu vehículo en subasta para obtener el mejor precio del mercado de forma transparente',
-      icon: 'trophy',
-      iconColor: '#FF9800',
-      backgroundColor: '#FFF3E0',
-      borderColor: '#FF9800'
     }
   ];
 
   const handlePublishOption = (optionId: string) => {
     console.log(`Opción seleccionada: ${optionId}`);
-    // Aquí puedes agregar la navegación correspondiente
+    
+    if (optionId === 'own-publication') {
+      router.push('/raw-publish');
+    } else {
+      // Aquí puedes agregar la navegación para otras opciones
+      console.log('Funcionalidad próximamente disponible');
+    }
   };
 
   return (

@@ -120,6 +120,13 @@ export default function RootLayout() {
             href: null, // Esto oculta la pestaña del menú
           }}
         />
+
+        <Tabs.Screen 
+          name="raw-publish" 
+          options={{
+            href: null, // Esto oculta la pestaña del menú
+          }}
+        />
       </Tabs>
     </>
   )
