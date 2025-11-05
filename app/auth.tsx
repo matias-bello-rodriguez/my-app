@@ -30,7 +30,7 @@ export default function AuthScreen(){
 
     return (
         <>
-            <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+            <StatusBar barStyle="dark-content" backgroundColor="#E8F5E8" />
             <KeyboardAvoidingView 
                 style={styles.container}
                 behavior={Platform.OS === 'ios' ? "padding" : "height"}
@@ -130,7 +130,7 @@ export default function AuthScreen(){
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#FFFFFF',
+        backgroundColor: '#E8F5E8', // Verde muy claro opaco
     },
     scrollContainer: {
         flexGrow: 1,
@@ -153,13 +153,14 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         backgroundColor: '#FFFFFF',
         borderRadius: 25,
-        shadowColor: '#333333',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 8,
-        elevation: 5,
-        borderWidth: 1,
-        borderColor: '#F0F0F0',
+        padding: 15,
+        shadowColor: '#4CAF50',
+        shadowOffset: { width: 0, height: 6 },
+        shadowOpacity: 0.15,
+        shadowRadius: 12,
+        elevation: 8,
+        borderWidth: 2,
+        borderColor: '#4CAF50',
     },
     logo: {
         width:200,
@@ -204,14 +205,14 @@ const styles = StyleSheet.create({
         backgroundColor: '#FFFFFF',
         borderRadius: 12,
         borderWidth: 2,
-        borderColor: '#E0E0E0',
+        borderColor: '#4CAF50',
         paddingHorizontal: 16,
         height: 56,
-        shadowColor: '#333333',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.05,
-        shadowRadius: 4,
-        elevation: 2,
+        shadowColor: '#4CAF50',
+        shadowOffset: { width: 0, height: 3 },
+        shadowOpacity: 0.1,
+        shadowRadius: 6,
+        elevation: 4,
     },
     inputIcon: {
         marginRight: 12,
@@ -226,7 +227,7 @@ const styles = StyleSheet.create({
         padding: 8,
     },
     forgotPassword: {
-        alignItems: 'flex-end',
+        alignItems: 'center',
         marginBottom: 20,
     },
     forgotPasswordText: {
@@ -240,11 +241,13 @@ const styles = StyleSheet.create({
         paddingVertical: 18,
         alignItems: 'center',
         shadowColor: '#4CAF50',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.3,
-        shadowRadius: 8,
-        elevation: 6,
+        shadowOffset: { width: 0, height: 6 },
+        shadowOpacity: 0.4,
+        shadowRadius: 10,
+        elevation: 8,
         marginBottom: 20,
+        borderWidth: 2,
+        borderColor: '#45A049',
     },
     loginButtonText: {
         color: '#FFFFFF',
