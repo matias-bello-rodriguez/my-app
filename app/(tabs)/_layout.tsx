@@ -106,6 +106,13 @@ export default function RootLayout() {
               (<Ionicons name={focused ? "menu" : "menu-outline"} size={24} color={color}/>),
           }}
         />
+
+        <Tabs.Screen 
+          name="inspection_payment" 
+          options={{
+            href: null, // Esto oculta la pestaña del menú
+          }}
+        />
       </Tabs>
     </>
   )
