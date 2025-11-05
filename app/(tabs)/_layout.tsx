@@ -113,6 +113,13 @@ export default function RootLayout() {
             href: null, // Esto oculta la pestaña del menú
           }}
         />
+
+        <Tabs.Screen 
+          name="review-inspection-detail-by-car" 
+          options={{
+            href: null, // Esto oculta la pestaña del menú
+          }}
+        />
       </Tabs>
     </>
   )
