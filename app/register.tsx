@@ -56,20 +56,22 @@ export default function RegisterScreen(){
     const renderStepIndicator = () => {
         return (
             <View style={styles.stepIndicator}>
-                {[1, 2, 3].map((step) => (
-                    <View key={step} style={styles.stepContainer}>
-                        <View style={[
-                            styles.stepCircle, 
-                            currentStep >= step ? styles.stepCircleActive : styles.stepCircleInactive
-                        ]}>
-                            <Text style={[
-                                styles.stepText,
-                                currentStep >= step ? styles.stepTextActive : styles.stepTextInactive
+                {[1, 2, 3].map((step, index) => (
+                    <View key={step} style={styles.stepRow}>
+                        <View style={styles.stepContainer}>
+                            <View style={[
+                                styles.stepCircle, 
+                                currentStep >= step ? styles.stepCircleActive : styles.stepCircleInactive
                             ]}>
-                                {step}
-                            </Text>
+                                <Text style={[
+                                    styles.stepText,
+                                    currentStep >= step ? styles.stepTextActive : styles.stepTextInactive
+                                ]}>
+                                    {step}
+                                </Text>
+                            </View>
                         </View>
-                        {step < 3 && (
+                        {index < 2 && (
                             <View style={[
                                 styles.stepLine,
                                 currentStep > step ? styles.stepLineActive : styles.stepLineInactive
@@ -481,36 +483,45 @@ const styles = StyleSheet.create({
         marginBottom: 25,
         paddingHorizontal: 20,
     },
-    stepContainer: {
+    stepRow: {
+        flexDirection: 'row',
         alignItems: 'center',
     },
-    stepCircle: {
-        width: 30,
-        height: 30,
-        borderRadius: 15,
+    stepContainer: {
         alignItems: 'center',
         justifyContent: 'center',
     },
+    stepCircle: {
+        width: 35,
+        height: 35,
+        borderRadius: 17.5,
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderWidth: 2,
+    },
     stepCircleActive: {
         backgroundColor: '#4CAF50',
+        borderColor: '#4CAF50',
     },
     stepCircleInactive: {
-        backgroundColor: '#CCCCCC',
+        backgroundColor: '#FFFFFF',
+        borderColor: '#CCCCCC',
     },
     stepText: {
-        fontSize: 12,
+        fontSize: 14,
         fontWeight: 'bold',
     },
     stepTextActive: {
         color: '#FFFFFF',
     },
     stepTextInactive: {
-        color: '#666666',
+        color: '#CCCCCC',
     },
     stepLine: {
-        height: 2,
-        width: 40,
-        marginHorizontal: 10,
+        height: 3,
+        width: 50,
+        marginHorizontal: 8,
+        borderRadius: 1.5,
     },
     stepLineActive: {
         backgroundColor: '#4CAF50',
