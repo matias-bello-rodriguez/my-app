@@ -2,7 +2,6 @@ import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
 import {
     ScrollView,
-    StatusBar,
     StyleSheet,
     Text,
     TouchableOpacity,
@@ -53,22 +52,7 @@ export default function Index() {
     };
 
     return (
-        <>
-            <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
-            <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-                {/* Header estilo Facebook */}
-                <View style={styles.header}>
-                    <Text style={styles.appTitle}>AutoBox</Text>
-                    <View style={styles.headerIcons}>
-                        <TouchableOpacity style={styles.headerIcon}>
-                            <Ionicons name="search" size={24} color="#1C1E21" />
-                        </TouchableOpacity>
-                        <TouchableOpacity style={styles.headerIcon}>
-                            <Ionicons name="chatbubble-outline" size={24} color="#1C1E21" />
-                        </TouchableOpacity>
-                    </View>
-                </View>
-
+        <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
                 {/* Barra de estado del usuario */}
                 <View style={styles.userStatusBar}>
                     <View style={styles.userStatusContent}>
@@ -259,7 +243,6 @@ export default function Index() {
                 {/* Espaciado final */}
                 <View style={styles.bottomSpace} />
             </ScrollView>
-        </>
     );
 }
 
@@ -267,39 +250,6 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: '#F0F2F5',
-    },
-    header: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        paddingHorizontal: 16,
-        paddingVertical: 12,
-        backgroundColor: '#FFFFFF',
-        borderBottomWidth: 1,
-        borderBottomColor: '#E4E6EA',
-        elevation: 2,
-        shadowColor: '#000000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-    },
-    appTitle: {
-        fontSize: 24,
-        fontWeight: 'bold',
-        color: '#1877F2',
-        letterSpacing: 0.5,
-    },
-    headerIcons: {
-        flexDirection: 'row',
-        gap: 16,
-    },
-    headerIcon: {
-        width: 40,
-        height: 40,
-        borderRadius: 20,
-        backgroundColor: '#F0F2F5',
-        alignItems: 'center',
-        justifyContent: 'center',
     },
     userStatusBar: {
         backgroundColor: '#FFFFFF',
