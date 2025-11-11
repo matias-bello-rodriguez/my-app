@@ -97,19 +97,20 @@ export default function DateTimePicker({
     <View style={styles.container}>
       {label && <Text style={styles.label}>{label}</Text>}
       <TouchableOpacity
-        style={[styles.input, disabled && styles.inputDisabled, value && styles.inputFilled]}
+        style={[styles.input, disabled && styles.inputDisabled]}
         onPress={() => !disabled && setShowPicker(true)}
         activeOpacity={0.7}
       >
         <Ionicons 
-          name={mode === 'date' ? 'calendar' : 'time'} 
+          name={mode === 'date' ? 'calendar-outline' : 'time-outline'} 
           size={20} 
-          color={value ? '#4CAF50' : '#999'} 
+          color="#4CAF50"
+          style={styles.inputIcon}
         />
         <Text style={[styles.inputText, !value && styles.placeholderText]}>
           {displayValue}
         </Text>
-        <Ionicons name="chevron-down" size={20} color={value ? '#4CAF50' : '#999'} />
+        <Ionicons name="chevron-down" size={20} color="#4CAF50" />
       </TouchableOpacity>
 
       <Modal
@@ -309,17 +310,20 @@ const styles = StyleSheet.create({
   input: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#E4E6EA',
-    borderRadius: 8,
-    padding: 12,
-    backgroundColor: '#FAFAFA',
-    gap: 10,
-    minHeight: 48,
-  },
-  inputFilled: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    borderWidth: 2,
     borderColor: '#4CAF50',
-    backgroundColor: '#F1F8F4',
+    paddingHorizontal: 16,
+    height: 56,
+    shadowColor: '#4CAF50',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+    elevation: 4,
+  },
+  inputIcon: {
+    marginRight: 12,
   },
   inputDisabled: {
     backgroundColor: '#F0F2F5',
@@ -328,10 +332,10 @@ const styles = StyleSheet.create({
   inputText: {
     flex: 1,
     fontSize: 16,
-    color: '#1C1E21',
+    color: '#333333',
   },
   placeholderText: {
-    color: '#999',
+    color: '#999999',
   },
   modalOverlay: {
     flex: 1,

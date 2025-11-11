@@ -188,15 +188,13 @@ export default function RegisterScreen(){
                                         </View>
 
                                         <View style={styles.inputContainer}>
-                                            <View style={{ marginBottom: 16 }}>
-                                                <DateTimePicker
-                                                    label=""
-                                                    value={birthDate}
-                                                    onChange={setBirthDate}
-                                                    mode="date"
-                                                    placeholder="Fecha de nacimiento (DD/MM/AAAA)"
-                                                />
-                                            </View>
+                                            <DateTimePicker
+                                                label=""
+                                                value={birthDate}
+                                                onChange={setBirthDate}
+                                                mode="date"
+                                                placeholder="Fecha de nacimiento (DD/MM/AAAA)"
+                                            />
                                         </View>
 
                                         <View style={styles.buttonRow}>
