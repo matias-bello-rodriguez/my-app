@@ -50,8 +50,8 @@ function TabsContent() {
         tabBarStyle: {
           backgroundColor: '#4CAF50',
           borderTopWidth: 0,
-          height: 95,
-          paddingBottom: 25,
+          height: 75,
+          paddingBottom: 5,
           paddingTop: 10,
         },
         tabBarLabelStyle: {

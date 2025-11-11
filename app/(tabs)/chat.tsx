@@ -267,7 +267,7 @@ const styles = StyleSheet.create({
         color: '#1C1E21',
     },
     listContainer: {
-        paddingBottom: 16,
+        paddingBottom: Platform.OS === 'ios' ? 30 : 16,
     },
     conversationItem: {
         flexDirection: 'row',
