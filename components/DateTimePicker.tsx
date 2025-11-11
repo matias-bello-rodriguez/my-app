@@ -33,6 +33,15 @@ export default function DateTimePicker({
   const [selectedHour, setSelectedHour] = useState<number>(12);
   const [selectedMinute, setSelectedMinute] = useState<number>(0);
 
+  // Calcular fecha mínima (18 años y 1 día desde hoy) usando useMemo
+  const maxDate = React.useMemo(() => {
+    const today = new Date();
+    return new Date(today.getFullYear() - 18, today.getMonth(), today.getDate() - 1);
+  }, []);
+
+  const minYear = 1900;
+  const maxYear = maxDate.getFullYear();
+
   // Generar arrays de opciones
   const days = Array.from({ length: 31 }, (_, i) => i + 1);
   const months = [
@@ -49,8 +58,8 @@ export default function DateTimePicker({
     { value: 11, label: 'Noviembre' },
     { value: 12, label: 'Diciembre' },
   ];
-  const currentYear = new Date().getFullYear();
-  const years = Array.from({ length: 100 }, (_, i) => currentYear - i);
+  // Generar años desde 1900 hasta (año actual - 18 años)
+  const years = Array.from({ length: maxYear - minYear + 1 }, (_, i) => maxYear - i);
   const hours = Array.from({ length: 24 }, (_, i) => i);
   const minutes = Array.from({ length: 60 }, (_, i) => i);
 
@@ -63,7 +72,7 @@ export default function DateTimePicker({
         if (parts.length === 3) {
           setSelectedDay(parseInt(parts[0]) || 1);
           setSelectedMonth(parseInt(parts[1]) || 1);
-          setSelectedYear(parseInt(parts[2]) || new Date().getFullYear());
+          setSelectedYear(parseInt(parts[2]) || maxYear);
         }
       } else if (mode === 'time') {
         // Formato esperado: HH:MM
@@ -73,12 +82,25 @@ export default function DateTimePicker({
           setSelectedMinute(parseInt(parts[1]) || 0);
         }
       }
+    } else {
+      // Si no hay valor, inicializar con fecha por defecto (18 años atrás)
+      if (mode === 'date') {
+        setSelectedDay(maxDate.getDate());
+        setSelectedMonth(maxDate.getMonth() + 1);
+        setSelectedYear(maxYear);
+      }
     }
-  }, [value, mode]);
+  }, [value, mode, maxYear, maxDate]);
 
   const handleConfirm = () => {
     let newValue = '';
     if (mode === 'date') {
+      // Validar que la fecha no sea mayor a 18 años atrás
+      const selectedDate = new Date(selectedYear, selectedMonth - 1, selectedDay);
+      if (selectedDate > maxDate) {
+        alert('Debes ser mayor de 18 años para registrarte');
+        return;
+      }
       newValue = `${selectedDay.toString().padStart(2, '0')}/${selectedMonth.toString().padStart(2, '0')}/${selectedYear}`;
     } else {
       newValue = `${selectedHour.toString().padStart(2, '0')}:${selectedMinute.toString().padStart(2, '0')}`;

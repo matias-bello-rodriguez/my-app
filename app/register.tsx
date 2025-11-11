@@ -187,6 +187,11 @@ export default function RegisterScreen(){
     const handleRegister = async () => {
         if (loading) return;
 
+        // Validar paso 3 antes de registrar
+        if (!validateStep3()) {
+            return;
+        }
+
         setLoading(true);
         try {
             await authService.register({
@@ -210,7 +215,158 @@ export default function RegisterScreen(){
         router.push('/auth');
     };
 
+    // Validar RUT chileno
+    const validateRut = (rut: string): boolean => {
+        // Limpiar el RUT
+        const cleanedRut = cleanRut(rut);
+        
+        // Debe tener entre 8 y 9 caracteres (mínimo 7 dígitos + 1 verificador, máximo 8 dígitos + 1 verificador)
+        if (cleanedRut.length < 8 || cleanedRut.length > 9) {
+            return false;
+        }
+        
+        // Separar cuerpo y dígito verificador
+        const body = cleanedRut.slice(0, -1);
+        const dv = cleanedRut.slice(-1).toUpperCase();
+        
+        // El cuerpo debe tener al menos 7 dígitos
+        if (body.length < 7) {
+            return false;
+        }
+        
+        // Verificar que el cuerpo solo contenga números
+        if (!/^\d+$/.test(body)) {
+            return false;
+        }
+        
+        // Calcular dígito verificador
+        let sum = 0;
+        let multiplier = 2;
+        
+        for (let i = body.length - 1; i >= 0; i--) {
+            sum += parseInt(body[i]) * multiplier;
+            multiplier = multiplier === 7 ? 2 : multiplier + 1;
+        }
+        
+        const expectedDv = 11 - (sum % 11);
+        let calculatedDv = '';
+        
+        if (expectedDv === 11) calculatedDv = '0';
+        else if (expectedDv === 10) calculatedDv = 'K';
+        else calculatedDv = expectedDv.toString();
+        
+        return dv === calculatedDv;
+    };
+
+    // Validar email
+    const validateEmail = (email: string): boolean => {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return emailRegex.test(email);
+    };
+
+    // Validar que la contraseña tenga al menos 6 caracteres
+    const validatePassword = (password: string): boolean => {
+        return password.length >= 6;
+    };
+
+    // Validación del paso 1
+    const validateStep1 = (): boolean => {
+        if (!name.trim()) {
+            Alert.alert('Error', 'Por favor ingresa tu nombre');
+            return false;
+        }
+        if (!lastName.trim()) {
+            Alert.alert('Error', 'Por favor ingresa tu apellido');
+            return false;
+        }
+        if (!rut.trim()) {
+            Alert.alert('Error', 'Por favor ingresa tu RUT');
+            return false;
+        }
+        const cleanedRut = cleanRut(rut);
+        if (cleanedRut.length < 8) {
+            Alert.alert('Error', 'El RUT debe tener al menos 8 dígitos (ej: 12.345.678-9)');
+            return false;
+        }
+        if (!validateRut(rut)) {
+            Alert.alert('Error', 'El RUT ingresado no es válido');
+            return false;
+        }
+        if (!birthDate.trim()) {
+            Alert.alert('Error', 'Por favor selecciona tu fecha de nacimiento');
+            return false;
+        }
+        
+        // Validar que sea mayor de 18 años
+        const parts = birthDate.split('/');
+        if (parts.length === 3) {
+            const day = parseInt(parts[0]);
+            const month = parseInt(parts[1]) - 1; // Los meses en JS van de 0-11
+            const year = parseInt(parts[2]);
+            const selectedDate = new Date(year, month, day);
+            const today = new Date();
+            const minDate = new Date(today.getFullYear() - 18, today.getMonth(), today.getDate() - 1);
+            
+            if (selectedDate > minDate) {
+                Alert.alert('Error', 'Debes ser mayor de 18 años para registrarte');
+                return false;
+            }
+        }
+        
+        return true;
+    };
+
+    // Validación del paso 2
+    const validateStep2 = (): boolean => {
+        if (!region.trim()) {
+            Alert.alert('Error', 'Por favor selecciona tu región');
+            return false;
+        }
+        if (!comuna.trim()) {
+            Alert.alert('Error', 'Por favor selecciona tu comuna');
+            return false;
+        }
+        return true;
+    };
+
+    // Validación del paso 3
+    const validateStep3 = (): boolean => {
+        if (!email.trim()) {
+            Alert.alert('Error', 'Por favor ingresa tu correo electrónico');
+            return false;
+        }
+        if (!validateEmail(email)) {
+            Alert.alert('Error', 'Por favor ingresa un correo electrónico válido');
+            return false;
+        }
+        if (!password.trim()) {
+            Alert.alert('Error', 'Por favor ingresa una contraseña');
+            return false;
+        }
+        if (!validatePassword(password)) {
+            Alert.alert('Error', 'La contraseña debe tener al menos 6 caracteres');
+            return false;
+        }
+        if (!confirmPassword.trim()) {
+            Alert.alert('Error', 'Por favor confirma tu contraseña');
+            return false;
+        }
+        if (password !== confirmPassword) {
+            Alert.alert('Error', 'Las contraseñas no coinciden');
+            return false;
+        }
+        return true;
+    };
+
     const nextStep = () => {
+        // Validar según el paso actual
+        if (currentStep === 1 && !validateStep1()) {
+            return;
+        }
+        if (currentStep === 2 && !validateStep2()) {
+            return;
+        }
+        
         if (currentStep < 3) {
             setCurrentStep(currentStep + 1);
         }
