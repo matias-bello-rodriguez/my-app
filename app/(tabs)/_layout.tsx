@@ -132,6 +132,7 @@ function TabsContent() {
           name="chat" 
           options={{
             href: null, // Esto oculta la pestaña del menú
+            tabBarStyle: { display: 'none' }, // Ocultar tab bar
           }}
         />
 
@@ -139,6 +140,7 @@ function TabsContent() {
           name="chat-detail" 
           options={{
             href: null, // Esto oculta la pestaña del menú
+            tabBarStyle: { display: 'none' }, // Ocultar tab bar
           }}
         />
 

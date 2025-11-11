@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import React, { useState } from 'react';
+import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
+import React, { useCallback, useState } from 'react';
 import {
     FlatList,
     KeyboardAvoidingView,
@@ -11,6 +11,7 @@ import {
     TouchableOpacity,
     View
 } from 'react-native';
+import { useHeader } from '../../contexts/HeaderContext';
 
 interface Message {
     id: string;
@@ -25,6 +26,17 @@ export default function ChatDetailScreen() {
     const params = useLocalSearchParams();
     const { name, online } = params;
     const isOnline = online === 'true';
+    const { hideHeader, showHeader } = useHeader();
+    
+    // Ocultar header y tabs cuando la pantalla esté enfocada
+    useFocusEffect(
+        useCallback(() => {
+            hideHeader();
+            return () => {
+                showHeader();
+            };
+        }, [hideHeader, showHeader])
+    );
     
     const [message, setMessage] = useState('');
     const [messages, setMessages] = useState<Message[]>([

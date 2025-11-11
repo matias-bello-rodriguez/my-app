@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
-import React, { useState } from 'react';
+import { useFocusEffect, useRouter } from 'expo-router';
+import React, { useCallback, useState } from 'react';
 import {
     FlatList,
     Image,
@@ -11,6 +11,7 @@ import {
     TouchableOpacity,
     View
 } from 'react-native';
+import { useHeader } from '../../contexts/HeaderContext';
 
 interface Conversation {
     id: string;
@@ -25,6 +26,17 @@ interface Conversation {
 export default function ChatScreen() {
     const router = useRouter();
     const [searchQuery, setSearchQuery] = useState('');
+    const { hideHeader, showHeader } = useHeader();
+    
+    // Ocultar header y tabs cuando la pantalla esté enfocada
+    useFocusEffect(
+        useCallback(() => {
+            hideHeader();
+            return () => {
+                showHeader();
+            };
+        }, [hideHeader, showHeader])
+    );
     
     // Datos de ejemplo de conversaciones
     const [conversations] = useState<Conversation[]>([
