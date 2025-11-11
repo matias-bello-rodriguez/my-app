@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from "expo-router";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
     Alert,
     Image,
@@ -17,7 +17,9 @@ import {
     View
 } from "react-native";
 import authService from '../services/authService';
+import locationService, { Region, Comuna } from '../services/locationService';
 import DateTimePicker from '../components/DateTimePicker';
+import SelectPicker from '../components/SelectPicker';
 
 export default function RegisterScreen(){
     const [currentStep, setCurrentStep] = useState(1);
@@ -35,6 +37,153 @@ export default function RegisterScreen(){
     const [loading, setLoading] = useState(false);
     const router = useRouter();
 
+    // Estados para regiones y comunas
+    const [regiones, setRegiones] = useState<Region[]>([]);
+    const [comunas, setComunas] = useState<Comuna[]>([]);
+    const [comunasFiltradas, setComunasFiltradas] = useState<Comuna[]>([]);
+    const [loadingRegiones, setLoadingRegiones] = useState(false);
+    const [loadingComunas, setLoadingComunas] = useState(false);
+
+    // Cargar regiones al montar el componente
+    useEffect(() => {
+        loadRegiones();
+        loadComunas();
+    }, []);
+
+    // Filtrar comunas cuando cambia la región
+    useEffect(() => {
+        if (region && comunas.length > 0) {
+            const regionObj = regiones.find(r => r.name === region);
+            console.log('Región seleccionada:', region, 'Código:', regionObj?.number);
+            if (regionObj) {
+                const filtered = comunas.filter(c => c.regionCode === regionObj.number);
+                console.log('Comunas filtradas:', filtered.length);
+                // Ordenar alfabéticamente
+                const sorted = filtered.sort((a, b) => a.name.localeCompare(b.name));
+                setComunasFiltradas(sorted);
+            }
+        } else {
+            setComunasFiltradas([]);
+        }
+        // Limpiar comuna si cambia la región
+        if (region) {
+            setComuna('');
+        }
+    }, [region, comunas, regiones]);
+
+    const loadRegiones = async () => {
+        setLoadingRegiones(true);
+        try {
+            const data = await locationService.getRegiones();
+            console.log('Regiones cargadas:', data.length);
+            setRegiones(data);
+        } catch (error) {
+            console.error('Error al cargar regiones:', error);
+        } finally {
+            setLoadingRegiones(false);
+        }
+    };
+
+    const loadComunas = async () => {
+        setLoadingComunas(true);
+        try {
+            const data = await locationService.getComunas();
+            console.log('Comunas cargadas:', data.length);
+            setComunas(data);
+        } catch (error) {
+            console.error('Error al cargar comunas:', error);
+        } finally {
+            setLoadingComunas(false);
+        }
+    };
+
+    // Función para capitalizar cada palabra y filtrar caracteres especiales
+    const formatName = (text: string): string => {
+        // Permitir solo letras, espacios y tildes
+        const filtered = text.replace(/[^a-záéíóúüñA-ZÁÉÍÓÚÜÑ\s]/g, '');
+        
+        // Capitalizar la primera letra de cada palabra
+        return filtered
+            .split(' ')
+            .map(word => {
+                if (word.length === 0) return word;
+                return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+            })
+            .join(' ');
+    };
+
+    // Manejadores para nombre y apellido con formato
+    const handleNameChange = (text: string) => {
+        setName(formatName(text));
+    };
+
+    const handleLastNameChange = (text: string) => {
+        setLastName(formatName(text));
+    };
+
+    // Función para formatear el RUT con puntos y guión
+    const formatRut = (text: string): string => {
+        // Eliminar puntos y guiones previos para procesar el texto limpio
+        let cleaned = text.replace(/\./g, '').replace(/-/g, '');
+        
+        // Separar números de la letra K
+        const numbers = cleaned.replace(/[^0-9]/g, '');
+        const hasK = /[kK]/.test(cleaned);
+        
+        if (numbers.length === 0) return '';
+        
+        // Si solo hay números sin K, no formatear hasta que haya más de un dígito
+        if (!hasK && numbers.length === 1) return numbers;
+        
+        // Determinar el cuerpo y el dígito verificador
+        let body = '';
+        let dv = '';
+        
+        if (hasK) {
+            // Si tiene K, el cuerpo son todos los números y el dv es K
+            body = numbers;
+            dv = 'K';
+        } else {
+            // Si no tiene K, separar el último número como dv
+            body = numbers.slice(0, -1);
+            dv = numbers.slice(-1);
+        }
+        
+        if (body.length === 0) return dv;
+        
+        // Formatear el cuerpo con puntos (cada 3 dígitos de derecha a izquierda)
+        const formattedBody = body.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+        
+        // Retornar con guión antes del dígito verificador
+        return `${formattedBody}-${dv}`;
+    };
+
+    // Manejador para el RUT
+    const handleRutChange = (text: string) => {
+        // Solo permitir números y K/k
+        const filtered = text.replace(/[^0-9kK]/g, '');
+        
+        // Contar cuántas K hay
+        const kCount = (filtered.match(/[kK]/g) || []).length;
+        
+        // Si hay más de una K, no permitir
+        if (kCount > 1) return;
+        
+        // Si hay una K, verificar que esté al final
+        if (kCount === 1) {
+            const kIndex = filtered.search(/[kK]/);
+            // Si la K no está al final, no permitir
+            if (kIndex !== filtered.length - 1) return;
+        }
+        
+        setRut(formatRut(filtered));
+    };
+
+    // Función para limpiar el RUT (sin puntos ni guión)
+    const cleanRut = (rut: string): string => {
+        return rut.replace(/\./g, '').replace(/-/g, '');
+    };
+
     const handleRegister = async () => {
         if (loading) return;
 
@@ -43,7 +192,7 @@ export default function RegisterScreen(){
             await authService.register({
                 firstName: name,
                 lastName,
-                rut,
+                rut: cleanRut(rut), // Enviar RUT sin puntos ni guión
                 email,
                 password,
             });
@@ -147,7 +296,7 @@ export default function RegisterScreen(){
                                                 <TextInput
                                                     style={styles.input}
                                                     value={name}
-                                                    onChangeText={setName}
+                                                    onChangeText={handleNameChange}
                                                     placeholder="Nombre"
                                                     placeholderTextColor="#999999"
                                                     autoCapitalize="words"
@@ -163,7 +312,7 @@ export default function RegisterScreen(){
                                                 <TextInput
                                                     style={styles.input}
                                                     value={lastName}
-                                                    onChangeText={setLastName}
+                                                    onChangeText={handleLastNameChange}
                                                     placeholder="Apellido"
                                                     placeholderTextColor="#999999"
                                                     autoCapitalize="words"
@@ -179,9 +328,12 @@ export default function RegisterScreen(){
                                                 <TextInput
                                                     style={styles.input}
                                                     value={rut}
-                                                    onChangeText={setRut}
-                                                    placeholder="RUT (12345678-9)"
+                                                    onChangeText={handleRutChange}
+                                                    placeholder="RUT (12.345.678-9)"
                                                     placeholderTextColor="#999999"
+                                                    keyboardType="default"
+                                                    autoCapitalize="characters"
+                                                    maxLength={12}
                                                     returnKeyType="next"
                                                 />
                                             </View>
@@ -211,34 +363,34 @@ export default function RegisterScreen(){
                                         <Text style={styles.sectionTitle}>Ubicación</Text>
 
                                         <View style={styles.inputContainer}>
-                                            <View style={styles.inputWrapper}>
-                                                <Ionicons name="location-outline" size={20} color="#4CAF50" style={styles.inputIcon} />
-                                                <TextInput
-                                                    style={styles.input}
-                                                    value={region}
-                                                    onChangeText={setRegion}
-                                                    placeholder="Región"
-                                                    placeholderTextColor="#999999"
-                                                    autoCapitalize="words"
-                                                    returnKeyType="next"
-                                                />
-                                            </View>
+                                            <SelectPicker
+                                                label=""
+                                                value={region}
+                                                onChange={setRegion}
+                                                options={regiones.map(r => ({
+                                                    label: r.name,
+                                                    value: r.name
+                                                }))}
+                                                placeholder="Selecciona tu región"
+                                                icon="location-outline"
+                                                loading={loadingRegiones}
+                                            />
                                         </View>
 
                                         <View style={styles.inputContainer}>
-                                            <View style={styles.inputWrapper}>
-                                                <Ionicons name="business-outline" size={20} color="#4CAF50" style={styles.inputIcon} />
-                                                <TextInput
-                                                    style={styles.input}
-                                                    value={comuna}
-                                                    onChangeText={setComuna}
-                                                    placeholder="Comuna"
-                                                    placeholderTextColor="#999999"
-                                                    autoCapitalize="words"
-                                                    returnKeyType="done"
-                                                    onSubmitEditing={nextStep}
-                                                />
-                                            </View>
+                                            <SelectPicker
+                                                label=""
+                                                value={comuna}
+                                                onChange={setComuna}
+                                                options={comunasFiltradas.map(c => ({
+                                                    label: c.name,
+                                                    value: c.name
+                                                }))}
+                                                placeholder={region ? "Selecciona tu comuna" : "Primero selecciona una región"}
+                                                icon="business-outline"
+                                                disabled={!region}
+                                                loading={loadingComunas}
+                                            />
                                         </View>
 
                                         <View style={styles.buttonRow}>
