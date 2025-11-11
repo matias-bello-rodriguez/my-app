@@ -2,13 +2,17 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import {
+    ActivityIndicator,
     Image,
+    RefreshControl,
     ScrollView,
     StyleSheet,
     Text,
     TouchableOpacity,
     View
 } from 'react-native';
+import apiService from '../../services/apiService';
+import authService from '../../services/authService';
 
 export default function Index() {
     const router = useRouter();
@@ -17,7 +21,15 @@ export default function Index() {
     const [currentIndex, setCurrentIndex] = useState(0);
     const [isUserScrolling, setIsUserScrolling] = useState(false);
     const [showBalance, setShowBalance] = useState(false);
-    const [userName] = useState('Matías'); // Nombre del usuario
+    const [userName, setUserName] = useState('Usuario');
+    
+    // Estados para los datos de la API
+    const [loading, setLoading] = useState(true);
+    const [refreshing, setRefreshing] = useState(false);
+    const [myCars, setMyCars] = useState<any[]>([]);
+    const [latestCars, setLatestCars] = useState<any[]>([]);
+    const [inspectedCars, setInspectedCars] = useState<any[]>([]);
+    const [favorites] = useState<any[]>([]); // Por ahora vacío, luego se implementará
 
     // Datos mock para las secciones
     const brands = [
@@ -96,25 +108,42 @@ export default function Index() {
         return () => clearInterval(interval);
     }, [currentIndex, isUserScrolling, brands.length]);
 
-    const myCars = [
-        { id: 1, model: 'Mazda 3 2020', price: '$12.500.000', image: '🚗', status: 'En venta' },
-        { id: 2, model: 'Toyota Corolla 2019', price: '$11.200.000', image: '🚙', status: 'En venta' }
-    ];
+    // Cargar datos del usuario y vehículos
+    const loadData = async () => {
+        try {
+            const user = await authService.getUser();
+            if (user) {
+                setUserName(user.firstName);
+            }
 
-    const favorites = [
-        { id: 1, model: 'Honda Civic 2021', price: '$15.800.000', image: '🚗', location: 'Santiago' },
-        { id: 2, model: 'Nissan Sentra 2020', price: '$13.500.000', image: '🚕', location: 'Valparaíso' }
-    ];
+            // Cargar datos en paralelo
+            const [myVehicles, latest, inspected] = await Promise.all([
+                apiService.getMyVehicles(),
+                apiService.getLatestVehicles(),
+                apiService.getInspectedVehicles(),
+            ]);
 
-    const inspectedCars = [
-        { id: 1, model: 'Ford Focus 2018', price: '$9.800.000', image: '🚐', inspection: 'Aprobada' },
-        { id: 2, model: 'Hyundai Elantra 2019', price: '$11.500.000', image: '🚙', inspection: 'Aprobada' }
-    ];
+            setMyCars(myVehicles);
+            setLatestCars(latest);
+            setInspectedCars(inspected);
+        } catch (error) {
+            console.error('Error al cargar datos:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
 
-    const latestCars = [
-        { id: 1, model: 'BMW Serie 3 2020', price: '$22.500.000', image: '🚗', time: 'Hace 2 horas' },
-        { id: 2, model: 'Chevrolet Spark 2021', price: '$8.900.000', image: '🚙', time: 'Hace 4 horas' }
-    ];
+    // Recargar datos al hacer pull to refresh
+    const onRefresh = async () => {
+        setRefreshing(true);
+        await loadData();
+        setRefreshing(false);
+    };
+
+    // Cargar datos al montar el componente
+    useEffect(() => {
+        loadData();
+    }, []);
 
     const formatCurrency = (amount: number) => {
         return new Intl.NumberFormat('es-CL', {
@@ -126,7 +155,12 @@ export default function Index() {
 
     const handleBrandPress = (brandName: string) => {
         console.log(`Marca seleccionada: ${brandName}`);
-        // Aquí puedes agregar la lógica para filtrar por marca
+        router.push(`/search?brand=${brandName}`);
+    };
+
+    const handleCarPress = (carId: string) => {
+        console.log(`Auto seleccionado: ${carId}`);
+        // Navegar a detalle del vehículo
     };
 
     const handleScrollBegin = () => {
@@ -150,8 +184,28 @@ export default function Index() {
         return `¡Buenas noches, ${userName}!`;
     };
 
+    if (loading) {
+        return (
+            <View style={[styles.container, styles.centerContent]}>
+                <ActivityIndicator size="large" color="#4CAF50" />
+                <Text style={styles.loadingText}>Cargando...</Text>
+            </View>
+        );
+    }
+
     return (
-        <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+        <ScrollView 
+            style={styles.container} 
+            showsVerticalScrollIndicator={false}
+            refreshControl={
+                <RefreshControl
+                    refreshing={refreshing}
+                    onRefresh={onRefresh}
+                    colors={['#4CAF50']}
+                    tintColor="#4CAF50"
+                />
+            }
+        >
                 {/* Barra de estado del usuario */}
                 <View style={styles.userStatusBar}>
                     <View style={styles.userStatusContent}>
@@ -233,55 +287,75 @@ export default function Index() {
 
                 {/* Posts estilo feed */}
                 {/* Mis autos en venta */}
-                <View style={styles.feedPost}>
-                    <View style={styles.postHeader}>
-                        <View style={styles.postUserInfo}>
-                            <View style={styles.postAvatar}>
-                                <Ionicons name="person" size={16} color="#FFFFFF" />
+                {myCars.length > 0 && (
+                    <View style={styles.feedPost}>
+                        <View style={styles.postHeader}>
+                            <View style={styles.postUserInfo}>
+                                <View style={styles.postAvatar}>
+                                    <Ionicons name="person" size={16} color="#FFFFFF" />
+                                </View>
+                                <View>
+                                    <Text style={styles.postUserName}>Mis autos en venta</Text>
+                                    <Text style={styles.postTime}>{myCars.length} vehículo{myCars.length > 1 ? 's' : ''}</Text>
+                                </View>
                             </View>
-                            <View>
-                                <Text style={styles.postUserName}>Mis autos en venta</Text>
-                                <Text style={styles.postTime}>Hace 5 minutos</Text>
-                            </View>
+                            <TouchableOpacity>
+                                <Ionicons name="ellipsis-horizontal" size={20} color="#65676B" />
+                            </TouchableOpacity>
                         </View>
-                        <TouchableOpacity>
-                            <Ionicons name="ellipsis-horizontal" size={20} color="#65676B" />
-                        </TouchableOpacity>
-                    </View>
-                    <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.feedCarousel}>
-                        {myCars.map((car) => (
-                            <TouchableOpacity key={car.id} style={styles.reelsVideoCard}>
-                                <View style={styles.videoBackground}>
-                                    <Text style={styles.videoEmoji}>{car.image}</Text>
-                                    <View style={styles.videoOverlay}>
-                                        <View style={styles.videoInfo}>
-                                            <Text style={styles.videoModel}>{car.model}</Text>
-                                            <Text style={styles.videoPrice}>{car.price}</Text>
-                                            <View style={styles.videoStatus}>
-                                                <Text style={styles.videoStatusText}>{car.status}</Text>
+                        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.feedCarousel}>
+                            {myCars.map((car) => (
+                                <TouchableOpacity 
+                                    key={car.id} 
+                                    style={styles.reelsVideoCard}
+                                    onPress={() => handleCarPress(car.id)}
+                                >
+                                    <View style={styles.videoBackground}>
+                                        {car.images && car.images[0] ? (
+                                            <Image 
+                                                source={{ uri: car.images[0] }} 
+                                                style={styles.carImage}
+                                                resizeMode="cover"
+                                            />
+                                        ) : (
+                                            <Text style={styles.videoEmoji}>🚗</Text>
+                                        )}
+                                        <View style={styles.videoOverlay}>
+                                            <View style={styles.videoInfo}>
+                                                <Text style={styles.videoModel}>{car.brand} {car.model} {car.year}</Text>
+                                                <Text style={styles.videoPrice}>{formatCurrency(car.price)}</Text>
+                                                <View style={styles.videoStatus}>
+                                                    <Text style={styles.videoStatusText}>
+                                                        {car.status || 'En venta'}
+                                                    </Text>
+                                                </View>
                                             </View>
                                         </View>
                                     </View>
+                                </TouchableOpacity>
+                            ))}
+                            <TouchableOpacity 
+                                style={styles.addCarReelsCard}
+                                onPress={() => router.push('/publish')}
+                            >
+                                <View style={styles.addVideoBackground}>
+                                    <Ionicons name="add" size={40} color="#4CAF50" />
+                                    <Text style={styles.addVideoText}>Vender Auto</Text>
                                 </View>
                             </TouchableOpacity>
-                        ))}
-                        <TouchableOpacity style={styles.addCarReelsCard}>
-                            <View style={styles.addVideoBackground}>
-                                <Ionicons name="add" size={40} color="#4CAF50" />
-                                <Text style={styles.addVideoText}>Vender Auto</Text>
-                            </View>
-                        </TouchableOpacity>
-                    </ScrollView>
-                    <View style={styles.postActions}>
-                        <TouchableOpacity style={styles.postAction}>
-                            <Ionicons name="share-outline" size={20} color="#65676B" />
-                            <Text style={styles.postActionText}>Compartir</Text>
-                        </TouchableOpacity>
+                        </ScrollView>
+                        <View style={styles.postActions}>
+                            <TouchableOpacity style={styles.postAction}>
+                                <Ionicons name="share-outline" size={20} color="#65676B" />
+                                <Text style={styles.postActionText}>Compartir</Text>
+                            </TouchableOpacity>
+                        </View>
                     </View>
-                </View>
+                )}
 
                 {/* Favoritos */}
-                <View style={styles.feedPost}>
+                {favorites.length > 0 && (
+                    <View style={styles.feedPost}>
                     <View style={styles.postHeader}>
                         <View style={styles.postUserInfo}>
                             <View style={[styles.postAvatar, { backgroundColor: '#F44336' }]}>
@@ -317,10 +391,12 @@ export default function Index() {
                             <Text style={styles.postActionText}>Compartir</Text>
                         </TouchableOpacity>
                     </View>
-                </View>
+                    </View>
+                )}
 
                 {/* Inspecciones mecánicas */}
-                <View style={styles.feedPost}>
+                {inspectedCars.length > 0 && (
+                    <View style={styles.feedPost}>
                     <View style={styles.postHeader}>
                         <View style={styles.postUserInfo}>
                             <View style={[styles.postAvatar, { backgroundColor: '#2196F3' }]}>
@@ -356,10 +432,12 @@ export default function Index() {
                             <Text style={styles.postActionText}>Compartir</Text>
                         </TouchableOpacity>
                     </View>
-                </View>
+                    </View>
+                )}
 
                 {/* Últimos publicados */}
-                <View style={styles.feedPost}>
+                {latestCars.length > 0 && (
+                    <View style={styles.feedPost}>
                     <View style={styles.postHeader}>
                         <View style={styles.postUserInfo}>
                             <View style={[styles.postAvatar, { backgroundColor: '#FF9800' }]}>
@@ -395,7 +473,8 @@ export default function Index() {
                             <Text style={styles.postActionText}>Compartir</Text>
                         </TouchableOpacity>
                     </View>
-                </View>
+                    </View>
+                )}
 
                 {/* Espaciado final */}
                 <View style={styles.bottomSpace} />
@@ -769,5 +848,19 @@ const styles = StyleSheet.create({
         fontWeight: '600',
         marginTop: 8,
         textAlign: 'center',
+    },
+    centerContent: {
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    loadingText: {
+        marginTop: 12,
+        fontSize: 16,
+        color: '#65676B',
+    },
+    carImage: {
+        position: 'absolute',
+        width: '100%',
+        height: '100%',
     },
 });

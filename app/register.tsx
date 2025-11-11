@@ -2,6 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import {
+    Alert,
     Image,
     Keyboard,
     KeyboardAvoidingView,
@@ -15,6 +16,8 @@ import {
     TouchableWithoutFeedback,
     View
 } from "react-native";
+import authService from '../services/authService';
+import DateTimePicker from '../components/DateTimePicker';
 
 export default function RegisterScreen(){
     const [currentStep, setCurrentStep] = useState(1);
@@ -29,13 +32,29 @@ export default function RegisterScreen(){
     const [confirmPassword, setConfirmPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+    const [loading, setLoading] = useState(false);
     const router = useRouter();
 
-    const handleRegister = () => {
-        // Aquí iría la lógica de registro
-        console.log('Register attempt:', { name, lastName, rut, birthDate, region, comuna, email, password, confirmPassword });
-        // Navegar a loading después de crear la cuenta con contexto
-        router.replace('/loading?context=register');
+    const handleRegister = async () => {
+        if (loading) return;
+
+        setLoading(true);
+        try {
+            await authService.register({
+                firstName: name,
+                lastName,
+                rut,
+                email,
+                password,
+            });
+
+            // Navegar a loading después de crear la cuenta con contexto
+            router.replace('/loading?context=register');
+        } catch (error: any) {
+            Alert.alert('Error', error.message || 'Error al crear la cuenta');
+        } finally {
+            setLoading(false);
+        }
     };
 
     const goToLogin = () => {
@@ -169,16 +188,13 @@ export default function RegisterScreen(){
                                         </View>
 
                                         <View style={styles.inputContainer}>
-                                            <View style={styles.inputWrapper}>
-                                                <Ionicons name="calendar-outline" size={20} color="#4CAF50" style={styles.inputIcon} />
-                                                <TextInput
-                                                    style={styles.input}
+                                            <View style={{ marginBottom: 16 }}>
+                                                <DateTimePicker
+                                                    label=""
                                                     value={birthDate}
-                                                    onChangeText={setBirthDate}
+                                                    onChange={setBirthDate}
+                                                    mode="date"
                                                     placeholder="Fecha de nacimiento (DD/MM/AAAA)"
-                                                    placeholderTextColor="#999999"
-                                                    returnKeyType="done"
-                                                    onSubmitEditing={nextStep}
                                                 />
                                             </View>
                                         </View>

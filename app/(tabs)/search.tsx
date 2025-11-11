@@ -2,8 +2,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { useCallback, useRef, useState } from 'react';
 import {
+    ActivityIndicator,
     Alert,
-    Dimensions,
     FlatList,
     ScrollView,
     StyleSheet,
@@ -13,8 +13,7 @@ import {
     View
 } from 'react-native';
 import { useHeader } from '../../contexts/HeaderContext';
-
-const { width } = Dimensions.get('window');
+import apiService from '../../services/apiService';
 
 // Tipos para mejor tipado
 interface SearchFilters {
@@ -116,6 +115,7 @@ export default function Search() {
   const [searchQuery, setSearchQuery] = useState('');
   const [showFilters, setShowFilters] = useState(false);
   const [searchResults, setSearchResults] = useState<VehicleResult[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
   const [recentSearches, setRecentSearches] = useState<string[]>([
     'Toyota Corolla',
     'Honda Civic 2020',
@@ -130,6 +130,7 @@ export default function Search() {
   const [showModelDropdown, setShowModelDropdown] = useState(false);
   const [showRegionDropdown, setShowRegionDropdown] = useState(false);
   const [showFuelDropdown, setShowFuelDropdown] = useState(false);
+  const [showTransmissionDropdown, setShowTransmissionDropdown] = useState(false);
 
   // Ocultar header cuando la pantalla esté enfocada y mostrarlo cuando se desenfoque
   useFocusEffect(
@@ -148,6 +149,7 @@ export default function Search() {
       setShowModelDropdown(false);
       setShowRegionDropdown(false);
       setShowFuelDropdown(false);
+      setShowTransmissionDropdown(false);
       
       // Resetear filtros
       setFilters({
@@ -278,12 +280,12 @@ export default function Search() {
     { id: 'gasolina_etanol', name: 'Gasolina + Etanol' },
   ];
 
-  const bodyTypes = [
-    'Todos los tipos', 'Sedan', 'Hatchback', 'SUV', 'Pickup', 'Convertible', 'Coupe', 'Wagon'
-  ];
-
-  const transmissions = [
-    'Todas las transmisiones', 'Manual', 'Automática', 'CVT', 'Semiautomática'
+  const transmissionTypes = [
+    { id: '', name: 'Todas las transmisiones' },
+    { id: 'Manual', name: 'Manual' },
+    { id: 'Automática', name: 'Automática' },
+    { id: 'CVT', name: 'CVT' },
+    { id: 'Semiautomática', name: 'Semiautomática' },
   ];
 
   // Funciones auxiliares
@@ -301,6 +303,11 @@ export default function Search() {
 
   // Manejadores de eventos
   const handleSearch = useCallback(async () => {
+    if (!searchQuery.trim() && !filters.brand && !filters.fuel && !filters.transmission) {
+      // Si no hay ningún criterio de búsqueda, no hacer nada
+      return;
+    }
+    
     if (searchQuery.trim()) {
       // Agregar a búsquedas recientes
       setRecentSearches(prev => {
@@ -308,44 +315,79 @@ export default function Search() {
         return newSearches.slice(0, 5); // Mantener solo las últimas 5
       });
     }
+    
     // Siempre ocultar búsquedas recientes al realizar búsqueda
     setShowRecentSearches(false);
+    setIsSearching(true);
     
     try {
-      // Simular búsqueda
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      let results: VehicleResult[] = [];
+
+      // Determinar si usar búsqueda simple o con filtros
+      const hasFilters = filters.brand || filters.fuel || filters.transmission || 
+                        filters.priceMin !== 5000000 || filters.priceMax !== 50000000 ||
+                        filters.yearMin !== 2010 || filters.yearMax !== 2025 ||
+                        filters.mileageMin !== 0 || filters.mileageMax !== 200000;
+
+      if (hasFilters || showFilters) {
+        // Búsqueda con filtros avanzados
+        const vehicles = await apiService.searchVehiclesWithFilters({
+          query: searchQuery.trim() || undefined,
+          brand: filters.brand || undefined,
+          priceMin: filters.priceMin,
+          priceMax: filters.priceMax,
+          yearMin: filters.yearMin,
+          yearMax: filters.yearMax,
+          kilometersMin: filters.mileageMin,
+          kilometersMax: filters.mileageMax,
+          fuelType: filters.fuel || undefined,
+          transmission: filters.transmission || undefined,
+          location: filters.region || undefined,
+        });
+
+        results = vehicles.map((vehicle: any) => ({
+          id: vehicle.id,
+          brand: vehicle.brand,
+          model: vehicle.model,
+          year: vehicle.year,
+          price: vehicle.price,
+          mileage: vehicle.kilometers,
+          fuel: vehicle.fuelType,
+          transmission: vehicle.transmission,
+          location: vehicle.location || 'No especificada',
+          image: vehicle.images?.[0],
+        }));
+      } else if (searchQuery.trim()) {
+        // Búsqueda simple por texto
+        const vehicles = await apiService.searchVehiclesByQuery(searchQuery.trim());
+        
+        results = vehicles.map((vehicle: any) => ({
+          id: vehicle.id,
+          brand: vehicle.brand,
+          model: vehicle.model,
+          year: vehicle.year,
+          price: vehicle.price,
+          mileage: vehicle.kilometers,
+          fuel: vehicle.fuelType,
+          transmission: vehicle.transmission,
+          location: vehicle.location || 'No especificada',
+          image: vehicle.images?.[0],
+        }));
+      }
       
-      // Resultados simulados
-      const mockResults: VehicleResult[] = [
-        {
-          id: '1',
-          brand: 'Toyota',
-          model: 'Corolla',
-          year: 2022,
-          price: 18500000,
-          mileage: 25000,
-          fuel: 'Gasolina',
-          transmission: 'Automática',
-          location: 'Santiago, RM'
-        },
-        {
-          id: '2',
-          brand: 'Honda',
-          model: 'Civic',
-          year: 2021,
-          price: 17200000,
-          mileage: 35000,
-          fuel: 'Gasolina',
-          transmission: 'Manual',
-          location: 'Valparaíso, V'
-        }
-      ];
+      setSearchResults(results);
       
-      setSearchResults(mockResults);
-    } catch {
-      Alert.alert('Error', 'Hubo un problema al realizar la búsqueda');
+      if (results.length === 0) {
+        Alert.alert('Sin resultados', 'No se encontraron vehículos que coincidan con tu búsqueda.');
+      }
+    } catch (error) {
+      console.error('Error al realizar búsqueda:', error);
+      Alert.alert('Error', 'Hubo un problema al realizar la búsqueda. Por favor intenta nuevamente.');
+      setSearchResults([]);
+    } finally {
+      setIsSearching(false);
     }
-  }, [searchQuery]);
+  }, [searchQuery, filters, showFilters]);
 
   const handleRecentSearchPress = useCallback((searchTerm: string) => {
     setSearchQuery(searchTerm);
@@ -702,6 +744,45 @@ export default function Search() {
               </View>
             </View>
 
+            {/* Transmisión */}
+            <View style={styles.filterRow}>
+              <View style={styles.filterFull}>
+                <Text style={styles.filterLabel}>Transmisión</Text>
+                <TouchableOpacity 
+                  style={styles.dropdownButton}
+                  onPress={() => setShowTransmissionDropdown(!showTransmissionDropdown)}
+                  activeOpacity={0.7}
+                >
+                  <Text style={[styles.dropdownText, !filters.transmission && styles.placeholderText]}>
+                    {filters.transmission ? transmissionTypes.find(t => t.id === filters.transmission)?.name : 'Selecciona transmisión'}
+                  </Text>
+                  <Ionicons 
+                    name={showTransmissionDropdown ? "chevron-up" : "chevron-down"} 
+                    size={20} 
+                    color="#666" 
+                  />
+                </TouchableOpacity>
+                
+                {showTransmissionDropdown && (
+                  <View style={styles.dropdownMenu}>
+                    {transmissionTypes.map((transmission) => (
+                      <TouchableOpacity
+                        key={transmission.id}
+                        style={styles.dropdownItem}
+                        onPress={() => {
+                          updateFilter('transmission', transmission.id);
+                          setShowTransmissionDropdown(false);
+                        }}
+                        activeOpacity={0.7}
+                      >
+                        <Text style={styles.dropdownItemText}>{transmission.name}</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                )}
+              </View>
+            </View>
+
             {/* Botones de acción */}
             <View style={styles.filterActions}>
               <TouchableOpacity 
@@ -721,8 +802,16 @@ export default function Search() {
           </View>
         )}
 
+        {/* Indicador de carga */}
+        {isSearching && (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color="#4CAF50" />
+            <Text style={styles.loadingText}>Buscando vehículos...</Text>
+          </View>
+        )}
+
         {/* Resultados de búsqueda */}
-        {searchResults.length > 0 && (
+        {!isSearching && searchResults.length > 0 && (
           <View style={styles.resultsContainer}>
             <View style={styles.resultsHeader}>
               <Text style={styles.resultsTitle}>
@@ -836,6 +925,9 @@ const styles = StyleSheet.create({
   },
   filterHalf: {
     flex: 1,
+  },
+  filterFull: {
+    width: '100%',
   },
   filterLabel: {
     fontSize: 16,
@@ -1145,5 +1237,16 @@ const styles = StyleSheet.create({
   },
   recentSearchIcon: {
     transform: [{ rotate: '45deg' }],
+  },
+  // Estilos para loading
+  loadingContainer: {
+    padding: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 16,
+    color: '#65676B',
   },
 });

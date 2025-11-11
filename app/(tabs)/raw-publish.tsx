@@ -1,6 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import {
+    ActivityIndicator,
     Alert,
     ScrollView,
     StyleSheet,
@@ -9,14 +11,27 @@ import {
     TouchableOpacity,
     View
 } from 'react-native';
+import apiService from '../../services/apiService';
 
 export default function RawPublish() {
+  const router = useRouter();
+  const [loading, setLoading] = useState(false);
+  
   const [formData, setFormData] = useState({
+    // Campos requeridos por el backend
+    plate: '',
+    brand: '',
+    model: '',
+    year: '',
     price: '',
-    licensePlate: '',
-    mileage: '',
+    kilometers: '',
+    fuelType: 'Gasolina',
+    transmission: 'Manual',
+    // Campos opcionales
     location: '',
-    observations: ''
+    observations: '',
+    description: '',
+    videoUrl: '',
   });
 
   const handleInputChange = (field: string, value: string) => {
@@ -36,95 +51,287 @@ export default function RawPublish() {
     Alert.alert('Adjuntar Video', 'Función de adjuntar video próximamente');
   };
 
-  const handlePublish = () => {
+  const handlePublish = async () => {
     // Validación básica
-    if (!formData.price || !formData.licensePlate || !formData.mileage || !formData.location) {
-      Alert.alert('Error', 'Por favor completa todos los campos obligatorios');
+    if (!formData.plate || !formData.brand || !formData.model || 
+        !formData.year || !formData.price || !formData.kilometers) {
+      Alert.alert('Error', 'Por favor completa todos los campos obligatorios (marca, modelo, año, patente, precio y kilometraje)');
       return;
     }
 
-    console.log('Publicando auto:', formData);
-    Alert.alert('Éxito', 'Tu publicación ha sido creada exitosamente');
+    // Validar año
+    const yearNum = parseInt(formData.year);
+    const currentYear = new Date().getFullYear();
+    if (isNaN(yearNum) || yearNum < 1900 || yearNum > currentYear + 1) {
+      Alert.alert('Error', `El año debe estar entre 1900 y ${currentYear + 1}`);
+      return;
+    }
+
+    // Validar precio y kilometraje
+    const priceNum = parseFloat(formData.price.replace(/[^0-9]/g, ''));
+    const kilometersNum = parseFloat(formData.kilometers.replace(/[^0-9]/g, ''));
+
+    if (isNaN(priceNum) || priceNum <= 0) {
+      Alert.alert('Error', 'El precio debe ser un número válido mayor a 0');
+      return;
+    }
+
+    if (isNaN(kilometersNum) || kilometersNum < 0) {
+      Alert.alert('Error', 'El kilometraje debe ser un número válido');
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      const vehicleData = {
+        plate: formData.plate.toUpperCase(),
+        brand: formData.brand,
+        model: formData.model,
+        year: yearNum,
+        price: priceNum,
+        kilometers: kilometersNum,
+        fuelType: formData.fuelType,
+        transmission: formData.transmission,
+        location: formData.location || undefined,
+        observations: formData.observations || undefined,
+        description: formData.description || undefined,
+        videoUrl: formData.videoUrl || undefined,
+        hasInspection: false,
+      };
+
+      await apiService.createVehicle(vehicleData);
+
+      Alert.alert(
+        'Éxito', 
+        'Tu vehículo ha sido publicado exitosamente',
+        [
+          {
+            text: 'Ver mis publicaciones',
+            onPress: () => router.replace('/(tabs)'),
+          }
+        ]
+      );
+
+      // Limpiar formulario
+      setFormData({
+        plate: '',
+        brand: '',
+        model: '',
+        year: '',
+        price: '',
+        kilometers: '',
+        fuelType: 'Gasolina',
+        transmission: 'Manual',
+        location: '',
+        observations: '',
+        description: '',
+        videoUrl: '',
+      });
+    } catch (error: any) {
+      Alert.alert('Error', error.message || 'No se pudo publicar el vehículo');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <ScrollView style={styles.container}>
       <View style={styles.header}>
         <Ionicons name="car-sport" size={48} color="#4CAF50" />
-        <Text style={styles.title}>Ingresar información del auto</Text>
+        <Text style={styles.title}>Publicar vehículo</Text>
+        <Text style={styles.subtitle}>Completa la información de tu auto</Text>
       </View>
 
       <View style={styles.formContainer}>
+        {/* Marca */}
+        <View style={styles.inputSection}>
+          <Text style={styles.inputLabel}>Marca *</Text>
+          <TextInput
+            style={styles.textInput}
+            value={formData.brand}
+            onChangeText={(value) => handleInputChange('brand', value)}
+            placeholder="Ej: Toyota, Mazda, Honda"
+            placeholderTextColor="#999"
+            editable={!loading}
+          />
+        </View>
+
+        {/* Modelo */}
+        <View style={styles.inputSection}>
+          <Text style={styles.inputLabel}>Modelo *</Text>
+          <TextInput
+            style={styles.textInput}
+            value={formData.model}
+            onChangeText={(value) => handleInputChange('model', value)}
+            placeholder="Ej: Corolla, Civic, 3"
+            placeholderTextColor="#999"
+            editable={!loading}
+          />
+        </View>
+
+        {/* Año */}
+        <View style={styles.inputSection}>
+          <Text style={styles.inputLabel}>Año *</Text>
+          <TextInput
+            style={styles.textInput}
+            value={formData.year}
+            onChangeText={(value) => handleInputChange('year', value)}
+            placeholder="Ej: 2020"
+            placeholderTextColor="#999"
+            keyboardType="numeric"
+            maxLength={4}
+            editable={!loading}
+          />
+        </View>
+
+        {/* Patente */}
+        <View style={styles.inputSection}>
+          <Text style={styles.inputLabel}>Patente *</Text>
+          <TextInput
+            style={styles.textInput}
+            value={formData.plate}
+            onChangeText={(value) => handleInputChange('plate', value)}
+            placeholder="Ej: ABCD12 o AB-CD-12"
+            placeholderTextColor="#999"
+            autoCapitalize="characters"
+            editable={!loading}
+          />
+        </View>
+
+        {/* Precio */}
         <View style={styles.inputSection}>
           <Text style={styles.inputLabel}>Precio de venta *</Text>
           <TextInput
             style={styles.textInput}
             value={formData.price}
             onChangeText={(value) => handleInputChange('price', value)}
-            placeholder="Ej: $15.000.000"
+            placeholder="Ej: 15000000"
             placeholderTextColor="#999"
             keyboardType="numeric"
+            editable={!loading}
           />
         </View>
 
-        <View style={styles.inputSection}>
-          <Text style={styles.inputLabel}>Patente *</Text>
-          <TextInput
-            style={styles.textInput}
-            value={formData.licensePlate}
-            onChangeText={(value) => handleInputChange('licensePlate', value)}
-            placeholder="Ej: ABC-1234"
-            placeholderTextColor="#999"
-            autoCapitalize="characters"
-          />
-        </View>
-
+        {/* Kilometraje */}
         <View style={styles.inputSection}>
           <Text style={styles.inputLabel}>Kilometraje *</Text>
           <TextInput
             style={styles.textInput}
-            value={formData.mileage}
-            onChangeText={(value) => handleInputChange('mileage', value)}
-            placeholder="Ej: 50.000 km"
+            value={formData.kilometers}
+            onChangeText={(value) => handleInputChange('kilometers', value)}
+            placeholder="Ej: 50000"
             placeholderTextColor="#999"
             keyboardType="numeric"
+            editable={!loading}
           />
         </View>
 
+        {/* Tipo de combustible */}
         <View style={styles.inputSection}>
-          <Text style={styles.inputLabel}>Región o ciudad *</Text>
+          <Text style={styles.inputLabel}>Tipo de combustible *</Text>
+          <View style={styles.pickerContainer}>
+            {['Gasolina', 'Diésel', 'Eléctrico', 'Híbrido', 'GNV'].map((fuel) => (
+              <TouchableOpacity
+                key={fuel}
+                style={[
+                  styles.pickerOption,
+                  formData.fuelType === fuel && styles.pickerOptionSelected
+                ]}
+                onPress={() => handleInputChange('fuelType', fuel)}
+                disabled={loading}
+              >
+                <Text style={[
+                  styles.pickerOptionText,
+                  formData.fuelType === fuel && styles.pickerOptionTextSelected
+                ]}>
+                  {fuel}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+
+        {/* Transmisión */}
+        <View style={styles.inputSection}>
+          <Text style={styles.inputLabel}>Transmisión *</Text>
+          <View style={styles.pickerContainer}>
+            {['Manual', 'Automática'].map((trans) => (
+              <TouchableOpacity
+                key={trans}
+                style={[
+                  styles.pickerOption,
+                  formData.transmission === trans && styles.pickerOptionSelected
+                ]}
+                onPress={() => handleInputChange('transmission', trans)}
+                disabled={loading}
+              >
+                <Text style={[
+                  styles.pickerOptionText,
+                  formData.transmission === trans && styles.pickerOptionTextSelected
+                ]}>
+                  {trans}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+
+        {/* Ubicación */}
+        <View style={styles.inputSection}>
+          <Text style={styles.inputLabel}>Ubicación</Text>
           <TextInput
             style={styles.textInput}
             value={formData.location}
             onChangeText={(value) => handleInputChange('location', value)}
             placeholder="Ej: Santiago, Región Metropolitana"
             placeholderTextColor="#999"
+            editable={!loading}
           />
         </View>
 
+        {/* Descripción */}
+        <View style={styles.inputSection}>
+          <Text style={styles.inputLabel}>Descripción</Text>
+          <TextInput
+            style={[styles.textInput, styles.textArea]}
+            value={formData.description}
+            onChangeText={(value) => handleInputChange('description', value)}
+            placeholder="Describe las características principales del vehículo..."
+            placeholderTextColor="#999"
+            multiline
+            numberOfLines={4}
+            textAlignVertical="top"
+            editable={!loading}
+          />
+        </View>
+
+        {/* Observaciones */}
         <View style={styles.inputSection}>
           <Text style={styles.inputLabel}>Observaciones</Text>
           <TextInput
             style={[styles.textInput, styles.textArea]}
             value={formData.observations}
             onChangeText={(value) => handleInputChange('observations', value)}
-            placeholder="Agrega información adicional sobre tu vehículo..."
+            placeholder="Agrega información adicional sobre el estado, mantenciones, etc..."
             placeholderTextColor="#999"
             multiline
             numberOfLines={4}
             textAlignVertical="top"
+            editable={!loading}
           />
         </View>
       </View>
 
       <View style={styles.videoSection}>
-        <Text style={styles.sectionTitle}>Video del vehículo</Text>
+        <Text style={styles.sectionTitle}>Video del vehículo (opcional)</Text>
         
         <View style={styles.videoButtonsContainer}>
           <TouchableOpacity 
-            style={styles.videoButton}
+            style={[styles.videoButton, loading && styles.videoButtonDisabled]}
             onPress={handleRecordVideo}
             activeOpacity={0.8}
+            disabled={loading}
           >
             <Ionicons name="play-circle" size={32} color="#FFFFFF" />
             <Text style={styles.videoButtonText}>Grabar Video</Text>
@@ -132,9 +339,10 @@ export default function RawPublish() {
           </TouchableOpacity>
 
           <TouchableOpacity 
-            style={styles.videoButton}
+            style={[styles.videoButton, loading && styles.videoButtonDisabled]}
             onPress={handleUploadVideo}
             activeOpacity={0.8}
+            disabled={loading}
           >
             <Ionicons name="cloud-upload" size={32} color="#FFFFFF" />
             <Text style={styles.videoButtonText}>Adjuntar Video</Text>
@@ -145,11 +353,19 @@ export default function RawPublish() {
 
       <View style={styles.publishContainer}>
         <TouchableOpacity 
-          style={styles.publishButton}
+          style={[styles.publishButton, loading && styles.publishButtonDisabled]}
           onPress={handlePublish}
           activeOpacity={0.8}
+          disabled={loading}
         >
-          <Text style={styles.publishButtonText}>PUBLICAR</Text>
+          {loading ? (
+            <>
+              <ActivityIndicator size="small" color="#FFFFFF" style={{ marginRight: 8 }} />
+              <Text style={styles.publishButtonText}>PUBLICANDO...</Text>
+            </>
+          ) : (
+            <Text style={styles.publishButtonText}>PUBLICAR</Text>
+          )}
         </TouchableOpacity>
       </View>
     </ScrollView>
@@ -276,6 +492,8 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     paddingVertical: 18,
     alignItems: 'center',
+    justifyContent: 'center',
+    flexDirection: 'row',
     elevation: 4,
     shadowColor: '#4CAF50',
     shadowOffset: {
@@ -287,10 +505,51 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: '#45A049',
   },
+  publishButtonDisabled: {
+    backgroundColor: '#A5D6A7',
+    opacity: 0.7,
+  },
   publishButtonText: {
     color: '#FFFFFF',
     fontSize: 18,
     fontWeight: 'bold',
     letterSpacing: 1,
+  },
+  subtitle: {
+    fontSize: 14,
+    color: '#65676B',
+    textAlign: 'center',
+    marginTop: 8,
+    lineHeight: 20,
+  },
+  pickerContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  pickerOption: {
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    borderWidth: 2,
+    borderColor: '#E4E6EA',
+    backgroundColor: '#FAFAFA',
+  },
+  pickerOptionSelected: {
+    borderColor: '#4CAF50',
+    backgroundColor: '#E8F5E9',
+  },
+  pickerOptionText: {
+    fontSize: 14,
+    color: '#65676B',
+    fontWeight: '500',
+  },
+  pickerOptionTextSelected: {
+    color: '#4CAF50',
+    fontWeight: 'bold',
+  },
+  videoButtonDisabled: {
+    backgroundColor: '#A5D6A7',
+    opacity: 0.6,
   },
 });

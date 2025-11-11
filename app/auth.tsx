@@ -2,6 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import {
+    Alert,
     Image,
     Keyboard,
     KeyboardAvoidingView,
@@ -15,17 +16,28 @@ import {
     TouchableWithoutFeedback,
     View
 } from "react-native";
+import authService from '../services/authService';
 
 export default function AuthScreen(){
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
+    const [loading, setLoading] = useState(false);
+    
     const router = useRouter();
 
-    const handleLogin = () => {
-        // Aquí iría la lógica de autenticación
-        console.log('Login attempt:', { email, password });
-        router.replace('/(tabs)');
+    const handleLogin = async () => {
+        if (loading) return;
+
+        setLoading(true);
+        try {
+            await authService.login({ email, password });
+            router.replace('/(tabs)');
+        } catch (error: any) {
+            Alert.alert('Error', error.message || 'Error al iniciar sesión');
+        } finally {
+            setLoading(false);
+        }
     };
 
     const goToRegister = () => {

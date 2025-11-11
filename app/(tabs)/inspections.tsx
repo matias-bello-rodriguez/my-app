@@ -9,6 +9,7 @@ import {
   TouchableOpacity,
   View
 } from 'react-native';
+import DateTimePicker from '../../components/DateTimePicker';
 
 export default function Inspections() {
   const [vehiclePlate, setVehiclePlate] = useState('');
@@ -76,25 +77,23 @@ export default function Inspections() {
 
         {/* Segunda fila: Fecha y Hora */}
         <View style={styles.row}>
-          <View style={[styles.inputSection, { flex: 1, marginRight: 10 }]}>
-            <Text style={styles.inputLabel}>Fecha</Text>
-            <TextInput
-              style={styles.textInput}
+          <View style={{ flex: 1, marginRight: 10 }}>
+            <DateTimePicker
+              label="Fecha"
               value={inspectionDate}
-              onChangeText={setInspectionDate}
+              onChange={setInspectionDate}
+              mode="date"
               placeholder="DD/MM/AAAA"
-              placeholderTextColor="#999"
             />
           </View>
 
-          <View style={[styles.inputSection, { flex: 1, marginLeft: 10 }]}>
-            <Text style={styles.inputLabel}>Hora</Text>
-            <TextInput
-              style={styles.textInput}
+          <View style={{ flex: 1, marginLeft: 10 }}>
+            <DateTimePicker
+              label="Hora"
               value={inspectionTime}
-              onChangeText={setInspectionTime}
-              placeholder="14:30"
-              placeholderTextColor="#999"
+              onChange={setInspectionTime}
+              mode="time"
+              placeholder="HH:MM"
             />
           </View>
         </View>

@@ -2,6 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import {
+  ActivityIndicator,
   Alert,
   Image,
   ScrollView,
@@ -11,6 +12,8 @@ import {
   TouchableOpacity,
   View
 } from 'react-native';
+import apiService from '../../services/apiService';
+import authService from '../../services/authService';
 
 export default function ReviewInspection() {
   const router = useRouter();
@@ -20,65 +23,63 @@ export default function ReviewInspection() {
   const [isSearching, setIsSearching] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
 
-  // Datos de ejemplo para simular resultados de búsqueda
-  const mockInspections = [
-    {
-      id: 'INS-2024-001234',
-      vehiclePlate: 'ABC-1234',
-      vehicleModel: 'Toyota Corolla 2020',
-      inspectionDate: '25/10/2024',
-      status: 'Completado',
-      statusColor: '#4CAF50',
-      location: 'AutoBox Providencia',
-      price: '$90.000',
-      vehicleImage: 'https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?w=400&h=300&fit=crop&auto=format'
-    },
-    {
-      id: 'INS-2024-001235',
-      vehiclePlate: 'DEF-5678',
-      vehicleModel: 'Honda Civic 2019',
-      inspectionDate: '20/10/2024',
-      status: 'En Proceso',
-      statusColor: '#FF9800',
-      location: 'AutoBox Las Condes',
-      price: '$90.000',
-      vehicleImage: 'https://images.unsplash.com/photo-1606664515524-ed2f786a0bd6?w=400&h=300&fit=crop&auto=format'
-    },
-    {
-      id: 'INS-2024-001236',
-      vehiclePlate: 'GHI-9012',
-      vehicleModel: 'Nissan Sentra 2021',
-      inspectionDate: '18/10/2024',
-      status: 'Pendiente',
-      statusColor: '#2196F3',
-      location: 'AutoBox Centro',
-      price: '$90.000',
-      vehicleImage: 'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=400&h=300&fit=crop&auto=format'
-    },
-  ];
+  const handleReviewInspection = async () => {
+    // Validar que al menos uno de los campos esté lleno
+    if (!rut.trim() && !vehiclePlate.trim()) {
+      Alert.alert('Error', 'Por favor ingresa un RUT o una patente para buscar');
+      return;
+    }
 
-  const handleReviewInspection = () => {
     setIsSearching(true);
     setHasSearched(true);
     
-    // Simular búsqueda con delay
-    setTimeout(() => {
-      // Filtrar resultados basados en RUT o patente
-      let filteredResults = mockInspections;
-      
-      if (rut.trim()) {
-        // Aquí normalmente buscarías por RUT en la base de datos
-        // Por ahora mostramos todos los resultados si hay RUT
-        filteredResults = mockInspections;
-      } else if (vehiclePlate.trim()) {
-        filteredResults = mockInspections.filter(inspection => 
-          inspection.vehiclePlate.toLowerCase().includes(vehiclePlate.toLowerCase())
-        );
+    try {
+      let results: any[] = [];
+
+      if (vehiclePlate.trim()) {
+        // Buscar por patente
+        const inspections = await apiService.searchInspectionsByPlate(vehiclePlate.trim());
+        results = inspections.map((inspection: any) => ({
+          id: inspection.inspectionNumber,
+          vehiclePlate: inspection.vehicle?.plate || 'N/A',
+          vehicleModel: `${inspection.vehicle?.brand || ''} ${inspection.vehicle?.model || ''} ${inspection.vehicle?.year || ''}`.trim(),
+          inspectionDate: apiService.formatDate(inspection.inspectionDate),
+          status: apiService.getStatusText(inspection.status),
+          statusColor: apiService.getStatusColor(inspection.status),
+          location: inspection.autoboxLocation,
+          price: apiService.formatPrice(inspection.price),
+          vehicleImage: inspection.vehicle?.images?.[0] || null,
+          rawInspection: inspection,
+        }));
+      } else if (rut.trim()) {
+        // Buscar por RUT del usuario (si tienes endpoint que busque por RUT)
+        // Por ahora, obtener inspecciones del usuario actual
+        const user = await authService.getUser();
+        if (user) {
+          const inspections = await apiService.getInspectionsByUser(user.id);
+          results = inspections.map((inspection: any) => ({
+            id: inspection.inspectionNumber,
+            vehiclePlate: inspection.vehicle?.plate || 'N/A',
+            vehicleModel: `${inspection.vehicle?.brand || ''} ${inspection.vehicle?.model || ''} ${inspection.vehicle?.year || ''}`.trim(),
+            inspectionDate: apiService.formatDate(inspection.inspectionDate),
+            status: apiService.getStatusText(inspection.status),
+            statusColor: apiService.getStatusColor(inspection.status),
+            location: inspection.autoboxLocation,
+            price: apiService.formatPrice(inspection.price),
+            vehicleImage: inspection.vehicle?.images?.[0] || null,
+            rawInspection: inspection,
+          }));
+        }
       }
-      
-      setSearchResults(filteredResults);
+
+      setSearchResults(results);
+    } catch (error) {
+      console.error('Error al buscar inspecciones:', error);
+      Alert.alert('Error', 'No se pudieron cargar las inspecciones. Por favor intenta nuevamente.');
+      setSearchResults([]);
+    } finally {
       setIsSearching(false);
-    }, 1000);
+    }
   };
 
   const handleScanQR = () => {
@@ -139,8 +140,13 @@ export default function ReviewInspection() {
           style={styles.searchButton} 
           onPress={handleReviewInspection}
           activeOpacity={0.8}
+          disabled={isSearching}
         >
-          <Ionicons name="search" size={24} color="#FFFFFF" />
+          {isSearching ? (
+            <ActivityIndicator color="#FFFFFF" size="small" />
+          ) : (
+            <Ionicons name="search" size={24} color="#FFFFFF" />
+          )}
           <Text style={styles.searchButtonText}>
             {isSearching ? 'Buscando...' : 'Buscar Inspección'}
           </Text>
@@ -188,7 +194,7 @@ export default function ReviewInspection() {
                   {/* Mostrar imagen del vehículo siempre */}
                   <View style={styles.vehicleImageContainer}>
                     <Text style={styles.vehicleImageLabel}>Foto del vehículo:</Text>
-                    {inspection.status === 'Completado' && inspection.vehicleImage ? (
+                    {inspection.vehicleImage ? (
                       <Image 
                         source={{ uri: inspection.vehicleImage }}
                         style={styles.vehicleImage}
@@ -197,6 +203,7 @@ export default function ReviewInspection() {
                     ) : (
                       <View style={styles.placeholderImage}>
                         <Ionicons name="car" size={40} color="#999" />
+                        <Text style={styles.placeholderText}>Sin imagen</Text>
                       </View>
                     )}
                   </View>
@@ -471,5 +478,10 @@ const styles = StyleSheet.create({
     backgroundColor: '#E8E8E8',
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  placeholderText: {
+    fontSize: 12,
+    color: '#999',
+    marginTop: 4,
   },
 });
