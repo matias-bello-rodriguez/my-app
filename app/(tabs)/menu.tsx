@@ -38,6 +38,12 @@ export default function Menu() {
 
   const menuItems = [
     {
+      icon: 'person-outline',
+      title: 'Mi Perfil',
+      subtitle: 'Ver y editar información personal',
+      onPress: () => router.push('/profile'),
+    },
+    {
       icon: 'settings-outline',
       title: 'Configuración',
       subtitle: 'Ajustes de la aplicación',
