@@ -268,8 +268,8 @@ export default function RegisterScreen(){
     const validatePassword = (password: string): boolean => {
         if (password.length < 8) return false;
         
-        const hasUpperCase = /[A-Z]/.test(password);
-        const hasLowerCase = /[a-z]/.test(password);
+        const hasUpperCase = /[A-ZÁÉÍÓÚÜÑ]/.test(password);
+        const hasLowerCase = /[a-záéíóúüñ]/.test(password);
         const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>_\-+=\[\]\\\/;']/.test(password);
         
         return hasUpperCase && hasLowerCase && hasSpecialChar;
@@ -281,8 +281,8 @@ export default function RegisterScreen(){
             return { level: 'weak', text: '', color: '#999999' };
         }
 
-        const hasUpperCase = /[A-Z]/.test(password);
-        const hasLowerCase = /[a-z]/.test(password);
+        const hasUpperCase = /[A-ZÁÉÍÓÚÜÑ]/.test(password);
+        const hasLowerCase = /[a-záéíóúüñ]/.test(password);
         const hasNumber = /[0-9]/.test(password);
         const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>_\-+=\[\]\\\/;']/.test(password);
         const isLongEnough = password.length >= 8;
@@ -689,21 +689,21 @@ export default function RegisterScreen(){
                                                     </View>
                                                     <View style={styles.requirementRow}>
                                                         <Ionicons 
-                                                            name={/[A-Z]/.test(password) ? "checkmark-circle" : "close-circle"} 
+                                                            name={/[A-ZÁÉÍÓÚÜÑ]/.test(password) ? "checkmark-circle" : "close-circle"} 
                                                             size={16} 
-                                                            color={/[A-Z]/.test(password) ? "#4CAF50" : "#F44336"} 
+                                                            color={/[A-ZÁÉÍÓÚÜÑ]/.test(password) ? "#4CAF50" : "#F44336"} 
                                                         />
-                                                        <Text style={[styles.requirementText, { color: /[A-Z]/.test(password) ? "#4CAF50" : "#666666" }]}>
+                                                        <Text style={[styles.requirementText, { color: /[A-ZÁÉÍÓÚÜÑ]/.test(password) ? "#4CAF50" : "#666666" }]}>
                                                             Una mayúscula
                                                         </Text>
                                                     </View>
                                                     <View style={styles.requirementRow}>
                                                         <Ionicons 
-                                                            name={/[a-z]/.test(password) ? "checkmark-circle" : "close-circle"} 
+                                                            name={/[a-záéíóúüñ]/.test(password) ? "checkmark-circle" : "close-circle"} 
                                                             size={16} 
-                                                            color={/[a-z]/.test(password) ? "#4CAF50" : "#F44336"} 
+                                                            color={/[a-záéíóúüñ]/.test(password) ? "#4CAF50" : "#F44336"} 
                                                         />
-                                                        <Text style={[styles.requirementText, { color: /[a-z]/.test(password) ? "#4CAF50" : "#666666" }]}>
+                                                        <Text style={[styles.requirementText, { color: /[a-záéíóúüñ]/.test(password) ? "#4CAF50" : "#666666" }]}>
                                                             Letras minúsculas
                                                         </Text>
                                                     </View>
