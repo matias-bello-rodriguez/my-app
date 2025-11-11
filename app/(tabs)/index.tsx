@@ -163,6 +163,10 @@ export default function Index() {
         // Navegar a detalle del vehículo
     };
 
+    const handleChatPress = () => {
+        router.push('/(tabs)/chat');
+    };
+
     const handleScrollBegin = () => {
         setIsUserScrolling(true);
     };

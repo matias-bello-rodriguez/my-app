@@ -17,6 +17,10 @@ function TabsContent() {
     router.push('/search');
   };
 
+  const handleChatPress = () => {
+    router.push('/(tabs)/chat');
+  };
+
   return(
     <>
       <StatusBar 
@@ -33,7 +37,7 @@ function TabsContent() {
             <TouchableOpacity style={styles.headerIcon} onPress={handleSearchPress}>
               <Ionicons name="search" size={24} color="#FFFFFF" />
             </TouchableOpacity>
-            <TouchableOpacity style={styles.headerIcon}>
+            <TouchableOpacity style={styles.headerIcon} onPress={handleChatPress}>
               <Ionicons name="chatbubble-outline" size={24} color="#FFFFFF" />
             </TouchableOpacity>
           </View>
@@ -114,6 +118,27 @@ function TabsContent() {
             title: 'Menú',
             tabBarIcon: ({ color, focused }) => 
               (<Ionicons name={focused ? "menu" : "menu-outline"} size={24} color={color}/>),
+          }}
+        />
+
+        <Tabs.Screen 
+          name="profile" 
+          options={{
+            href: null, // Esto oculta la pestaña del menú
+          }}
+        />
+
+        <Tabs.Screen 
+          name="chat" 
+          options={{
+            href: null, // Esto oculta la pestaña del menú
+          }}
+        />
+
+        <Tabs.Screen 
+          name="chat-detail" 
+          options={{
+            href: null, // Esto oculta la pestaña del menú
           }}
         />
 
