@@ -264,9 +264,43 @@ export default function RegisterScreen(){
         return emailRegex.test(email);
     };
 
-    // Validar que la contraseña tenga al menos 6 caracteres
+    // Validar que la contraseña cumpla con los requisitos
     const validatePassword = (password: string): boolean => {
-        return password.length >= 6;
+        if (password.length < 8) return false;
+        
+        const hasUpperCase = /[A-Z]/.test(password);
+        const hasLowerCase = /[a-z]/.test(password);
+        const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>_\-+=\[\]\\\/;']/.test(password);
+        
+        return hasUpperCase && hasLowerCase && hasSpecialChar;
+    };
+
+    // Función para calcular la fortaleza de la contraseña
+    const getPasswordStrength = (password: string): { level: 'weak' | 'medium' | 'strong', text: string, color: string } => {
+        if (password.length === 0) {
+            return { level: 'weak', text: '', color: '#999999' };
+        }
+
+        const hasUpperCase = /[A-Z]/.test(password);
+        const hasLowerCase = /[a-z]/.test(password);
+        const hasNumber = /[0-9]/.test(password);
+        const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>_\-+=\[\]\\\/;']/.test(password);
+        const isLongEnough = password.length >= 8;
+
+        let strength = 0;
+        if (hasUpperCase) strength++;
+        if (hasLowerCase) strength++;
+        if (hasNumber) strength++;
+        if (hasSpecialChar) strength++;
+        if (isLongEnough) strength++;
+
+        if (strength <= 2) {
+            return { level: 'weak', text: 'Débil', color: '#F44336' };
+        } else if (strength <= 4) {
+            return { level: 'medium', text: 'Suficiente', color: '#FF9800' };
+        } else {
+            return { level: 'strong', text: 'Fuerte', color: '#4CAF50' };
+        }
     };
 
     // Validación del paso 1
@@ -344,7 +378,7 @@ export default function RegisterScreen(){
             return false;
         }
         if (!validatePassword(password)) {
-            Alert.alert('Error', 'La contraseña debe tener al menos 6 caracteres');
+            Alert.alert('Error', 'La contraseña debe tener al menos 8 caracteres, una mayúscula, letras minúsculas y un carácter especial');
             return false;
         }
         if (!confirmPassword.trim()) {
@@ -566,7 +600,10 @@ export default function RegisterScreen(){
                                         <Text style={styles.sectionTitle}>Credenciales de Acceso</Text>
 
                                         <View style={styles.inputContainer}>
-                                            <View style={styles.inputWrapper}>
+                                            <View style={[
+                                                styles.inputWrapper,
+                                                email.trim() && !validateEmail(email) && styles.inputWrapperError
+                                            ]}>
                                                 <Ionicons name="mail-outline" size={20} color="#4CAF50" style={styles.inputIcon} />
                                                 <TextInput
                                                     style={styles.input}
@@ -579,7 +616,20 @@ export default function RegisterScreen(){
                                                     autoComplete="email"
                                                     returnKeyType="next"
                                                 />
+                                                {email.trim() && (
+                                                    <Ionicons 
+                                                        name={validateEmail(email) ? "checkmark-circle" : "close-circle"} 
+                                                        size={20} 
+                                                        color={validateEmail(email) ? "#4CAF50" : "#F44336"} 
+                                                        style={styles.validationIcon}
+                                                    />
+                                                )}
                                             </View>
+                                            {email.trim() && !validateEmail(email) && (
+                                                <Text style={styles.errorText}>
+                                                    Ingresa un correo electrónico válido
+                                                </Text>
+                                            )}
                                         </View>
 
                                         <View style={styles.inputContainer}>
@@ -606,6 +656,69 @@ export default function RegisterScreen(){
                                                     />
                                                 </TouchableOpacity>
                                             </View>
+                                            {password.length > 0 && (
+                                                <View style={styles.passwordStrengthContainer}>
+                                                    <View style={styles.passwordStrengthBar}>
+                                                        <View 
+                                                            style={[
+                                                                styles.passwordStrengthFill,
+                                                                { 
+                                                                    width: getPasswordStrength(password).level === 'weak' ? '33%' : 
+                                                                           getPasswordStrength(password).level === 'medium' ? '66%' : '100%',
+                                                                    backgroundColor: getPasswordStrength(password).color
+                                                                }
+                                                            ]} 
+                                                        />
+                                                    </View>
+                                                    <Text style={[styles.passwordStrengthText, { color: getPasswordStrength(password).color }]}>
+                                                        {getPasswordStrength(password).text}
+                                                    </Text>
+                                                </View>
+                                            )}
+                                            {password.length > 0 && (
+                                                <View style={styles.passwordRequirements}>
+                                                    <View style={styles.requirementRow}>
+                                                        <Ionicons 
+                                                            name={password.length >= 8 ? "checkmark-circle" : "close-circle"} 
+                                                            size={16} 
+                                                            color={password.length >= 8 ? "#4CAF50" : "#F44336"} 
+                                                        />
+                                                        <Text style={[styles.requirementText, { color: password.length >= 8 ? "#4CAF50" : "#666666" }]}>
+                                                            Mínimo 8 caracteres
+                                                        </Text>
+                                                    </View>
+                                                    <View style={styles.requirementRow}>
+                                                        <Ionicons 
+                                                            name={/[A-Z]/.test(password) ? "checkmark-circle" : "close-circle"} 
+                                                            size={16} 
+                                                            color={/[A-Z]/.test(password) ? "#4CAF50" : "#F44336"} 
+                                                        />
+                                                        <Text style={[styles.requirementText, { color: /[A-Z]/.test(password) ? "#4CAF50" : "#666666" }]}>
+                                                            Una mayúscula
+                                                        </Text>
+                                                    </View>
+                                                    <View style={styles.requirementRow}>
+                                                        <Ionicons 
+                                                            name={/[a-z]/.test(password) ? "checkmark-circle" : "close-circle"} 
+                                                            size={16} 
+                                                            color={/[a-z]/.test(password) ? "#4CAF50" : "#F44336"} 
+                                                        />
+                                                        <Text style={[styles.requirementText, { color: /[a-z]/.test(password) ? "#4CAF50" : "#666666" }]}>
+                                                            Letras minúsculas
+                                                        </Text>
+                                                    </View>
+                                                    <View style={styles.requirementRow}>
+                                                        <Ionicons 
+                                                            name={/[!@#$%^&*(),.?":{}|<>_\-+=\[\]\\\/;']/.test(password) ? "checkmark-circle" : "close-circle"} 
+                                                            size={16} 
+                                                            color={/[!@#$%^&*(),.?":{}|<>_\-+=\[\]\\\/;']/.test(password) ? "#4CAF50" : "#F44336"} 
+                                                        />
+                                                        <Text style={[styles.requirementText, { color: /[!@#$%^&*(),.?":{}|<>_\-+=\[\]\\\/;']/.test(password) ? "#4CAF50" : "#666666" }]}>
+                                                            Un carácter especial (!@#$%...)
+                                                        </Text>
+                                                    </View>
+                                                </View>
+                                            )}
                                         </View>
 
                                         <View style={styles.inputContainer}>
@@ -919,5 +1032,51 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: 'bold',
         letterSpacing: 1,
+    },
+    inputWrapperError: {
+        borderColor: '#F44336',
+    },
+    validationIcon: {
+        marginLeft: 8,
+    },
+    errorText: {
+        color: '#F44336',
+        fontSize: 12,
+        marginTop: 4,
+        marginLeft: 16,
+    },
+    passwordStrengthContainer: {
+        marginTop: 8,
+        marginHorizontal: 4,
+    },
+    passwordStrengthBar: {
+        height: 6,
+        backgroundColor: '#E0E0E0',
+        borderRadius: 3,
+        overflow: 'hidden',
+        marginBottom: 6,
+    },
+    passwordStrengthFill: {
+        height: '100%',
+        borderRadius: 3,
+    },
+    passwordStrengthText: {
+        fontSize: 12,
+        fontWeight: '600',
+        textAlign: 'right',
+        marginBottom: 8,
+    },
+    passwordRequirements: {
+        marginTop: 4,
+        paddingHorizontal: 4,
+    },
+    requirementRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 4,
+    },
+    requirementText: {
+        fontSize: 12,
+        marginLeft: 6,
     },
 });
