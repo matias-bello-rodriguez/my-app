@@ -99,7 +99,7 @@ export default function Inspections() {
         </View>
 
         {/* Dropdown AutoBox */}
-        <View style={styles.inputSection}>
+        <View style={[styles.inputSection, { marginTop: 20 }]}>
           <Text style={styles.inputLabel}>AutoBox</Text>
           <TouchableOpacity 
             style={styles.dropdownButton}
