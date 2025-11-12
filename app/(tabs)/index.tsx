@@ -493,15 +493,43 @@ export default function Index() {
                     </View>
                     <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.feedCarousel}>
                         {latestCars.map((car) => (
-                            <TouchableOpacity key={car.id} style={styles.reelsVideoCard}>
+                            <TouchableOpacity 
+                                key={car.id} 
+                                style={styles.reelsVideoCard}
+                                onPress={() => handleCarPress(car)}
+                            >
                                 <View style={styles.videoBackground}>
-                                    <Text style={styles.videoEmoji}>{car.image}</Text>
+                                    {car.videoUrl ? (
+                                        <Video
+                                            source={{ uri: car.videoUrl }}
+                                            style={styles.carVideo}
+                                            resizeMode={ResizeMode.COVER}
+                                            isLooping
+                                            shouldPlay={false}
+                                            isMuted
+                                        />
+                                    ) : car.images && car.images[0] ? (
+                                        <Image 
+                                            source={{ uri: car.images[0] }} 
+                                            style={styles.carImage}
+                                            resizeMode="cover"
+                                        />
+                                    ) : (
+                                        <Text style={styles.videoEmoji}>🚗</Text>
+                                    )}
+                                    {car.videoUrl && (
+                                        <View style={styles.playIconOverlay}>
+                                            <Ionicons name="play-circle" size={48} color="rgba(255, 255, 255, 0.9)" />
+                                        </View>
+                                    )}
                                     <View style={styles.videoOverlay}>
                                         <View style={styles.videoInfo}>
-                                            <Text style={styles.videoModel}>{car.model}</Text>
-                                            <Text style={styles.videoPrice}>{car.price}</Text>
+                                            <Text style={styles.videoModel}>{car.brand} {car.model} {car.year}</Text>
+                                            <Text style={styles.videoPrice}>${Math.floor(car.price).toLocaleString('es-CL')}</Text>
                                             <View style={styles.videoStatus}>
-                                                <Text style={[styles.videoStatusText, { backgroundColor: 'rgba(255, 152, 0, 0.8)' }]}>{car.time}</Text>
+                                                <Text style={[styles.videoStatusText, { backgroundColor: 'rgba(255, 152, 0, 0.8)' }]}>
+                                                    {car.status || 'Disponible'}
+                                                </Text>
                                             </View>
                                         </View>
                                     </View>
