@@ -11,6 +11,7 @@ import {
     TouchableOpacity,
     View
 } from 'react-native';
+import LocationPicker from '../../components/LocationPicker';
 import apiService from '../../services/apiService';
 
 export default function RawPublish() {
@@ -22,6 +23,10 @@ export default function RawPublish() {
   const [loadingYears, setLoadingYears] = useState(false);
   const [showYearDropdown, setShowYearDropdown] = useState(false);
   const [plateValid, setPlateValid] = useState<boolean | null>(null);
+  const [locationCoordinates, setLocationCoordinates] = useState<{
+    latitude: number;
+    longitude: number;
+  } | null>(null);
   
   const [formData, setFormData] = useState({
     // Campos requeridos por el backend
@@ -148,6 +153,11 @@ export default function RawPublish() {
   const handleKilometersChange = (text: string) => {
     const formatted = formatNumber(text);
     handleInputChange('kilometers', formatted);
+  };
+
+  const handleLocationChange = (address: string, coordinates: { latitude: number; longitude: number }) => {
+    setFormData(prev => ({ ...prev, location: address }));
+    setLocationCoordinates(coordinates);
   };
 
   const handleRecordVideo = () => {
@@ -485,13 +495,10 @@ export default function RawPublish() {
         {/* Ubicación */}
         <View style={styles.inputSection}>
           <Text style={styles.inputLabel}>Ubicación</Text>
-          <TextInput
-            style={styles.textInput}
+          <LocationPicker
             value={formData.location}
-            onChangeText={(value) => handleInputChange('location', value)}
-            placeholder="Ej: Santiago, Región Metropolitana"
-            placeholderTextColor="#999"
-            editable={!loading}
+            onLocationChange={handleLocationChange}
+            disabled={loading}
           />
         </View>
 
