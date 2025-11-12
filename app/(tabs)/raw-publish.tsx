@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
     ActivityIndicator,
     Alert,
@@ -16,6 +16,8 @@ import apiService from '../../services/apiService';
 export default function RawPublish() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [availableModels, setAvailableModels] = useState<string[]>([]);
+  const [loadingModels, setLoadingModels] = useState(false);
   
   const [formData, setFormData] = useState({
     // Campos requeridos por el backend
@@ -39,6 +41,31 @@ export default function RawPublish() {
       ...prev,
       [field]: value
     }));
+
+    // Si cambia la marca, cargar los modelos disponibles y limpiar el modelo seleccionado
+    if (field === 'brand') {
+      setFormData(prev => ({ ...prev, model: '' }));
+      loadModelsForBrand(value);
+    }
+  };
+
+  const loadModelsForBrand = async (brand: string) => {
+    if (!brand) {
+      setAvailableModels([]);
+      return;
+    }
+
+    try {
+      setLoadingModels(true);
+      const models = await apiService.getModelsByBrand(brand);
+      setAvailableModels(models);
+    } catch (error) {
+      console.error('Error al cargar modelos:', error);
+      Alert.alert('Error', 'No se pudieron cargar los modelos para esta marca');
+      setAvailableModels([]);
+    } finally {
+      setLoadingModels(false);
+    }
   };
 
   const handleRecordVideo = () => {
@@ -147,27 +174,67 @@ export default function RawPublish() {
         {/* Marca */}
         <View style={styles.inputSection}>
           <Text style={styles.inputLabel}>Marca *</Text>
-          <TextInput
-            style={styles.textInput}
-            value={formData.brand}
-            onChangeText={(value) => handleInputChange('brand', value)}
-            placeholder="Ej: Toyota, Mazda, Honda"
-            placeholderTextColor="#999"
-            editable={!loading}
-          />
+          <View style={styles.pickerContainer}>
+            {['Toyota', 'Chevrolet', 'Nissan', 'Hyundai', 'Mazda', 'Honda', 'Kia', 'Suzuki'].map((brandOption) => (
+              <TouchableOpacity
+                key={brandOption}
+                style={[
+                  styles.pickerOption,
+                  formData.brand === brandOption && styles.pickerOptionSelected
+                ]}
+                onPress={() => handleInputChange('brand', brandOption)}
+                disabled={loading}
+              >
+                <Text style={[
+                  styles.pickerOptionText,
+                  formData.brand === brandOption && styles.pickerOptionTextSelected
+                ]}>
+                  {brandOption}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
         </View>
 
         {/* Modelo */}
         <View style={styles.inputSection}>
           <Text style={styles.inputLabel}>Modelo *</Text>
-          <TextInput
-            style={styles.textInput}
-            value={formData.model}
-            onChangeText={(value) => handleInputChange('model', value)}
-            placeholder="Ej: Corolla, Civic, 3"
-            placeholderTextColor="#999"
-            editable={!loading}
-          />
+          {loadingModels ? (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="small" color="#4CAF50" />
+              <Text style={styles.loadingText}>Cargando modelos...</Text>
+            </View>
+          ) : availableModels.length > 0 ? (
+            <View style={styles.pickerContainer}>
+              {availableModels.map((modelOption) => (
+                <TouchableOpacity
+                  key={modelOption}
+                  style={[
+                    styles.pickerOption,
+                    formData.model === modelOption && styles.pickerOptionSelected
+                  ]}
+                  onPress={() => handleInputChange('model', modelOption)}
+                  disabled={loading}
+                >
+                  <Text style={[
+                    styles.pickerOptionText,
+                    formData.model === modelOption && styles.pickerOptionTextSelected
+                  ]}>
+                    {modelOption}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          ) : (
+            <TextInput
+              style={styles.textInput}
+              value={formData.model}
+              onChangeText={(value) => handleInputChange('model', value)}
+              placeholder={formData.brand ? "Selecciona una marca primero" : "Ej: Corolla, Civic, 3"}
+              placeholderTextColor="#999"
+              editable={!loading && !!formData.brand}
+            />
+          )}
         </View>
 
         {/* Año */}
@@ -551,5 +618,19 @@ const styles = StyleSheet.create({
   videoButtonDisabled: {
     backgroundColor: '#A5D6A7',
     opacity: 0.6,
+  },
+  loadingContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+    backgroundColor: '#FAFAFA',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#E4E6EA',
+  },
+  loadingText: {
+    marginLeft: 12,
+    fontSize: 14,
+    color: '#65676B',
   },
 });

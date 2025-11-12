@@ -107,6 +107,16 @@ class ApiService {
     }
   }
 
+  // Obtener modelos por marca
+  async getModelsByBrand(brand: string): Promise<string[]> {
+    try {
+      return await this.fetch(`/vehicles/models/${encodeURIComponent(brand)}`);
+    } catch (error) {
+      console.error('Error al obtener modelos:', error);
+      return [];
+    }
+  }
+
   // Obtener vehículos con inspección mecánica
   async getInspectedVehicles(): Promise<Vehicle[]> {
     try {
