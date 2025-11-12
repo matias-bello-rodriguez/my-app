@@ -9,8 +9,10 @@ import {
     StyleSheet,
     Text,
     TouchableOpacity,
-    View
+    View,
+    Modal
 } from 'react-native';
+import { Video, ResizeMode } from 'expo-av';
 import apiService from '../../services/apiService';
 import authService from '../../services/authService';
 
@@ -30,6 +32,11 @@ export default function Index() {
     const [latestCars, setLatestCars] = useState<any[]>([]);
     const [inspectedCars, setInspectedCars] = useState<any[]>([]);
     const [favorites] = useState<any[]>([]); // Por ahora vacío, luego se implementará
+    
+    // Estados para el modal de video
+    const [showVideoPlayer, setShowVideoPlayer] = useState(false);
+    const [selectedVideoUrl, setSelectedVideoUrl] = useState<string>('');
+    const [selectedCarInfo, setSelectedCarInfo] = useState<any>(null);
 
     // Datos mock para las secciones
     const brands = [
@@ -123,6 +130,7 @@ export default function Index() {
                 apiService.getInspectedVehicles(),
             ]);
 
+            console.log('Mis vehículos:', JSON.stringify(myVehicles, null, 2));
             setMyCars(myVehicles);
             setLatestCars(latest);
             setInspectedCars(inspected);
@@ -158,9 +166,24 @@ export default function Index() {
         router.push(`/search?brand=${brandName}`);
     };
 
-    const handleCarPress = (carId: string) => {
-        console.log(`Auto seleccionado: ${carId}`);
-        // Navegar a detalle del vehículo
+    const handleCarPress = (car: any) => {
+        console.log(`Auto seleccionado: ${car.id}`);
+        console.log('Datos del auto:', JSON.stringify(car, null, 2));
+        console.log('videoUrl original:', car.videoUrl);
+        console.log('Longitud de videoUrl:', car.videoUrl?.length);
+        
+        // Si el auto tiene video, mostrar el modal de video
+        if (car.videoUrl) {
+            console.log('Mostrando video:', car.videoUrl);
+            console.log('¿Es URL firmada?', car.videoUrl.includes('X-Amz-Signature'));
+            setSelectedVideoUrl(car.videoUrl);
+            setSelectedCarInfo(car);
+            setShowVideoPlayer(true);
+        } else {
+            console.log('El auto no tiene video');
+            // Si no tiene video, navegar a detalle del vehículo
+            // router.push(`/car-detail/${car.id}`);
+        }
     };
 
     const handleChatPress = () => {
@@ -198,6 +221,7 @@ export default function Index() {
     }
 
     return (
+        <>
         <ScrollView 
             style={styles.container} 
             showsVerticalScrollIndicator={false}
@@ -312,10 +336,19 @@ export default function Index() {
                                 <TouchableOpacity 
                                     key={car.id} 
                                     style={styles.reelsVideoCard}
-                                    onPress={() => handleCarPress(car.id)}
+                                    onPress={() => handleCarPress(car)}
                                 >
                                     <View style={styles.videoBackground}>
-                                        {car.images && car.images[0] ? (
+                                        {car.videoUrl ? (
+                                            <Video
+                                                source={{ uri: car.videoUrl }}
+                                                style={styles.carVideo}
+                                                resizeMode={ResizeMode.COVER}
+                                                isLooping
+                                                shouldPlay={false}
+                                                isMuted
+                                            />
+                                        ) : car.images && car.images[0] ? (
                                             <Image 
                                                 source={{ uri: car.images[0] }} 
                                                 style={styles.carImage}
@@ -323,6 +356,11 @@ export default function Index() {
                                             />
                                         ) : (
                                             <Text style={styles.videoEmoji}>🚗</Text>
+                                        )}
+                                        {car.videoUrl && (
+                                            <View style={styles.playIconOverlay}>
+                                                <Ionicons name="play-circle" size={48} color="rgba(255, 255, 255, 0.9)" />
+                                            </View>
                                         )}
                                         <View style={styles.videoOverlay}>
                                             <View style={styles.videoInfo}>
@@ -483,6 +521,57 @@ export default function Index() {
                 {/* Espaciado final */}
                 <View style={styles.bottomSpace} />
             </ScrollView>
+            
+            {/* Modal para reproducir video */}
+            <Modal
+                visible={showVideoPlayer && !!selectedVideoUrl}
+                animationType="slide"
+                transparent={true}
+                onRequestClose={() => setShowVideoPlayer(false)}
+            >
+                <View style={styles.videoPlayerModal}>
+                    <View style={styles.videoPlayerContainer}>
+                        <View style={styles.videoPlayerHeader}>
+                            <View>
+                                <Text style={styles.videoPlayerTitle}>
+                                    {selectedCarInfo ? `${selectedCarInfo.brand} ${selectedCarInfo.model} ${selectedCarInfo.year}` : 'Video del vehículo'}
+                                </Text>
+                                {selectedCarInfo && (
+                                    <Text style={styles.videoPlayerPrice}>
+                                        ${Math.floor(selectedCarInfo.price).toLocaleString('es-CL')}
+                                    </Text>
+                                )}
+                            </View>
+                            <TouchableOpacity onPress={() => setShowVideoPlayer(false)}>
+                                <Ionicons name="close" size={28} color="#1C1E21" />
+                            </TouchableOpacity>
+                        </View>
+                        <Video
+                            source={{ uri: selectedVideoUrl }}
+                            style={styles.video}
+                            useNativeControls
+                            resizeMode={ResizeMode.CONTAIN}
+                            shouldPlay
+                            onError={(error) => {
+                                console.error('Error al reproducir video:', error);
+                            }}
+                            onLoad={() => {
+                                console.log('Video cargado correctamente');
+                            }}
+                            onLoadStart={() => {
+                                console.log('Iniciando carga del video...');
+                            }}
+                        />
+                        <TouchableOpacity
+                            style={styles.closeVideoButton}
+                            onPress={() => setShowVideoPlayer(false)}
+                        >
+                            <Text style={styles.closeVideoButtonText}>Cerrar</Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+            </Modal>
+        </>
     );
 }
 
@@ -866,5 +955,66 @@ const styles = StyleSheet.create({
         position: 'absolute',
         width: '100%',
         height: '100%',
+    },
+    carVideo: {
+        width: '100%',
+        height: '100%',
+        borderRadius: 8,
+    },
+    playIconOverlay: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: 'rgba(0, 0, 0, 0.3)',
+        justifyContent: 'center',
+        alignItems: 'center',
+        borderRadius: 8,
+    },
+    videoPlayerModal: {
+        flex: 1,
+        backgroundColor: 'rgba(0, 0, 0, 0.9)',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    videoPlayerContainer: {
+        width: '100%',
+        height: '100%',
+        backgroundColor: '#000000',
+    },
+    videoPlayerHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        backgroundColor: '#FFFFFF',
+        paddingHorizontal: 16,
+        paddingVertical: 12,
+    },
+    videoPlayerTitle: {
+        fontSize: 16,
+        fontWeight: 'bold',
+        color: '#1C1E21',
+    },
+    videoPlayerPrice: {
+        fontSize: 14,
+        color: '#4CAF50',
+        fontWeight: '600',
+        marginTop: 4,
+    },
+    video: {
+        flex: 1,
+        width: '100%',
+    },
+    closeVideoButton: {
+        backgroundColor: '#4CAF50',
+        paddingVertical: 14,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    closeVideoButtonText: {
+        color: '#FFFFFF',
+        fontSize: 16,
+        fontWeight: 'bold',
     },
 });
