@@ -275,6 +275,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     padding: 16,
+    paddingTop: 48,
     borderBottomWidth: 1,
     borderBottomColor: '#E4E6EA',
     backgroundColor: '#FFFFFF',
