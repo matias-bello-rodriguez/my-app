@@ -515,7 +515,11 @@ export default function RawPublish() {
             numberOfLines={4}
             textAlignVertical="top"
             editable={!loading}
+            maxLength={500}
           />
+          <Text style={styles.characterCount}>
+            {formData.description.length}/500 caracteres
+          </Text>
         </View>
 
         {/* Observaciones */}
@@ -531,7 +535,11 @@ export default function RawPublish() {
             numberOfLines={4}
             textAlignVertical="top"
             editable={!loading}
+            maxLength={100}
           />
+          <Text style={styles.characterCount}>
+            {formData.observations.length}/100 caracteres
+          </Text>
         </View>
       </View>
 
@@ -855,5 +863,11 @@ const styles = StyleSheet.create({
     color: '#4CAF50',
     fontSize: 12,
     marginTop: 4,
+  },
+  characterCount: {
+    fontSize: 12,
+    color: '#65676B',
+    marginTop: 4,
+    textAlign: 'right',
   },
 });
