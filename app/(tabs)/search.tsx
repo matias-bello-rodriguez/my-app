@@ -432,7 +432,20 @@ export default function Search() {
     <TouchableOpacity 
       style={styles.resultCard} 
       activeOpacity={0.8}
-      onPress={() => router.push('/search-detail')}
+      onPress={() => router.push({
+        pathname: '/car-detail-by-searchbar',
+        params: {
+          vehicleId: item.id,
+          brand: item.brand,
+          model: item.model,
+          year: item.year.toString(),
+          price: item.price.toString(),
+          mileage: item.mileage.toString(),
+          fuel: item.fuel,
+          transmission: item.transmission,
+          location: item.location,
+        }
+      })}
     >
       <View style={styles.resultHeader}>
         <View style={styles.resultMainInfo}>

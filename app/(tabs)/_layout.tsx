@@ -178,6 +178,13 @@ function TabsContent() {
             href: null, // Esto oculta la pestaña del menú
           }}
         />
+
+        <Tabs.Screen 
+          name="car-detail-by-searchbar" 
+          options={{
+            href: null, // Esto oculta la pestaña del menú
+          }}
+        />
       </Tabs>
     </>
   );
