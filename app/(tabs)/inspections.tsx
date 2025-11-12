@@ -10,6 +10,7 @@ import {
   View
 } from 'react-native';
 import DateTimePicker from '../../components/DateTimePicker';
+import apiService from '../../services/apiService';
 
 export default function Inspections() {
   const [vehiclePlate, setVehiclePlate] = useState('');
@@ -21,6 +22,9 @@ export default function Inspections() {
   const [userPhone, setUserPhone] = useState('');
   const [userEmail, setUserEmail] = useState('');
   const [acceptTerms, setAcceptTerms] = useState(false);
+  const [validatingPlate, setValidatingPlate] = useState(false);
+  const [plateValid, setPlateValid] = useState<boolean | null>(null);
+  const [vehicleInfo, setVehicleInfo] = useState<any>(null);
 
   const autoBoxLocations = [
     { id: 'centro', name: 'AutoBox Centro' },
@@ -29,6 +33,45 @@ export default function Inspections() {
     { id: 'maipu', name: 'AutoBox Maipú' },
     { id: 'san_miguel', name: 'AutoBox San Miguel' },
   ];
+
+  const handlePlateChange = async (text: string) => {
+    // Solo permitir letras y números, máximo 6 caracteres
+    const filtered = text.replace(/[^A-Z0-9]/gi, '').toUpperCase();
+    const limited = filtered.slice(0, 6);
+    
+    setVehiclePlate(limited);
+    setPlateValid(null);
+    setVehicleInfo(null);
+
+    // Validar cuando llegue a 6 caracteres
+    if (limited.length === 6) {
+      await validatePlate(limited);
+    }
+  };
+
+  const validatePlate = async (plate: string) => {
+    try {
+      setValidatingPlate(true);
+      setPlateValid(null);
+      
+      // Llamar a la API para validar la patente
+      const response = await apiService.validateVehiclePlate(plate);
+      
+      if (response.valid) {
+        setPlateValid(true);
+        setVehicleInfo(response.vehicle);
+      } else {
+        setPlateValid(false);
+        setVehicleInfo(null);
+      }
+    } catch (error) {
+      console.error('Error al validar patente:', error);
+      setPlateValid(false);
+      setVehicleInfo(null);
+    } finally {
+      setValidatingPlate(false);
+    }
+  };
 
   const handleRequestInspection = () => {
     // Guardar los datos de la inspección para pasarlos a la pantalla de pago
@@ -68,11 +111,27 @@ export default function Inspections() {
           <TextInput
             style={styles.textInput}
             value={vehiclePlate}
-            onChangeText={setVehiclePlate}
-            placeholder="ABC-1234"
+            onChangeText={handlePlateChange}
+            placeholder="ABC123"
             placeholderTextColor="#999"
             autoCapitalize="characters"
+            maxLength={6}
           />
+          {validatingPlate && (
+            <Text style={styles.validatingText}>Validando patente...</Text>
+          )}
+          {plateValid === false && vehiclePlate.length === 6 && (
+            <Text style={styles.errorText}>
+              Patente no válida o no encontrada
+            </Text>
+          )}
+          {plateValid === true && vehicleInfo && (
+            <View style={styles.vehicleInfoContainer}>
+              <Text style={styles.vehicleInfoText}>
+                ✓ {vehicleInfo.brand} {vehicleInfo.model} ({vehicleInfo.year})
+              </Text>
+            </View>
+          )}
         </View>
 
         {/* Segunda fila: Fecha y Hora */}
@@ -429,5 +488,27 @@ const styles = StyleSheet.create({
   disabledButton: {
     backgroundColor: '#CCC',
     opacity: 0.6,
+  },
+  validatingText: {
+    color: '#4CAF50',
+    fontSize: 12,
+    marginTop: 4,
+    fontStyle: 'italic',
+  },
+  errorText: {
+    color: '#F44336',
+    fontSize: 12,
+    marginTop: 4,
+  },
+  vehicleInfoContainer: {
+    backgroundColor: '#E8F5E9',
+    padding: 12,
+    borderRadius: 8,
+    marginTop: 8,
+  },
+  vehicleInfoText: {
+    color: '#2E7D32',
+    fontSize: 14,
+    fontWeight: '600',
   },
 });

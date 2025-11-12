@@ -232,6 +232,17 @@ class ApiService {
     }
   }
 
+  // Validar patente de vehículo
+  async validateVehiclePlate(plate: string): Promise<{ valid: boolean; vehicle?: any }> {
+    try {
+      const response = await this.fetch(`/vehicles/validate-plate/${plate}`);
+      return response;
+    } catch (error) {
+      console.error('Error al validar patente:', error);
+      return { valid: false };
+    }
+  }
+
   // Obtener marcas únicas de vehículos
   async getBrands(): Promise<string[]> {
     try {
