@@ -1,9 +1,11 @@
 import { Ionicons } from '@expo/vector-icons';
+import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import {
     ActivityIndicator,
     Alert,
+    Linking,
     ScrollView,
     StyleSheet,
     Text,
@@ -11,6 +13,7 @@ import {
     TouchableOpacity,
     View
 } from 'react-native';
+import { Video } from 'expo-av';
 import LocationPicker from '../../components/LocationPicker';
 import apiService from '../../services/apiService';
 
@@ -27,6 +30,10 @@ export default function RawPublish() {
     latitude: number;
     longitude: number;
   } | null>(null);
+  const [videoUri, setVideoUri] = useState<string>('');
+  const [videoName, setVideoName] = useState<string>('');
+  const [uploadingVideo, setUploadingVideo] = useState(false);
+  const [showVideoPlayer, setShowVideoPlayer] = useState(false);
   
   const [formData, setFormData] = useState({
     // Campos requeridos por el backend
@@ -160,14 +167,89 @@ export default function RawPublish() {
     setLocationCoordinates(coordinates);
   };
 
-  const handleRecordVideo = () => {
-    console.log('Grabando video...');
-    Alert.alert('Grabar Video', 'Función de grabación de video próximamente');
+  const handleRecordVideo = async () => {
+    try {
+      // Solicitar permisos de cámara
+      const cameraPermission = await ImagePicker.requestCameraPermissionsAsync();
+      
+      if (cameraPermission.status !== 'granted') {
+        Alert.alert(
+          'Permiso denegado',
+          'Necesitamos acceso a tu cámara para grabar videos'
+        );
+        return;
+      }
+
+      setUploadingVideo(true);
+
+      // Lanzar la cámara para grabar video
+      const result = await ImagePicker.launchCameraAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Videos,
+        videoMaxDuration: 60, // Máximo 60 segundos
+        quality: 0.7,
+        allowsEditing: false,
+      });
+
+      if (!result.canceled && result.assets[0]) {
+        setVideoUri(result.assets[0].uri);
+        setVideoName('video_grabado.mp4');
+        Alert.alert('Éxito', 'Video grabado correctamente');
+      }
+    } catch (error) {
+      console.error('Error al grabar video:', error);
+      Alert.alert('Error', 'No se pudo grabar el video');
+    } finally {
+      setUploadingVideo(false);
+    }
   };
 
-  const handleUploadVideo = () => {
-    console.log('Adjuntando video...');
-    Alert.alert('Adjuntar Video', 'Función de adjuntar video próximamente');
+  const handleUploadVideo = async () => {
+    try {
+      // Solicitar permisos de galería
+      const mediaPermission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      
+      if (mediaPermission.status !== 'granted') {
+        Alert.alert(
+          'Permiso denegado',
+          'Necesitamos acceso a tu galería para seleccionar videos'
+        );
+        return;
+      }
+
+      setUploadingVideo(true);
+
+      // Abrir la galería para seleccionar video
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Videos,
+        quality: 0.7,
+        allowsEditing: false,
+      });
+
+      if (!result.canceled && result.assets[0]) {
+        // Verificar duración del video (si está disponible)
+        const duration = result.assets[0].duration;
+        if (duration && duration > 60000) { // 60 segundos en milisegundos
+          Alert.alert(
+            'Video muy largo',
+            'El video debe tener una duración máxima de 60 segundos'
+          );
+          return;
+        }
+
+        // Extraer el nombre del archivo de la URI
+        const uri = result.assets[0].uri;
+        const fileName = result.assets[0].fileName || uri.split('/').pop() || 'video.mp4';
+
+        setVideoUri(uri);
+        setVideoName(fileName);
+        Alert.alert('Éxito', 'Video seleccionado correctamente');
+      }
+    } catch (error) {
+      console.error('Error al seleccionar video:', error);
+      Alert.alert('Error', 'No se pudo seleccionar el video');
+    } finally {
+      setUploadingVideo(false);
+    }
   };
 
   const handlePublish = async () => {
@@ -545,31 +627,98 @@ export default function RawPublish() {
 
       <View style={styles.videoSection}>
         <Text style={styles.sectionTitle}>Video del vehículo (opcional)</Text>
+        <Text style={styles.videoSubtitle}>
+          Agrega un video de hasta 60 segundos mostrando el vehículo
+        </Text>
         
         <View style={styles.videoButtonsContainer}>
           <TouchableOpacity 
-            style={[styles.videoButton, loading && styles.videoButtonDisabled]}
+            style={[styles.videoButton, (loading || uploadingVideo) && styles.videoButtonDisabled]}
             onPress={handleRecordVideo}
             activeOpacity={0.8}
-            disabled={loading}
+            disabled={loading || uploadingVideo}
           >
-            <Ionicons name="play-circle" size={32} color="#FFFFFF" />
-            <Text style={styles.videoButtonText}>Grabar Video</Text>
-            <Text style={styles.videoButtonSubtext}>Hasta 60 segundos</Text>
+            {uploadingVideo ? (
+              <ActivityIndicator size="small" color="#FFFFFF" />
+            ) : (
+              <>
+                <Ionicons name="videocam" size={32} color="#FFFFFF" />
+                <Text style={styles.videoButtonText}>Grabar Video</Text>
+                <Text style={styles.videoButtonSubtext}>Hasta 60 segundos</Text>
+              </>
+            )}
           </TouchableOpacity>
 
           <TouchableOpacity 
-            style={[styles.videoButton, loading && styles.videoButtonDisabled]}
+            style={[styles.videoButton, (loading || uploadingVideo) && styles.videoButtonDisabled]}
             onPress={handleUploadVideo}
             activeOpacity={0.8}
-            disabled={loading}
+            disabled={loading || uploadingVideo}
           >
-            <Ionicons name="cloud-upload" size={32} color="#FFFFFF" />
-            <Text style={styles.videoButtonText}>Adjuntar Video</Text>
-            <Text style={styles.videoButtonSubtext}>Hasta 60 segundos</Text>
+            {uploadingVideo ? (
+              <ActivityIndicator size="small" color="#FFFFFF" />
+            ) : (
+              <>
+                <Ionicons name="cloud-upload" size={32} color="#FFFFFF" />
+                <Text style={styles.videoButtonText}>Adjuntar Video</Text>
+                <Text style={styles.videoButtonSubtext}>Desde galería</Text>
+              </>
+            )}
           </TouchableOpacity>
         </View>
+
+        {videoUri !== '' && (
+          <View style={styles.videoSelectedContainer}>
+            <Ionicons name="checkmark-circle" size={20} color="#4CAF50" />
+            <View style={styles.videoInfoContainer}>
+              <Text style={styles.videoSelectedText}>Video seleccionado</Text>
+              <Text style={styles.videoNameText} numberOfLines={1}>{videoName}</Text>
+            </View>
+            <TouchableOpacity 
+              style={styles.videoActionButton}
+              onPress={() => setShowVideoPlayer(true)}
+            >
+              <Ionicons name="play-circle" size={24} color="#4CAF50" />
+            </TouchableOpacity>
+            <TouchableOpacity 
+              style={styles.videoActionButton}
+              onPress={() => {
+                setVideoUri('');
+                setVideoName('');
+              }}
+            >
+              <Ionicons name="close-circle" size={24} color="#F44336" />
+            </TouchableOpacity>
+          </View>
+        )}
       </View>
+
+      {/* Modal para reproducir video */}
+      {showVideoPlayer && videoUri && (
+        <View style={styles.videoPlayerModal}>
+          <View style={styles.videoPlayerContainer}>
+            <View style={styles.videoPlayerHeader}>
+              <Text style={styles.videoPlayerTitle}>Vista previa del video</Text>
+              <TouchableOpacity onPress={() => setShowVideoPlayer(false)}>
+                <Ionicons name="close" size={28} color="#1C1E21" />
+              </TouchableOpacity>
+            </View>
+            <Video
+              source={{ uri: videoUri }}
+              style={styles.video}
+              useNativeControls
+              resizeMode="contain" as any
+              shouldPlay
+            />
+            <TouchableOpacity
+              style={styles.closeVideoButton}
+              onPress={() => setShowVideoPlayer(false)}
+            >
+              <Text style={styles.closeVideoButtonText}>Cerrar</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      )}
 
       <View style={styles.publishContainer}>
         <TouchableOpacity 
@@ -869,5 +1018,83 @@ const styles = StyleSheet.create({
     color: '#65676B',
     marginTop: 4,
     textAlign: 'right',
+  },
+  videoSubtitle: {
+    fontSize: 14,
+    color: '#65676B',
+    textAlign: 'center',
+    marginBottom: 16,
+  },
+  videoSelectedContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#E8F5E9',
+    padding: 12,
+    borderRadius: 8,
+    marginTop: 16,
+    gap: 8,
+  },
+  videoInfoContainer: {
+    flex: 1,
+    marginLeft: 8,
+  },
+  videoSelectedText: {
+    color: '#2E7D32',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  videoNameText: {
+    color: '#65676B',
+    fontSize: 12,
+    marginTop: 2,
+  },
+  videoActionButton: {
+    padding: 4,
+  },
+  videoPlayerModal: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.9)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1000,
+  },
+  videoPlayerContainer: {
+    width: '90%',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    overflow: 'hidden',
+  },
+  videoPlayerHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E4E6EA',
+  },
+  videoPlayerTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#1C1E21',
+  },
+  video: {
+    width: '100%',
+    height: 300,
+    backgroundColor: '#000',
+  },
+  closeVideoButton: {
+    backgroundColor: '#4CAF50',
+    padding: 16,
+    alignItems: 'center',
+  },
+  closeVideoButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
 });
