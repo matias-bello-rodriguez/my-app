@@ -16,6 +16,7 @@ import {
 import { Video } from 'expo-av';
 import LocationPicker from '../../components/LocationPicker';
 import apiService from '../../services/apiService';
+import uploadService from '../../services/uploadService';
 
 export default function RawPublish() {
   const router = useRouter();
@@ -285,6 +286,40 @@ export default function RawPublish() {
     try {
       setLoading(true);
 
+      let videoUrl: string | undefined = formData.videoUrl;
+
+      // Si hay un video seleccionado, subirlo a S3 primero
+      if (videoUri) {
+        try {
+          setUploadingVideo(true);
+          
+          // Subir video a S3
+          const uploadedVideo = await uploadService.uploadFile(
+            videoUri,
+            videoName || `video_${Date.now()}.mp4`,
+            'video/mp4',
+            'vehicles/videos'
+          );
+
+          videoUrl = uploadedVideo.publicUrl;
+          
+          Alert.alert('Video subido', 'El video se ha subido correctamente a S3');
+        } catch (error) {
+          console.error('Error al subir video:', error);
+          Alert.alert(
+            'Error al subir video',
+            '¿Deseas publicar el vehículo sin video?',
+            [
+              { text: 'Cancelar', style: 'cancel', onPress: () => { setLoading(false); return; } },
+              { text: 'Continuar sin video', onPress: () => {} }
+            ]
+          );
+          videoUrl = undefined;
+        } finally {
+          setUploadingVideo(false);
+        }
+      }
+
       const vehicleData = {
         plate: formData.plate.toUpperCase(),
         brand: formData.brand,
@@ -297,7 +332,7 @@ export default function RawPublish() {
         location: formData.location || undefined,
         observations: formData.observations || undefined,
         description: formData.description || undefined,
-        videoUrl: formData.videoUrl || undefined,
+        videoUrl: videoUrl || undefined,
         hasInspection: false,
       };
 
@@ -329,6 +364,8 @@ export default function RawPublish() {
         description: '',
         videoUrl: '',
       });
+      setVideoUri('');
+      setVideoName('');
     } catch (error: any) {
       Alert.alert('Error', error.message || 'No se pudo publicar el vehículo');
     } finally {
@@ -707,7 +744,7 @@ export default function RawPublish() {
               source={{ uri: videoUri }}
               style={styles.video}
               useNativeControls
-              resizeMode="contain" as any
+              resizeMode={'contain' as any}
               shouldPlay
             />
             <TouchableOpacity

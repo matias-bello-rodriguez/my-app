@@ -74,6 +74,36 @@ class ApiService {
     }
   }
 
+  // Método POST genérico
+  async post(endpoint: string, data?: any) {
+    return this.fetch(endpoint, {
+      method: 'POST',
+      body: data ? JSON.stringify(data) : undefined,
+    });
+  }
+
+  // Método DELETE genérico
+  async delete(endpoint: string) {
+    return this.fetch(endpoint, {
+      method: 'DELETE',
+    });
+  }
+
+  // Método GET genérico
+  async get(endpoint: string) {
+    return this.fetch(endpoint, {
+      method: 'GET',
+    });
+  }
+
+  // Método PATCH genérico
+  async patch(endpoint: string, data?: any) {
+    return this.fetch(endpoint, {
+      method: 'PATCH',
+      body: data ? JSON.stringify(data) : undefined,
+    });
+  }
+
   // Obtener vehículos del usuario autenticado
   async getMyVehicles(): Promise<Vehicle[]> {
     try {

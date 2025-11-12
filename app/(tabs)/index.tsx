@@ -327,7 +327,7 @@ export default function Index() {
                                         <View style={styles.videoOverlay}>
                                             <View style={styles.videoInfo}>
                                                 <Text style={styles.videoModel}>{car.brand} {car.model} {car.year}</Text>
-                                                <Text style={styles.videoPrice}>{formatCurrency(car.price)}</Text>
+                                                <Text style={styles.videoPrice}>${Math.floor(car.price).toLocaleString('es-CL')}</Text>
                                                 <View style={styles.videoStatus}>
                                                     <Text style={styles.videoStatusText}>
                                                         {car.status || 'En venta'}
