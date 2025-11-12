@@ -7,6 +7,7 @@ import {
   Modal,
   StyleSheet,
   Text,
+  TextInput,
   TouchableOpacity,
   View
 } from 'react-native';
@@ -21,6 +22,7 @@ interface LocationPickerProps {
 export default function LocationPicker({ value, onLocationChange, disabled = false }: LocationPickerProps) {
   const [showMap, setShowMap] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   const [selectedLocation, setSelectedLocation] = useState<{
     latitude: number;
     longitude: number;
@@ -154,6 +156,29 @@ export default function LocationPicker({ value, onLocationChange, disabled = fal
     }
   };
 
+  const handleSearch = async () => {
+    if (!searchQuery.trim()) {
+      Alert.alert('Error', 'Por favor ingresa una dirección para buscar');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const results = await Location.geocodeAsync(searchQuery);
+      
+      if (results.length > 0) {
+        const { latitude, longitude } = results[0];
+        setSelectedLocation({ latitude, longitude });
+      } else {
+        Alert.alert('No encontrado', 'No se encontró la dirección. Intenta con otra búsqueda.');
+      }
+    } catch (error) {
+      Alert.alert('Error', 'No se pudo buscar la dirección');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <View>
       <TouchableOpacity
@@ -184,6 +209,31 @@ export default function LocationPicker({ value, onLocationChange, disabled = fal
             </TouchableOpacity>
             <Text style={styles.modalTitle}>Selecciona tu ubicación</Text>
             <View style={{ width: 28 }} />
+          </View>
+
+          {/* Buscador */}
+          <View style={styles.searchContainer}>
+            <TextInput
+              style={styles.searchInput}
+              placeholder="Buscar dirección..."
+              placeholderTextColor="#999"
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+              onSubmitEditing={handleSearch}
+              returnKeyType="search"
+            />
+            <TouchableOpacity
+              style={styles.searchButton}
+              onPress={handleSearch}
+              disabled={loading}
+              activeOpacity={0.7}
+            >
+              {loading ? (
+                <ActivityIndicator size="small" color="#FFFFFF" />
+              ) : (
+                <Ionicons name="search" size={20} color="#FFFFFF" />
+              )}
+            </TouchableOpacity>
           </View>
 
           {selectedLocation ? (
@@ -286,6 +336,30 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     color: '#FFFFFF',
+  },
+  searchContainer: {
+    flexDirection: 'row',
+    padding: 12,
+    backgroundColor: '#FFFFFF',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E4E6EA',
+    gap: 8,
+  },
+  searchInput: {
+    flex: 1,
+    backgroundColor: '#F0F2F5',
+    borderRadius: 8,
+    padding: 12,
+    fontSize: 16,
+    color: '#1C1E21',
+  },
+  searchButton: {
+    backgroundColor: '#4CAF50',
+    borderRadius: 8,
+    padding: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+    minWidth: 48,
   },
   map: {
     flex: 1,
