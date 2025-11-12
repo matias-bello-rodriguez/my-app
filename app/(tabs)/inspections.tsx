@@ -22,9 +22,8 @@ export default function Inspections() {
   const [userPhone, setUserPhone] = useState('');
   const [userEmail, setUserEmail] = useState('');
   const [acceptTerms, setAcceptTerms] = useState(false);
-  const [validatingPlate, setValidatingPlate] = useState(false);
   const [plateValid, setPlateValid] = useState<boolean | null>(null);
-  const [vehicleInfo, setVehicleInfo] = useState<any>(null);
+  const [rutValid, setRutValid] = useState<boolean | null>(null);
 
   const autoBoxLocations = [
     { id: 'centro', name: 'AutoBox Centro' },
@@ -34,6 +33,120 @@ export default function Inspections() {
     { id: 'san_miguel', name: 'AutoBox San Miguel' },
   ];
 
+  // Función para formatear el RUT con puntos y guión
+  const formatRut = (text: string): string => {
+    // Eliminar puntos y guiones previos para procesar el texto limpio
+    let cleaned = text.replace(/\./g, '').replace(/-/g, '');
+    
+    // Separar números de la letra K
+    const numbers = cleaned.replace(/[^0-9]/g, '');
+    const hasK = /[kK]/.test(cleaned);
+    
+    if (numbers.length === 0) return '';
+    
+    // Si solo hay números sin K, no formatear hasta que haya más de un dígito
+    if (!hasK && numbers.length === 1) return numbers;
+    
+    // Determinar el cuerpo y el dígito verificador
+    let body = '';
+    let dv = '';
+    
+    if (hasK) {
+      // Si tiene K, el cuerpo son todos los números y el dv es K
+      body = numbers;
+      dv = 'K';
+    } else {
+      // Si no tiene K, separar el último número como dv
+      body = numbers.slice(0, -1);
+      dv = numbers.slice(-1);
+    }
+    
+    if (body.length === 0) return dv;
+    
+    // Formatear el cuerpo con puntos (cada 3 dígitos de derecha a izquierda)
+    const formattedBody = body.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    
+    // Retornar con guión antes del dígito verificador
+    return `${formattedBody}-${dv}`;
+  };
+
+  // Función para limpiar el RUT (sin puntos ni guión)
+  const cleanRut = (rut: string): string => {
+    return rut.replace(/\./g, '').replace(/-/g, '');
+  };
+
+  // Validar RUT chileno con algoritmo módulo 11
+  const validateRut = (rut: string): boolean => {
+    const cleanedRut = cleanRut(rut);
+    
+    // Debe tener entre 8 y 9 caracteres
+    if (cleanedRut.length < 8 || cleanedRut.length > 9) {
+      return false;
+    }
+    
+    // Separar cuerpo y dígito verificador
+    const body = cleanedRut.slice(0, -1);
+    const dv = cleanedRut.slice(-1).toUpperCase();
+    
+    // El cuerpo debe tener al menos 7 dígitos
+    if (body.length < 7) {
+      return false;
+    }
+    
+    // Verificar que el cuerpo solo contenga números
+    if (!/^\d+$/.test(body)) {
+      return false;
+    }
+    
+    // Calcular dígito verificador
+    let sum = 0;
+    let multiplier = 2;
+    
+    for (let i = body.length - 1; i >= 0; i--) {
+      sum += parseInt(body[i]) * multiplier;
+      multiplier = multiplier === 7 ? 2 : multiplier + 1;
+    }
+    
+    const expectedDv = 11 - (sum % 11);
+    let calculatedDv = '';
+    
+    if (expectedDv === 11) calculatedDv = '0';
+    else if (expectedDv === 10) calculatedDv = 'K';
+    else calculatedDv = expectedDv.toString();
+    
+    return dv === calculatedDv;
+  };
+
+  // Manejador para el RUT
+  const handleRutChange = (text: string) => {
+    // Solo permitir números y K/k
+    const filtered = text.replace(/[^0-9kK]/g, '');
+    
+    // Contar cuántas K hay
+    const kCount = (filtered.match(/[kK]/g) || []).length;
+    
+    // Si hay más de una K, no permitir
+    if (kCount > 1) return;
+    
+    // Si hay una K, verificar que esté al final
+    if (kCount === 1) {
+      const kIndex = filtered.search(/[kK]/);
+      // Si la K no está al final, no permitir
+      if (kIndex !== filtered.length - 1) return;
+    }
+    
+    const formatted = formatRut(filtered);
+    setUserRut(formatted);
+    
+    // Validar RUT cuando tenga al menos 8 caracteres sin formato
+    const cleaned = cleanRut(formatted);
+    if (cleaned.length >= 8) {
+      setRutValid(validateRut(formatted));
+    } else {
+      setRutValid(null);
+    }
+  };
+
   const handlePlateChange = async (text: string) => {
     // Solo permitir letras y números, máximo 6 caracteres
     const filtered = text.replace(/[^A-Z0-9]/gi, '').toUpperCase();
@@ -41,7 +154,6 @@ export default function Inspections() {
     
     setVehiclePlate(limited);
     setPlateValid(null);
-    setVehicleInfo(null);
 
     // Validar cuando llegue a 6 caracteres
     if (limited.length === 6) {
@@ -51,7 +163,6 @@ export default function Inspections() {
 
   const validatePlate = async (plate: string) => {
     try {
-      setValidatingPlate(true);
       setPlateValid(null);
       
       // Llamar a la API para validar la patente
@@ -59,17 +170,12 @@ export default function Inspections() {
       
       if (response.valid) {
         setPlateValid(true);
-        setVehicleInfo(response.vehicle);
       } else {
         setPlateValid(false);
-        setVehicleInfo(null);
       }
     } catch (error) {
       console.error('Error al validar patente:', error);
       setPlateValid(false);
-      setVehicleInfo(null);
-    } finally {
-      setValidatingPlate(false);
     }
   };
 
@@ -117,20 +223,10 @@ export default function Inspections() {
             autoCapitalize="characters"
             maxLength={6}
           />
-          {validatingPlate && (
-            <Text style={styles.validatingText}>Validando patente...</Text>
-          )}
           {plateValid === false && vehiclePlate.length === 6 && (
             <Text style={styles.errorText}>
-              Patente no válida o no encontrada
+              Formato de patente inválido
             </Text>
-          )}
-          {plateValid === true && vehicleInfo && (
-            <View style={styles.vehicleInfoContainer}>
-              <Text style={styles.vehicleInfoText}>
-                ✓ {vehicleInfo.brand} {vehicleInfo.model} ({vehicleInfo.year})
-              </Text>
-            </View>
           )}
         </View>
 
@@ -198,12 +294,22 @@ export default function Inspections() {
         <View style={styles.inputSection}>
           <Text style={styles.inputLabel}>RUT</Text>
           <TextInput
-            style={styles.textInput}
+            style={[
+              styles.textInput,
+              rutValid === false && styles.textInputError
+            ]}
             value={userRut}
-            onChangeText={setUserRut}
+            onChangeText={handleRutChange}
             placeholder="12.345.678-9"
             placeholderTextColor="#999"
+            keyboardType="numeric"
+            maxLength={12}
           />
+          {rutValid === false && (
+            <Text style={styles.errorText}>
+              RUT inválido
+            </Text>
+          )}
         </View>
 
         {/* Celular */}
@@ -329,6 +435,9 @@ const styles = StyleSheet.create({
     fontSize: 16,
     backgroundColor: '#FAFAFA',
     color: '#1C1E21',
+  },
+  textInputError: {
+    borderColor: '#F44336',
   },
   row: {
     flexDirection: 'row',

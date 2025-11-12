@@ -232,14 +232,25 @@ class ApiService {
     }
   }
 
-  // Validar patente de vehículo
-  async validateVehiclePlate(plate: string): Promise<{ valid: boolean; vehicle?: any }> {
+  // Validar patente de vehículo (solo formato)
+  async validateVehiclePlate(plate: string): Promise<{ valid: boolean; vehicle?: any; message?: string }> {
     try {
       const response = await this.fetch(`/vehicles/validate-plate/${plate}`);
       return response;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error al validar patente:', error);
-      return { valid: false };
+      // Validar formato localmente como fallback
+      const plateRegex = /^[A-Z]{4}\d{2}$|^[A-Z]{2}\d{4}$/;
+      if (plateRegex.test(plate.toUpperCase())) {
+        return {
+          valid: true,
+          vehicle: { plate: plate.toUpperCase(), format: 'valid' }
+        };
+      }
+      return { 
+        valid: false,
+        message: 'Formato de patente inválido'
+      };
     }
   }
 
