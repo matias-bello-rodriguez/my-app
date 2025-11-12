@@ -5,6 +5,7 @@ import {
   ActivityIndicator,
   Alert,
   Modal,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -23,6 +24,11 @@ export default function LocationPicker({ value, onLocationChange, disabled = fal
   const [showMap, setShowMap] = useState(false);
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [suggestions, setSuggestions] = useState<Array<{
+    description: string;
+    latitude: number;
+    longitude: number;
+  }>>([]);
   const [selectedLocation, setSelectedLocation] = useState<{
     latitude: number;
     longitude: number;
@@ -158,7 +164,7 @@ export default function LocationPicker({ value, onLocationChange, disabled = fal
 
   const handleSearch = async () => {
     if (!searchQuery.trim()) {
-      Alert.alert('Error', 'Por favor ingresa una dirección para buscar');
+      setSuggestions([]);
       return;
     }
 
@@ -169,6 +175,7 @@ export default function LocationPicker({ value, onLocationChange, disabled = fal
       if (results.length > 0) {
         const { latitude, longitude } = results[0];
         setSelectedLocation({ latitude, longitude });
+        setSuggestions([]);
       } else {
         Alert.alert('No encontrado', 'No se encontró la dirección. Intenta con otra búsqueda.');
       }
@@ -177,6 +184,72 @@ export default function LocationPicker({ value, onLocationChange, disabled = fal
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleSearchChange = async (text: string) => {
+    setSearchQuery(text);
+    
+    if (!text.trim()) {
+      setSuggestions([]);
+      return;
+    }
+
+    // Buscar sugerencias después de 2 caracteres
+    if (text.length < 2) {
+      setSuggestions([]);
+      return;
+    }
+
+    try {
+      const results = await Location.geocodeAsync(text);
+      
+      const suggestionsList = await Promise.all(
+        results.slice(0, 5).map(async (result) => {
+          try {
+            const address = await Location.reverseGeocodeAsync({
+              latitude: result.latitude,
+              longitude: result.longitude,
+            });
+            
+            if (address.length > 0) {
+              const place = address[0];
+              const parts = [];
+              if (place.street) parts.push(place.street);
+              if (place.city) parts.push(place.city);
+              if (place.region) parts.push(place.region);
+              
+              return {
+                description: parts.join(', ') || `${result.latitude.toFixed(4)}, ${result.longitude.toFixed(4)}`,
+                latitude: result.latitude,
+                longitude: result.longitude,
+              };
+            }
+          } catch {
+            // Si falla reverseGeocode, usar coordenadas
+          }
+          
+          return {
+            description: `${result.latitude.toFixed(4)}, ${result.longitude.toFixed(4)}`,
+            latitude: result.latitude,
+            longitude: result.longitude,
+          };
+        })
+      );
+      
+      setSuggestions(suggestionsList);
+    } catch (error) {
+      // Silenciar errores de búsqueda de sugerencias
+      setSuggestions([]);
+    }
+  };
+
+  const handleSelectSuggestion = (suggestion: { description: string; latitude: number; longitude: number }) => {
+    setSelectedLocation({
+      latitude: suggestion.latitude,
+      longitude: suggestion.longitude,
+    });
+    setSearchQuery(suggestion.description);
+    setSuggestions([]);
   };
 
   return (
@@ -218,7 +291,7 @@ export default function LocationPicker({ value, onLocationChange, disabled = fal
               placeholder="Buscar dirección..."
               placeholderTextColor="#999"
               value={searchQuery}
-              onChangeText={setSearchQuery}
+              onChangeText={handleSearchChange}
               onSubmitEditing={handleSearch}
               returnKeyType="search"
             />
@@ -235,6 +308,25 @@ export default function LocationPicker({ value, onLocationChange, disabled = fal
               )}
             </TouchableOpacity>
           </View>
+
+          {/* Sugerencias */}
+          {suggestions.length > 0 && (
+            <View style={styles.suggestionsContainer}>
+              <ScrollView style={styles.suggestionsList}>
+                {suggestions.map((suggestion, index) => (
+                  <TouchableOpacity
+                    key={index}
+                    style={styles.suggestionItem}
+                    onPress={() => handleSelectSuggestion(suggestion)}
+                    activeOpacity={0.7}
+                  >
+                    <Ionicons name="location-outline" size={20} color="#4CAF50" />
+                    <Text style={styles.suggestionText}>{suggestion.description}</Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            </View>
+          )}
 
           {selectedLocation ? (
             <MapView
@@ -360,6 +452,28 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     minWidth: 48,
+  },
+  suggestionsContainer: {
+    backgroundColor: '#FFFFFF',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E4E6EA',
+    maxHeight: 200,
+  },
+  suggestionsList: {
+    flexGrow: 0,
+  },
+  suggestionItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F0F2F5',
+    gap: 12,
+  },
+  suggestionText: {
+    flex: 1,
+    fontSize: 14,
+    color: '#1C1E21',
   },
   map: {
     flex: 1,
