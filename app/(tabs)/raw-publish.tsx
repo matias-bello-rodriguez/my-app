@@ -21,6 +21,7 @@ export default function RawPublish() {
   const [availableYears, setAvailableYears] = useState<number[]>([]);
   const [loadingYears, setLoadingYears] = useState(false);
   const [showYearDropdown, setShowYearDropdown] = useState(false);
+  const [plateValid, setPlateValid] = useState<boolean | null>(null);
   
   const [formData, setFormData] = useState({
     // Campos requeridos por el backend
@@ -95,6 +96,58 @@ export default function RawPublish() {
     } finally {
       setLoadingYears(false);
     }
+  };
+
+  const handlePlateChange = async (text: string) => {
+    // Solo permitir letras y números, máximo 6 caracteres
+    const filtered = text.replace(/[^A-Z0-9]/gi, '').toUpperCase();
+    const limited = filtered.slice(0, 6);
+    
+    handleInputChange('plate', limited);
+    setPlateValid(null);
+
+    // Validar cuando llegue a 6 caracteres
+    if (limited.length === 6) {
+      await validatePlate(limited);
+    }
+  };
+
+  const validatePlate = async (plate: string) => {
+    try {
+      setPlateValid(null);
+      
+      // Llamar a la API para validar la patente
+      const response = await apiService.validateVehiclePlate(plate);
+      
+      if (response.valid) {
+        setPlateValid(true);
+      } else {
+        setPlateValid(false);
+      }
+    } catch (error) {
+      console.error('Error al validar patente:', error);
+      setPlateValid(false);
+    }
+  };
+
+  const formatNumber = (text: string): string => {
+    // Eliminar todo excepto números
+    const cleaned = text.replace(/\D/g, '');
+    
+    if (cleaned === '') return '';
+    
+    // Agregar separadores de miles
+    return cleaned.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  };
+
+  const handlePriceChange = (text: string) => {
+    const formatted = formatNumber(text);
+    handleInputChange('price', formatted);
+  };
+
+  const handleKilometersChange = (text: string) => {
+    const formatted = formatNumber(text);
+    handleInputChange('kilometers', formatted);
   };
 
   const handleRecordVideo = () => {
@@ -327,14 +380,28 @@ export default function RawPublish() {
         <View style={styles.inputSection}>
           <Text style={styles.inputLabel}>Patente *</Text>
           <TextInput
-            style={styles.textInput}
+            style={[
+              styles.textInput,
+              plateValid === false && styles.textInputError
+            ]}
             value={formData.plate}
-            onChangeText={(value) => handleInputChange('plate', value)}
-            placeholder="Ej: ABCD12 o AB-CD-12"
+            onChangeText={handlePlateChange}
+            placeholder="ABC123"
             placeholderTextColor="#999"
             autoCapitalize="characters"
+            maxLength={6}
             editable={!loading}
           />
+          {plateValid === false && formData.plate.length === 6 && (
+            <Text style={styles.errorText}>
+              Formato de patente inválido
+            </Text>
+          )}
+          {plateValid === true && (
+            <Text style={styles.validText}>
+              ✓ Patente válida
+            </Text>
+          )}
         </View>
 
         {/* Precio */}
@@ -343,8 +410,8 @@ export default function RawPublish() {
           <TextInput
             style={styles.textInput}
             value={formData.price}
-            onChangeText={(value) => handleInputChange('price', value)}
-            placeholder="Ej: 15000000"
+            onChangeText={handlePriceChange}
+            placeholder="Ej: 15.000.000"
             placeholderTextColor="#999"
             keyboardType="numeric"
             editable={!loading}
@@ -357,8 +424,8 @@ export default function RawPublish() {
           <TextInput
             style={styles.textInput}
             value={formData.kilometers}
-            onChangeText={(value) => handleInputChange('kilometers', value)}
-            placeholder="Ej: 50000"
+            onChangeText={handleKilometersChange}
+            placeholder="Ej: 50.000"
             placeholderTextColor="#999"
             keyboardType="numeric"
             editable={!loading}
@@ -768,5 +835,18 @@ const styles = StyleSheet.create({
   dropdownItemText: {
     fontSize: 16,
     color: '#1C1E21',
+  },
+  textInputError: {
+    borderColor: '#F44336',
+  },
+  errorText: {
+    color: '#F44336',
+    fontSize: 12,
+    marginTop: 4,
+  },
+  validText: {
+    color: '#4CAF50',
+    fontSize: 12,
+    marginTop: 4,
   },
 });
