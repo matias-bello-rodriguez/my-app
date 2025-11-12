@@ -180,7 +180,7 @@ export default function LocationPicker({ value, onLocationChange, disabled = fal
               onPress={() => setShowMap(false)}
               style={styles.closeButton}
             >
-              <Ionicons name="close" size={28} color="#1C1E21" />
+              <Ionicons name="close" size={28} color="#FFFFFF" />
             </TouchableOpacity>
             <Text style={styles.modalTitle}>Selecciona tu ubicación</Text>
             <View style={{ width: 28 }} />
@@ -235,7 +235,7 @@ export default function LocationPicker({ value, onLocationChange, disabled = fal
               disabled={loading || !selectedLocation}
               activeOpacity={0.7}
             >
-              <Text style={styles.actionButtonText}>Confirmar ubicación</Text>
+              <Text style={[styles.actionButtonText, { color: '#4CAF50' }]}>Confirmar ubicación</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -276,9 +276,8 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     padding: 16,
     paddingTop: 48,
-    borderBottomWidth: 1,
     borderBottomColor: '#E4E6EA',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#4CAF50',
   },
   closeButton: {
     padding: 4,
@@ -286,7 +285,7 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#1C1E21',
+    color: '#FFFFFF',
   },
   map: {
     flex: 1,
@@ -305,9 +304,9 @@ const styles = StyleSheet.create({
   buttonContainer: {
     padding: 16,
     gap: 12,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#4CAF50',
     borderTopWidth: 1,
-    borderTopColor: '#E4E6EA',
+    borderTopColor: '#45A049',
   },
   actionButton: {
     flexDirection: 'row',
@@ -321,7 +320,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#2196F3',
   },
   confirmButton: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: '#FFFFFF',
   },
   actionButtonText: {
     color: '#FFFFFF',
