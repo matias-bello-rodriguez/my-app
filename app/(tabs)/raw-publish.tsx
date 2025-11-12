@@ -20,6 +20,7 @@ export default function RawPublish() {
   const [loadingModels, setLoadingModels] = useState(false);
   const [availableYears, setAvailableYears] = useState<number[]>([]);
   const [loadingYears, setLoadingYears] = useState(false);
+  const [showYearDropdown, setShowYearDropdown] = useState(false);
   
   const [formData, setFormData] = useState({
     // Campos requeridos por el backend
@@ -274,32 +275,40 @@ export default function RawPublish() {
               <Text style={styles.loadingText}>Cargando años...</Text>
             </View>
           ) : availableYears.length > 0 ? (
-            <ScrollView 
-              horizontal 
-              showsHorizontalScrollIndicator={false}
-              style={styles.yearScrollContainer}
-            >
-              <View style={styles.pickerContainer}>
-                {availableYears.map((yearOption) => (
-                  <TouchableOpacity
-                    key={yearOption}
-                    style={[
-                      styles.pickerOption,
-                      formData.year === yearOption.toString() && styles.pickerOptionSelected
-                    ]}
-                    onPress={() => handleInputChange('year', yearOption.toString())}
-                    disabled={loading}
-                  >
-                    <Text style={[
-                      styles.pickerOptionText,
-                      formData.year === yearOption.toString() && styles.pickerOptionTextSelected
-                    ]}>
-                      {yearOption}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            </ScrollView>
+            <View>
+              <TouchableOpacity 
+                style={styles.dropdownButton}
+                onPress={() => setShowYearDropdown(!showYearDropdown)}
+                activeOpacity={0.7}
+              >
+                <Text style={[styles.dropdownText, !formData.year && styles.placeholderText]}>
+                  {formData.year || 'Selecciona un año'}
+                </Text>
+                <Ionicons 
+                  name={showYearDropdown ? "chevron-up" : "chevron-down"} 
+                  size={20} 
+                  color="#4CAF50" 
+                />
+              </TouchableOpacity>
+              
+              {showYearDropdown && (
+                <ScrollView style={styles.dropdownMenu} nestedScrollEnabled={true}>
+                  {availableYears.map((yearOption) => (
+                    <TouchableOpacity
+                      key={yearOption}
+                      style={styles.dropdownItem}
+                      onPress={() => {
+                        handleInputChange('year', yearOption.toString());
+                        setShowYearDropdown(false);
+                      }}
+                      activeOpacity={0.7}
+                    >
+                      <Text style={styles.dropdownItemText}>{yearOption}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+              )}
+            </View>
           ) : (
             <TextInput
               style={styles.textInput}
@@ -697,5 +706,67 @@ const styles = StyleSheet.create({
   },
   yearScrollContainer: {
     maxHeight: 120,
+  },
+  selectContainer: {
+    borderWidth: 1,
+    borderColor: '#E4E6EA',
+    borderRadius: 8,
+    backgroundColor: '#FAFAFA',
+    overflow: 'hidden',
+    justifyContent: 'center',
+  },
+  picker: {
+    height: 50,
+    width: '100%',
+    color: '#1C1E21',
+    backgroundColor: 'transparent',
+    fontSize: 16,
+  },
+  pickerItem: {
+    fontSize: 16,
+    height: 50,
+    color: '#1C1E21',
+  },
+  dropdownButton: {
+    borderWidth: 1,
+    borderColor: '#E4E6EA',
+    borderRadius: 8,
+    padding: 12,
+    backgroundColor: '#FAFAFA',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  dropdownText: {
+    fontSize: 16,
+    color: '#1C1E21',
+  },
+  placeholderText: {
+    color: '#999',
+  },
+  dropdownMenu: {
+    maxHeight: 200,
+    borderWidth: 1,
+    borderColor: '#E4E6EA',
+    borderRadius: 8,
+    backgroundColor: '#FFFFFF',
+    marginTop: 4,
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+  },
+  dropdownItem: {
+    padding: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F0F2F5',
+  },
+  dropdownItemText: {
+    fontSize: 16,
+    color: '#1C1E21',
   },
 });
