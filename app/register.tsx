@@ -35,6 +35,7 @@ export default function RegisterScreen(){
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [loading, setLoading] = useState(false);
+    const [rutValid, setRutValid] = useState<boolean | null>(null);
     const router = useRouter();
 
     // Estados para regiones y comunas
@@ -176,7 +177,16 @@ export default function RegisterScreen(){
             if (kIndex !== filtered.length - 1) return;
         }
         
-        setRut(formatRut(filtered));
+        const formatted = formatRut(filtered);
+        setRut(formatted);
+        
+        // Validar RUT cuando tenga al menos 8 caracteres sin formato
+        const cleaned = cleanRut(formatted);
+        if (cleaned.length >= 8) {
+            setRutValid(validateRut(formatted));
+        } else {
+            setRutValid(null);
+        }
     };
 
     // Función para limpiar el RUT (sin puntos ni guión)
@@ -513,7 +523,10 @@ export default function RegisterScreen(){
                                         </View>
 
                                         <View style={styles.inputContainer}>
-                                            <View style={styles.inputWrapper}>
+                                            <View style={[
+                                                styles.inputWrapper,
+                                                rutValid === false && styles.inputWrapperError
+                                            ]}>
                                                 <Ionicons name="card-outline" size={20} color="#4CAF50" style={styles.inputIcon} />
                                                 <TextInput
                                                     style={styles.input}
@@ -527,6 +540,11 @@ export default function RegisterScreen(){
                                                     returnKeyType="next"
                                                 />
                                             </View>
+                                            {rutValid === false && (
+                                                <Text style={styles.errorText}>
+                                                    RUT inválido
+                                                </Text>
+                                            )}
                                         </View>
 
                                         <View style={styles.inputContainer}>

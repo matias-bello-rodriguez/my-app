@@ -2,6 +2,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useState } from 'react';
 import {
+  KeyboardAvoidingView,
+  Platform,
   ScrollView,
   StyleSheet,
   Text,
@@ -24,6 +26,7 @@ export default function Inspections() {
   const [acceptTerms, setAcceptTerms] = useState(false);
   const [plateValid, setPlateValid] = useState<boolean | null>(null);
   const [rutValid, setRutValid] = useState<boolean | null>(null);
+  const [emailValid, setEmailValid] = useState<boolean | null>(null);
 
   const autoBoxLocations = [
     { id: 'centro', name: 'AutoBox Centro' },
@@ -147,6 +150,70 @@ export default function Inspections() {
     }
   };
 
+  // Formatear número de celular chileno
+  const formatPhone = (text: string): string => {
+    // Eliminar todo excepto números
+    const cleaned = text.replace(/\D/g, '');
+    
+    // Si está vacío, retornar vacío
+    if (cleaned.length === 0) return '';
+    
+    // Formato: +56 9 1234 5678
+    let formatted = '+56';
+    
+    if (cleaned.length > 2) {
+      // Agregar el 9
+      formatted += ' ' + cleaned.substring(2, 3);
+      
+      if (cleaned.length > 3) {
+        // Agregar los primeros 4 dígitos
+        formatted += ' ' + cleaned.substring(3, 7);
+        
+        if (cleaned.length > 7) {
+          // Agregar los últimos 4 dígitos
+          formatted += ' ' + cleaned.substring(7, 11);
+        }
+      }
+    }
+    
+    return formatted;
+  };
+
+  // Manejador para el celular
+  const handlePhoneChange = (text: string) => {
+    // Si el usuario borra todo, permitir
+    if (text === '') {
+      setUserPhone('');
+      return;
+    }
+    
+    // Si el texto no comienza con +56, agregarlo
+    if (!text.startsWith('+56')) {
+      text = '56' + text.replace(/\D/g, '');
+    }
+    
+    // Formatear el número
+    const formatted = formatPhone(text);
+    setUserPhone(formatted);
+  };
+
+  // Validar email
+  const validateEmail = (email: string): boolean => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  // Manejador para el email
+  const handleEmailChange = (text: string) => {
+    setUserEmail(text.toLowerCase().trim());
+    
+    if (text.trim().length > 0) {
+      setEmailValid(validateEmail(text.trim()));
+    } else {
+      setEmailValid(null);
+    }
+  };
+
   const handlePlateChange = async (text: string) => {
     // Solo permitir letras y números, máximo 6 caracteres
     const filtered = text.replace(/[^A-Z0-9]/gi, '').toUpperCase();
@@ -199,14 +266,24 @@ export default function Inspections() {
   };
 
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.header}>
-        <Ionicons name="car-sport" size={48} color="#66BB6A" />
-        <Text style={styles.title}>Solicitar Inspección</Text>
-        <Text style={styles.subtitle}>
-          Programa una inspección mecánica profesional para tu vehículo
-        </Text>
-      </View>
+    <KeyboardAvoidingView 
+      style={{ flex: 1 }}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+    >
+      <ScrollView 
+        style={styles.container}
+        contentContainerStyle={styles.scrollContent}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.header}>
+          <Ionicons name="car-sport" size={48} color="#66BB6A" />
+          <Text style={styles.title}>Solicitar Inspección</Text>
+          <Text style={styles.subtitle}>
+            Programa una inspección mecánica profesional para tu vehículo
+          </Text>
+        </View>
 
       <View style={styles.formContainer}>
         <Text style={styles.sectionTitle}>Datos de la Inspección</Text>
@@ -318,10 +395,11 @@ export default function Inspections() {
           <TextInput
             style={styles.textInput}
             value={userPhone}
-            onChangeText={setUserPhone}
+            onChangeText={handlePhoneChange}
             placeholder="+56 9 1234 5678"
             placeholderTextColor="#999"
             keyboardType="phone-pad"
+            maxLength={16}
           />
         </View>
 
@@ -329,14 +407,22 @@ export default function Inspections() {
         <View style={styles.inputSection}>
           <Text style={styles.inputLabel}>Email</Text>
           <TextInput
-            style={styles.textInput}
+            style={[
+              styles.textInput,
+              emailValid === false && styles.textInputError
+            ]}
             value={userEmail}
-            onChangeText={setUserEmail}
+            onChangeText={handleEmailChange}
             placeholder="correo@ejemplo.com"
             placeholderTextColor="#999"
             keyboardType="email-address"
             autoCapitalize="none"
           />
+          {emailValid === false && (
+            <Text style={styles.errorText}>
+              Email inválido
+            </Text>
+          )}
         </View>
 
         {/* Checkbox Términos y Condiciones */}
@@ -367,7 +453,8 @@ export default function Inspections() {
           <Text style={styles.requestButtonText}>Solicitar</Text>
         </TouchableOpacity>
       </View>
-    </ScrollView>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -375,6 +462,10 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F0F2F5',
+  },
+  scrollContent: {
+    flexGrow: 1,
+    paddingBottom: 20,
   },
   header: {
     alignItems: 'center',

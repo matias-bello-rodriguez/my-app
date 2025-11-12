@@ -429,7 +429,11 @@ export default function Search() {
 
   // Renderizar resultado de búsqueda
   const renderSearchResult = ({ item }: { item: VehicleResult }) => (
-    <TouchableOpacity style={styles.resultCard} activeOpacity={0.8}>
+    <TouchableOpacity 
+      style={styles.resultCard} 
+      activeOpacity={0.8}
+      onPress={() => router.push('/search-detail')}
+    >
       <View style={styles.resultHeader}>
         <View style={styles.resultMainInfo}>
           <Text style={styles.resultPlate}>{item.brand} {item.model}</Text>
@@ -794,9 +798,9 @@ export default function Search() {
               
               <TouchableOpacity 
                 style={styles.applyFiltersButton}
-                onPress={handleSearch}
+                onPress={() => router.push('/search-detail')}
               >
-                <Text style={styles.applyFiltersText}>Aplicar filtros</Text>
+                <Text style={styles.applyFiltersText}>Buscar</Text>
               </TouchableOpacity>
             </View>
           </View>

@@ -171,6 +171,13 @@ function TabsContent() {
             href: null, // Esto oculta la pestaña del menú
           }}
         />
+
+        <Tabs.Screen 
+          name="search-detail" 
+          options={{
+            href: null, // Esto oculta la pestaña del menú
+          }}
+        />
       </Tabs>
     </>
   );
