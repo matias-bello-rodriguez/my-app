@@ -211,6 +211,15 @@ export default function Index() {
         return `¡Buenas noches, ${userName}!`;
     };
 
+    const translateStatus = (status: string) => {
+        const translations: { [key: string]: string } = {
+            'available': 'Disponible',
+            'sold': 'Vendido',
+            'inspection_pending': 'Inspección pendiente',
+        };
+        return translations[status] || status;
+    };
+
     if (loading) {
         return (
             <View style={[styles.container, styles.centerContent]}>
@@ -368,7 +377,7 @@ export default function Index() {
                                                 <Text style={styles.videoPrice}>${Math.floor(car.price).toLocaleString('es-CL')}</Text>
                                                 <View style={styles.videoStatus}>
                                                     <Text style={styles.videoStatusText}>
-                                                        {car.status || 'En venta'}
+                                                        {translateStatus(car.status || 'available')}
                                                     </Text>
                                                 </View>
                                             </View>
@@ -528,7 +537,7 @@ export default function Index() {
                                             <Text style={styles.videoPrice}>${Math.floor(car.price).toLocaleString('es-CL')}</Text>
                                             <View style={styles.videoStatus}>
                                                 <Text style={[styles.videoStatusText, { backgroundColor: 'rgba(255, 152, 0, 0.8)' }]}>
-                                                    {car.status || 'Disponible'}
+                                                    {translateStatus(car.status || 'available')}
                                                 </Text>
                                             </View>
                                         </View>
