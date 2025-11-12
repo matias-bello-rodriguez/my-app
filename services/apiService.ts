@@ -117,6 +117,16 @@ class ApiService {
     }
   }
 
+  // Obtener años por marca y modelo
+  async getYearsByBrandAndModel(brand: string, model: string): Promise<number[]> {
+    try {
+      return await this.fetch(`/vehicles/years/${encodeURIComponent(brand)}/${encodeURIComponent(model)}`);
+    } catch (error) {
+      console.error('Error al obtener años:', error);
+      return [];
+    }
+  }
+
   // Obtener vehículos con inspección mecánica
   async getInspectedVehicles(): Promise<Vehicle[]> {
     try {

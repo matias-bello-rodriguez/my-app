@@ -18,6 +18,8 @@ export default function RawPublish() {
   const [loading, setLoading] = useState(false);
   const [availableModels, setAvailableModels] = useState<string[]>([]);
   const [loadingModels, setLoadingModels] = useState(false);
+  const [availableYears, setAvailableYears] = useState<number[]>([]);
+  const [loadingYears, setLoadingYears] = useState(false);
   
   const [formData, setFormData] = useState({
     // Campos requeridos por el backend
@@ -44,8 +46,15 @@ export default function RawPublish() {
 
     // Si cambia la marca, cargar los modelos disponibles y limpiar el modelo seleccionado
     if (field === 'brand') {
-      setFormData(prev => ({ ...prev, model: '' }));
+      setFormData(prev => ({ ...prev, model: '', year: '' }));
+      setAvailableYears([]);
       loadModelsForBrand(value);
+    }
+
+    // Si cambia el modelo, cargar los años disponibles y limpiar el año seleccionado
+    if (field === 'model') {
+      setFormData(prev => ({ ...prev, year: '' }));
+      loadYearsForBrandAndModel(formData.brand, value);
     }
   };
 
@@ -65,6 +74,25 @@ export default function RawPublish() {
       setAvailableModels([]);
     } finally {
       setLoadingModels(false);
+    }
+  };
+
+  const loadYearsForBrandAndModel = async (brand: string, model: string) => {
+    if (!brand || !model) {
+      setAvailableYears([]);
+      return;
+    }
+
+    try {
+      setLoadingYears(true);
+      const years = await apiService.getYearsByBrandAndModel(brand, model);
+      setAvailableYears(years);
+    } catch (error) {
+      console.error('Error al cargar años:', error);
+      Alert.alert('Error', 'No se pudieron cargar los años para este modelo');
+      setAvailableYears([]);
+    } finally {
+      setLoadingYears(false);
     }
   };
 
@@ -240,16 +268,50 @@ export default function RawPublish() {
         {/* Año */}
         <View style={styles.inputSection}>
           <Text style={styles.inputLabel}>Año *</Text>
-          <TextInput
-            style={styles.textInput}
-            value={formData.year}
-            onChangeText={(value) => handleInputChange('year', value)}
-            placeholder="Ej: 2020"
-            placeholderTextColor="#999"
-            keyboardType="numeric"
-            maxLength={4}
-            editable={!loading}
-          />
+          {loadingYears ? (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="small" color="#4CAF50" />
+              <Text style={styles.loadingText}>Cargando años...</Text>
+            </View>
+          ) : availableYears.length > 0 ? (
+            <ScrollView 
+              horizontal 
+              showsHorizontalScrollIndicator={false}
+              style={styles.yearScrollContainer}
+            >
+              <View style={styles.pickerContainer}>
+                {availableYears.map((yearOption) => (
+                  <TouchableOpacity
+                    key={yearOption}
+                    style={[
+                      styles.pickerOption,
+                      formData.year === yearOption.toString() && styles.pickerOptionSelected
+                    ]}
+                    onPress={() => handleInputChange('year', yearOption.toString())}
+                    disabled={loading}
+                  >
+                    <Text style={[
+                      styles.pickerOptionText,
+                      formData.year === yearOption.toString() && styles.pickerOptionTextSelected
+                    ]}>
+                      {yearOption}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </ScrollView>
+          ) : (
+            <TextInput
+              style={styles.textInput}
+              value={formData.year}
+              onChangeText={(value) => handleInputChange('year', value)}
+              placeholder={formData.model ? "Selecciona un modelo primero" : "Ej: 2020"}
+              placeholderTextColor="#999"
+              keyboardType="numeric"
+              maxLength={4}
+              editable={!loading && !!formData.model}
+            />
+          )}
         </View>
 
         {/* Patente */}
@@ -632,5 +694,8 @@ const styles = StyleSheet.create({
     marginLeft: 12,
     fontSize: 14,
     color: '#65676B',
+  },
+  yearScrollContainer: {
+    maxHeight: 120,
   },
 });
