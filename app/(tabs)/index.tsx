@@ -120,7 +120,7 @@ export default function Index() {
                 });
                 setCurrentIndex(nextIndex);
             }
-        }, 3000); // Cambiar cada 3 segundos
+        }, 5000); // Cambiar cada 5 segundos
 
         return () => clearInterval(interval);
     }, [currentIndex, isUserScrolling, brands.length]);
@@ -286,7 +286,7 @@ export default function Index() {
                             shouldPlay={isActive}
                             isMuted={false}
                             volume={1.0}
-                            useNativeControls={false}
+                            useNativeControls={true}
                             progressUpdateIntervalMillis={500}
                         />
                     ) : item.images && item.images[0] ? (
