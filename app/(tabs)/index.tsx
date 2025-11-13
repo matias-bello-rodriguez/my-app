@@ -10,11 +10,15 @@ import {
     Text,
     TouchableOpacity,
     View,
-    Modal
+    Modal,
+    Dimensions,
+    FlatList
 } from 'react-native';
 import { Video, ResizeMode } from 'expo-av';
 import apiService from '../../services/apiService';
 import authService from '../../services/authService';
+
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 export default function Index() {
     const router = useRouter();
@@ -37,6 +41,12 @@ export default function Index() {
     const [showVideoPlayer, setShowVideoPlayer] = useState(false);
     const [selectedVideoUrl, setSelectedVideoUrl] = useState<string>('');
     const [selectedCarInfo, setSelectedCarInfo] = useState<any>(null);
+    
+    // Estados para el modal TikTok
+    const [showTikTokModal, setShowTikTokModal] = useState(false);
+    const [tiktokCars, setTiktokCars] = useState<any[]>([]);
+    const [currentTikTokIndex, setCurrentTikTokIndex] = useState(0);
+    const tiktokFlatListRef = useRef<FlatList>(null);
 
     // Datos mock para las secciones
     const brands = [
@@ -166,14 +176,21 @@ export default function Index() {
         router.push(`/search?brand=${brandName}`);
     };
 
-    const handleCarPress = (car: any) => {
+    const handleCarPress = (car: any, carsList?: any[]) => {
         console.log(`Auto seleccionado: ${car.id}`);
         console.log('Datos del auto:', JSON.stringify(car, null, 2));
         console.log('videoUrl original:', car.videoUrl);
         console.log('Longitud de videoUrl:', car.videoUrl?.length);
         
-        // Si el auto tiene video, mostrar el modal de video
-        if (car.videoUrl) {
+        // Si el auto tiene video, mostrar el modal TikTok
+        if (car.videoUrl && carsList) {
+            console.log('Mostrando modal TikTok');
+            const carIndex = carsList.findIndex(c => c.id === car.id);
+            setTiktokCars(carsList);
+            setCurrentTikTokIndex(carIndex >= 0 ? carIndex : 0);
+            setShowTikTokModal(true);
+        } else if (car.videoUrl) {
+            // Si no hay lista, mostrar solo este video en el modal simple
             console.log('Mostrando video:', car.videoUrl);
             console.log('¿Es URL firmada?', car.videoUrl.includes('X-Amz-Signature'));
             setSelectedVideoUrl(car.videoUrl);
@@ -218,6 +235,135 @@ export default function Index() {
             'inspection_pending': 'Inspección pendiente',
         };
         return translations[status] || status;
+    };
+
+    const handleLike = (carId: number) => {
+        console.log(`Like en auto: ${carId}`);
+    };
+
+    const handleShare = (car: any) => {
+        console.log(`Compartir auto: ${car.id}`);
+    };
+
+    const handleCommentTikTok = (carId: number) => {
+        console.log(`Comentar en auto: ${carId}`);
+        setShowTikTokModal(false);
+        router.push('/(tabs)/chat');
+    };
+
+    const onViewableItemsChanged = useRef(({ viewableItems }: any) => {
+        if (viewableItems.length > 0) {
+            setCurrentTikTokIndex(viewableItems[0].index || 0);
+        }
+    }).current;
+
+    const viewabilityConfig = useRef({
+        itemVisiblePercentThreshold: 80
+    }).current;
+
+    const renderTikTokItem = ({ item, index }: { item: any; index: number }) => {
+        const isActive = index === currentTikTokIndex;
+        
+        return (
+            <View style={styles.tiktokContainer}>
+                <TouchableOpacity 
+                    style={styles.tiktokVideoContainer}
+                    activeOpacity={1}
+                >
+                    {item.videoUrl ? (
+                        <Video
+                            source={{ uri: item.videoUrl }}
+                            style={styles.tiktokVideo}
+                            resizeMode={ResizeMode.COVER}
+                            isLooping
+                            shouldPlay={isActive}
+                            isMuted={false}
+                        />
+                    ) : item.images && item.images[0] ? (
+                        <Image 
+                            source={{ uri: item.images[0] }} 
+                            style={styles.tiktokVideo}
+                            resizeMode="cover"
+                        />
+                    ) : (
+                        <View style={styles.tiktokPlaceholder}>
+                            <Text style={styles.tiktokPlaceholderEmoji}>🚗</Text>
+                        </View>
+                    )}
+                </TouchableOpacity>
+
+                <View style={styles.tiktokInfoContainer}>
+                    <View style={styles.tiktokUserInfo}>
+                        <View style={styles.tiktokAvatar}>
+                            <Ionicons name="person" size={20} color="#FFFFFF" />
+                        </View>
+                        <Text style={styles.tiktokUsername}>@{userName}</Text>
+                    </View>
+                    
+                    <Text style={styles.tiktokCarTitle}>
+                        {item.brand} {item.model} {item.year}
+                    </Text>
+                    
+                    <Text style={styles.tiktokCarPrice}>
+                        ${Math.floor(item.price).toLocaleString('es-CL')}
+                    </Text>
+                    
+                    <View style={styles.tiktokCarDetails}>
+                        <View style={styles.tiktokDetailItem}>
+                            <Ionicons name="speedometer" size={14} color="#FFFFFF" />
+                            <Text style={styles.tiktokDetailText}>{item.mileage || '0'} km</Text>
+                        </View>
+                        <View style={styles.tiktokDetailItem}>
+                            <Ionicons name="settings" size={14} color="#FFFFFF" />
+                            <Text style={styles.tiktokDetailText}>{item.transmission || 'Manual'}</Text>
+                        </View>
+                        <View style={styles.tiktokDetailItem}>
+                            <Ionicons name="location" size={14} color="#FFFFFF" />
+                            <Text style={styles.tiktokDetailText}>{item.region || 'Chile'}</Text>
+                        </View>
+                    </View>
+                    
+                    <View style={styles.tiktokStatusBadge}>
+                        <Text style={styles.tiktokStatusText}>
+                            {translateStatus(item.status || 'available')}
+                        </Text>
+                    </View>
+                </View>
+
+                <View style={styles.tiktokActionsContainer}>
+                    <TouchableOpacity 
+                        style={styles.tiktokActionButton}
+                        onPress={() => handleLike(item.id)}
+                    >
+                        <Ionicons name="heart" size={32} color="#FFFFFF" />
+                        <Text style={styles.tiktokActionText}>Like</Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity 
+                        style={styles.tiktokActionButton}
+                        onPress={() => handleCommentTikTok(item.id)}
+                    >
+                        <Ionicons name="chatbubble" size={32} color="#FFFFFF" />
+                        <Text style={styles.tiktokActionText}>Chat</Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity 
+                        style={styles.tiktokActionButton}
+                        onPress={() => handleShare(item)}
+                    >
+                        <Ionicons name="share-social" size={32} color="#FFFFFF" />
+                        <Text style={styles.tiktokActionText}>Compartir</Text>
+                    </TouchableOpacity>
+                </View>
+
+                <TouchableOpacity 
+                    style={styles.tiktokCloseButton}
+                    onPress={() => setShowTikTokModal(false)}
+                >
+                    <Ionicons name="close" size={28} color="#FFFFFF" />
+                </TouchableOpacity>
+            </View>
+        );
     };
 
     if (loading) {
@@ -345,7 +491,7 @@ export default function Index() {
                                 <TouchableOpacity 
                                     key={car.id} 
                                     style={styles.reelsVideoCard}
-                                    onPress={() => handleCarPress(car)}
+                                    onPress={() => handleCarPress(car, myCars)}
                                 >
                                     <View style={styles.videoBackground}>
                                         {car.videoUrl ? (
@@ -505,7 +651,7 @@ export default function Index() {
                             <TouchableOpacity 
                                 key={car.id} 
                                 style={styles.reelsVideoCard}
-                                onPress={() => handleCarPress(car)}
+                                onPress={() => handleCarPress(car, latestCars)}
                             >
                                 <View style={styles.videoBackground}>
                                     {car.videoUrl ? (
@@ -558,6 +704,36 @@ export default function Index() {
                 {/* Espaciado final */}
                 <View style={styles.bottomSpace} />
             </ScrollView>
+            
+            {/* Modal TikTok */}
+            <Modal
+                visible={showTikTokModal}
+                animationType="slide"
+                transparent={false}
+                onRequestClose={() => setShowTikTokModal(false)}
+            >
+                <View style={{ flex: 1, backgroundColor: '#000000' }}>
+                    <FlatList
+                        ref={tiktokFlatListRef}
+                        data={tiktokCars}
+                        renderItem={renderTikTokItem}
+                        keyExtractor={(item) => item.id.toString()}
+                        pagingEnabled
+                        showsVerticalScrollIndicator={false}
+                        snapToInterval={SCREEN_HEIGHT}
+                        snapToAlignment="start"
+                        decelerationRate="fast"
+                        onViewableItemsChanged={onViewableItemsChanged}
+                        viewabilityConfig={viewabilityConfig}
+                        initialScrollIndex={currentTikTokIndex}
+                        getItemLayout={(data, index) => ({
+                            length: SCREEN_HEIGHT,
+                            offset: SCREEN_HEIGHT * index,
+                            index,
+                        })}
+                    />
+                </View>
+            </Modal>
             
             {/* Modal para reproducir video */}
             <Modal
@@ -1060,5 +1236,145 @@ const styles = StyleSheet.create({
         color: '#FFFFFF',
         fontSize: 16,
         fontWeight: 'bold',
+    },
+    // Estilos TikTok
+    tiktokContainer: {
+        width: SCREEN_WIDTH,
+        height: SCREEN_HEIGHT,
+        position: 'relative',
+        backgroundColor: '#000000',
+    },
+    tiktokVideoContainer: {
+        width: '100%',
+        height: '100%',
+        backgroundColor: '#000000',
+    },
+    tiktokVideo: {
+        width: '100%',
+        height: '100%',
+    },
+    tiktokPlaceholder: {
+        width: '100%',
+        height: '100%',
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: '#1a1a1a',
+    },
+    tiktokPlaceholderEmoji: {
+        fontSize: 120,
+        opacity: 0.5,
+    },
+    tiktokInfoContainer: {
+        position: 'absolute',
+        bottom: 80,
+        left: 16,
+        right: 80,
+        zIndex: 10,
+    },
+    tiktokUserInfo: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 12,
+    },
+    tiktokAvatar: {
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+        backgroundColor: '#4CAF50',
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginRight: 10,
+        borderWidth: 2,
+        borderColor: '#FFFFFF',
+    },
+    tiktokUsername: {
+        fontSize: 16,
+        fontWeight: '600',
+        color: '#FFFFFF',
+        textShadowColor: 'rgba(0, 0, 0, 0.75)',
+        textShadowOffset: { width: 0, height: 1 },
+        textShadowRadius: 4,
+    },
+    tiktokCarTitle: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        color: '#FFFFFF',
+        marginBottom: 8,
+        textShadowColor: 'rgba(0, 0, 0, 0.75)',
+        textShadowOffset: { width: 0, height: 1 },
+        textShadowRadius: 4,
+    },
+    tiktokCarPrice: {
+        fontSize: 28,
+        fontWeight: 'bold',
+        color: '#4CAF50',
+        marginBottom: 12,
+        textShadowColor: 'rgba(0, 0, 0, 0.75)',
+        textShadowOffset: { width: 0, height: 1 },
+        textShadowRadius: 4,
+    },
+    tiktokCarDetails: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        gap: 12,
+        marginBottom: 12,
+    },
+    tiktokDetailItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        paddingHorizontal: 10,
+        paddingVertical: 6,
+        borderRadius: 16,
+        gap: 6,
+    },
+    tiktokDetailText: {
+        fontSize: 13,
+        color: '#FFFFFF',
+        fontWeight: '500',
+    },
+    tiktokStatusBadge: {
+        alignSelf: 'flex-start',
+        backgroundColor: 'rgba(76, 175, 80, 0.9)',
+        paddingHorizontal: 12,
+        paddingVertical: 6,
+        borderRadius: 16,
+    },
+    tiktokStatusText: {
+        fontSize: 13,
+        color: '#FFFFFF',
+        fontWeight: '600',
+    },
+    tiktokActionsContainer: {
+        position: 'absolute',
+        right: 12,
+        bottom: 100,
+        zIndex: 10,
+        gap: 24,
+    },
+    tiktokActionButton: {
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    tiktokActionText: {
+        fontSize: 12,
+        color: '#FFFFFF',
+        marginTop: 4,
+        fontWeight: '600',
+        textShadowColor: 'rgba(0, 0, 0, 0.75)',
+        textShadowOffset: { width: 0, height: 1 },
+        textShadowRadius: 3,
+    },
+    tiktokCloseButton: {
+        position: 'absolute',
+        top: 50,
+        right: 16,
+        width: 44,
+        height: 44,
+        borderRadius: 22,
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 10,
     },
 });

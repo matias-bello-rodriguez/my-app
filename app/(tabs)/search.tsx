@@ -12,6 +12,7 @@ import {
     TouchableOpacity,
     View
 } from 'react-native';
+import { Video, ResizeMode } from 'expo-av';
 import { useHeader } from '../../contexts/HeaderContext';
 import apiService from '../../services/apiService';
 
@@ -43,6 +44,7 @@ interface VehicleResult {
   transmission: string;
   location: string;
   image?: string;
+  videoUrl?: string;
 }
 
 // Componente de slider mejorado
@@ -356,6 +358,7 @@ export default function Search() {
           transmission: vehicle.transmission,
           location: vehicle.location || 'No especificada',
           image: vehicle.images?.[0],
+          videoUrl: vehicle.videoUrl,
         }));
       } else if (searchQuery.trim()) {
         // Búsqueda simple por texto
@@ -372,6 +375,7 @@ export default function Search() {
           transmission: vehicle.transmission,
           location: vehicle.location || 'No especificada',
           image: vehicle.images?.[0],
+          videoUrl: vehicle.videoUrl,
         }));
       }
       
@@ -447,6 +451,29 @@ export default function Search() {
         }
       })}
     >
+      {/* Video o imagen del vehículo */}
+      <View style={styles.vehicleMediaContainer}>
+        {item.videoUrl ? (
+          <>
+            <Video
+              source={{ uri: item.videoUrl }}
+              style={styles.vehicleVideo}
+              resizeMode={ResizeMode.COVER}
+              isLooping
+              shouldPlay={true}
+              isMuted={true}
+            />
+            <View style={styles.playIconOverlay}>
+              <Ionicons name="play-circle" size={40} color="rgba(255, 255, 255, 0.9)" />
+            </View>
+          </>
+        ) : (
+          <View style={styles.placeholderMedia}>
+            <Ionicons name="car-sport" size={50} color="#999" />
+          </View>
+        )}
+      </View>
+
       <View style={styles.resultHeader}>
         <View style={styles.resultMainInfo}>
           <Text style={styles.resultPlate}>{item.brand} {item.model}</Text>
@@ -469,14 +496,6 @@ export default function Search() {
         <View style={styles.resultDetailRow}>
           <Ionicons name="location" size={14} color="#65676B" />
           <Text style={styles.resultDetailText} numberOfLines={1}>{item.location}</Text>
-        </View>
-
-        {/* Imagen del vehículo siempre */}
-        <View style={styles.vehicleImageContainer}>
-          <Text style={styles.vehicleImageLabel}>Foto del vehículo:</Text>
-          <View style={styles.placeholderImage}>
-            <Ionicons name="car-sport" size={40} color="#999" />
-          </View>
         </View>
       </View>
     </TouchableOpacity>
@@ -1265,5 +1284,36 @@ const styles = StyleSheet.create({
     marginTop: 16,
     fontSize: 16,
     color: '#65676B',
+  },
+  // Estilos para media (video/imagen)
+  vehicleMediaContainer: {
+    width: '100%',
+    height: 120,
+    backgroundColor: '#E8E8E8',
+    borderRadius: 8,
+    overflow: 'hidden',
+    marginBottom: 12,
+    position: 'relative',
+  },
+  vehicleVideo: {
+    width: '100%',
+    height: '100%',
+  },
+  placeholderMedia: {
+    width: '100%',
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#F0F2F5',
+  },
+  playIconOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });
