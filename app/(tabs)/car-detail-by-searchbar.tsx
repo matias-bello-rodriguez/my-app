@@ -37,6 +37,7 @@ export default function CarDetailBySearchbar() {
   // Estados para el modal TikTok
   const [showTikTokModal, setShowTikTokModal] = useState(false);
   const [currentTikTokIndex, setCurrentTikTokIndex] = useState(0);
+  const [currentMediaIndex, setCurrentMediaIndex] = useState(0);
   const tiktokFlatListRef = useRef<FlatList>(null);
 
   // Extraer el ID del vehículo
@@ -217,8 +218,11 @@ export default function CarDetailBySearchbar() {
 
   // Funciones para el modal TikTok
   const handleVideoPress = () => {
-    if (vehicle && vehicle.videoUrl) {
-      setShowTikTokModal(true);
+    if (vehicle) {
+      const firstMedia = getFirstMedia(vehicle);
+      if (firstMedia.type !== null) {
+        setShowTikTokModal(true);
+      }
     }
   };
 
@@ -248,26 +252,88 @@ export default function CarDetailBySearchbar() {
   const renderTikTokItem = ({ item, index }: { item: any; index: number }) => {
     const isActive = index === currentTikTokIndex;
     
+    // Combinar todos los medios (videos primero, luego imágenes)
+    const allMedia: { type: 'video' | 'image'; uri: string }[] = [];
+    
+    // Agregar videoUrl legacy si existe
+    if (item.videoUrl && typeof item.videoUrl === 'string') {
+      allMedia.push({ type: 'video', uri: item.videoUrl });
+    }
+    
+    // Agregar videos del array
+    if (item.videos && Array.isArray(item.videos)) {
+      item.videos.forEach((videoUri: string) => {
+        allMedia.push({ type: 'video', uri: videoUri });
+      });
+    }
+    
+    // Agregar imágenes del array
+    if (item.images && Array.isArray(item.images)) {
+      item.images.forEach((imageUri: string) => {
+        allMedia.push({ type: 'image', uri: imageUri });
+      });
+    }
+    
     return (
       <View style={styles.tiktokContainer}>
-        <View style={styles.tiktokVideoContainer}>
-          {item.videoUrl ? (
-            <Video
-              source={{ uri: item.videoUrl }}
-              style={styles.tiktokVideo}
-              resizeMode={ResizeMode.COVER}
-              isLooping
-              shouldPlay={isActive}
-              isMuted={false}
-              volume={1.0}
-              useNativeControls={false}
-            />
-          ) : (
-            <View style={styles.tiktokPlaceholder}>
-              <Text style={styles.tiktokPlaceholderEmoji}>🚗</Text>
-            </View>
-          )}
-        </View>
+        {allMedia.length > 0 ? (
+          <ScrollView
+            horizontal
+            pagingEnabled
+            showsHorizontalScrollIndicator={false}
+            onMomentumScrollEnd={(event) => {
+              const slideSize = event.nativeEvent.layoutMeasurement.width;
+              const index = Math.floor(event.nativeEvent.contentOffset.x / slideSize);
+              setCurrentMediaIndex(index);
+            }}
+            style={{ width: SCREEN_WIDTH, height: SCREEN_HEIGHT }}
+          >
+            {allMedia.map((media, mediaIndex) => (
+              <View 
+                key={`${mediaIndex}-${media.uri}`} 
+                style={{ width: SCREEN_WIDTH, height: SCREEN_HEIGHT }}
+              >
+                {media.type === 'video' ? (
+                  <Video
+                    source={{ uri: media.uri }}
+                    style={styles.tiktokVideo}
+                    resizeMode={ResizeMode.COVER}
+                    isLooping
+                    shouldPlay={isActive && mediaIndex === currentMediaIndex}
+                    isMuted={false}
+                    volume={1.0}
+                    useNativeControls={false}
+                  />
+                ) : (
+                  <Image
+                    source={{ uri: media.uri }}
+                    style={styles.tiktokVideo}
+                    resizeMode="cover"
+                  />
+                )}
+              </View>
+            ))}
+          </ScrollView>
+        ) : (
+          <View style={styles.tiktokPlaceholder}>
+            <Text style={styles.tiktokPlaceholderEmoji}>🚗</Text>
+          </View>
+        )}
+
+        {/* Indicadores de página (dots) */}
+        {allMedia.length > 1 && (
+          <View style={styles.tiktokPageIndicators}>
+            {allMedia.map((_, mediaIndex) => (
+              <View
+                key={mediaIndex}
+                style={[
+                  styles.tiktokPageDot,
+                  currentMediaIndex === mediaIndex && styles.tiktokPageDotActive
+                ]}
+              />
+            ))}
+          </View>
+        )}
 
         {/* Información del vehículo (overlay inferior izquierdo) */}
         <View style={styles.tiktokInfoContainer}>
@@ -703,7 +769,7 @@ export default function CarDetailBySearchbar() {
       )}
 
       {/* Modal TikTok */}
-      {vehicle && vehicle.videoUrl && (
+      {vehicle && (
         <Modal
           visible={showTikTokModal}
           animationType="slide"
@@ -1279,5 +1345,25 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     zIndex: 10,
+  },
+  tiktokPageIndicators: {
+    position: 'absolute',
+    top: 60,
+    left: 0,
+    right: 0,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 8,
+    zIndex: 5,
+  },
+  tiktokPageDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: 'rgba(255, 255, 255, 0.5)',
+  },
+  tiktokPageDotActive: {
+    backgroundColor: '#FFFFFF',
+    width: 24,
   },
 });
