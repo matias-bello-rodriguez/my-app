@@ -5,7 +5,8 @@ import { useState, useEffect } from 'react';
 import {
     ActivityIndicator,
     Alert,
-    Linking,
+    Image,
+    Modal,
     ScrollView,
     StyleSheet,
     Text,
@@ -31,10 +32,19 @@ export default function RawPublish() {
     latitude: number;
     longitude: number;
   } | null>(null);
-  const [videoUri, setVideoUri] = useState<string>('');
-  const [videoName, setVideoName] = useState<string>('');
-  const [uploadingVideo, setUploadingVideo] = useState(false);
-  const [showVideoPlayer, setShowVideoPlayer] = useState(false);
+  
+  // Estados para imágenes
+  const [selectedImages, setSelectedImages] = useState<{ uri: string; name: string }[]>([]);
+  const [uploadingImages, setUploadingImages] = useState(false);
+  
+  // Estados para videos
+  const [selectedVideos, setSelectedVideos] = useState<{ uri: string; name: string; duration?: number }[]>([]);
+  const [uploadingVideos, setUploadingVideos] = useState(false);
+  
+  // Estado para preview
+  const [previewMedia, setPreviewMedia] = useState<{ uri: string; type: 'image' | 'video' } | null>(null);
+  
+  const MAX_MEDIA_ITEMS = 6;
   
   const [formData, setFormData] = useState({
     // Campos requeridos por el backend
@@ -177,89 +187,201 @@ export default function RawPublish() {
     setLocationCoordinates(coordinates);
   };
 
-  const handleRecordVideo = async () => {
+  // Funciones para manejar imágenes
+  const handleSelectImages = async () => {
     try {
-      // Solicitar permisos de cámara
-      const cameraPermission = await ImagePicker.requestCameraPermissionsAsync();
-      
-      if (cameraPermission.status !== 'granted') {
-        Alert.alert(
-          'Permiso denegado',
-          'Necesitamos acceso a tu cámara para grabar videos'
-        );
+      if (selectedImages.length >= MAX_MEDIA_ITEMS) {
+        Alert.alert('Límite alcanzado', `Solo puedes seleccionar hasta ${MAX_MEDIA_ITEMS} imágenes`);
         return;
       }
 
-      setUploadingVideo(true);
+      const mediaPermission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      
+      if (mediaPermission.status !== 'granted') {
+        Alert.alert('Permiso denegado', 'Necesitamos acceso a tu galería para seleccionar imágenes');
+        return;
+      }
 
-      // Lanzar la cámara para grabar video
+      const remainingSlots = MAX_MEDIA_ITEMS - selectedImages.length;
+      
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsMultipleSelection: true,
+        quality: 0.8,
+        selectionLimit: remainingSlots,
+      });
+
+      if (!result.canceled && result.assets.length > 0) {
+        const newImages = result.assets.slice(0, remainingSlots).map((asset, index) => ({
+          uri: asset.uri,
+          name: asset.fileName || `image_${Date.now()}_${index}.jpg`,
+        }));
+        
+        setSelectedImages(prev => [...prev, ...newImages]);
+        Alert.alert('Éxito', `${newImages.length} imagen(es) seleccionada(s)`);
+      }
+    } catch (error) {
+      console.error('Error al seleccionar imágenes:', error);
+      Alert.alert('Error', 'No se pudieron seleccionar las imágenes');
+    }
+  };
+
+  const handleTakePhoto = async () => {
+    try {
+      if (selectedImages.length >= MAX_MEDIA_ITEMS) {
+        Alert.alert('Límite alcanzado', `Solo puedes tener hasta ${MAX_MEDIA_ITEMS} imágenes`);
+        return;
+      }
+
+      const cameraPermission = await ImagePicker.requestCameraPermissionsAsync();
+      
+      if (cameraPermission.status !== 'granted') {
+        Alert.alert('Permiso denegado', 'Necesitamos acceso a tu cámara');
+        return;
+      }
+
+      const result = await ImagePicker.launchCameraAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        quality: 0.8,
+        allowsEditing: false,
+      });
+
+      if (!result.canceled && result.assets[0]) {
+        const newImage = {
+          uri: result.assets[0].uri,
+          name: `photo_${Date.now()}.jpg`,
+        };
+        
+        setSelectedImages(prev => [...prev, newImage]);
+        Alert.alert('Éxito', 'Foto tomada correctamente');
+      }
+    } catch (error) {
+      console.error('Error al tomar foto:', error);
+      Alert.alert('Error', 'No se pudo tomar la foto');
+    }
+  };
+
+  const handleRemoveImage = (index: number) => {
+    Alert.alert(
+      'Eliminar imagen',
+      '¿Estás seguro de eliminar esta imagen?',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Eliminar',
+          style: 'destructive',
+          onPress: () => {
+            setSelectedImages(prev => prev.filter((_, i) => i !== index));
+          },
+        },
+      ]
+    );
+  };
+
+  // Funciones para manejar videos
+  const handleSelectVideos = async () => {
+    try {
+      if (selectedVideos.length >= MAX_MEDIA_ITEMS) {
+        Alert.alert('Límite alcanzado', `Solo puedes seleccionar hasta ${MAX_MEDIA_ITEMS} videos`);
+        return;
+      }
+
+      const mediaPermission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      
+      if (mediaPermission.status !== 'granted') {
+        Alert.alert('Permiso denegado', 'Necesitamos acceso a tu galería para seleccionar videos');
+        return;
+      }
+
+      const remainingSlots = MAX_MEDIA_ITEMS - selectedVideos.length;
+
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Videos,
+        allowsMultipleSelection: true,
+        quality: 0.7,
+        videoMaxDuration: 60,
+        selectionLimit: remainingSlots,
+      });
+
+      if (!result.canceled && result.assets.length > 0) {
+        const newVideos = result.assets.slice(0, remainingSlots).map((asset, index) => {
+          const duration = asset.duration;
+          if (duration && duration > 60000) {
+            Alert.alert('Video muy largo', `El video ${index + 1} supera los 60 segundos y será omitido`);
+            return null;
+          }
+          return {
+            uri: asset.uri,
+            name: asset.fileName || `video_${Date.now()}_${index}.mp4`,
+            duration,
+          };
+        }).filter(v => v !== null) as { uri: string; name: string; duration?: number }[];
+        
+        setSelectedVideos(prev => [...prev, ...newVideos]);
+        Alert.alert('Éxito', `${newVideos.length} video(s) seleccionado(s)`);
+      }
+    } catch (error) {
+      console.error('Error al seleccionar videos:', error);
+      Alert.alert('Error', 'No se pudieron seleccionar los videos');
+    }
+  };
+
+  const handleRecordVideo = async () => {
+    try {
+      if (selectedVideos.length >= MAX_MEDIA_ITEMS) {
+        Alert.alert('Límite alcanzado', `Solo puedes tener hasta ${MAX_MEDIA_ITEMS} videos`);
+        return;
+      }
+
+      const cameraPermission = await ImagePicker.requestCameraPermissionsAsync();
+      
+      if (cameraPermission.status !== 'granted') {
+        Alert.alert('Permiso denegado', 'Necesitamos acceso a tu cámara para grabar videos');
+        return;
+      }
+
       const result = await ImagePicker.launchCameraAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Videos,
-        videoMaxDuration: 60, // Máximo 60 segundos
+        videoMaxDuration: 60,
         quality: 0.7,
         allowsEditing: false,
       });
 
       if (!result.canceled && result.assets[0]) {
-        setVideoUri(result.assets[0].uri);
-        setVideoName('video_grabado.mp4');
+        const newVideo = {
+          uri: result.assets[0].uri,
+          name: 'video_grabado.mp4',
+          duration: result.assets[0].duration ?? undefined,
+        };
+        
+        setSelectedVideos(prev => [...prev, newVideo]);
         Alert.alert('Éxito', 'Video grabado correctamente');
       }
     } catch (error) {
       console.error('Error al grabar video:', error);
       Alert.alert('Error', 'No se pudo grabar el video');
-    } finally {
-      setUploadingVideo(false);
     }
   };
 
-  const handleUploadVideo = async () => {
-    try {
-      // Solicitar permisos de galería
-      const mediaPermission = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      
-      if (mediaPermission.status !== 'granted') {
-        Alert.alert(
-          'Permiso denegado',
-          'Necesitamos acceso a tu galería para seleccionar videos'
-        );
-        return;
-      }
+  const handleRemoveVideo = (index: number) => {
+    Alert.alert(
+      'Eliminar video',
+      '¿Estás seguro de eliminar este video?',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Eliminar',
+          style: 'destructive',
+          onPress: () => {
+            setSelectedVideos(prev => prev.filter((_, i) => i !== index));
+          },
+        },
+      ]
+    );
+  };
 
-      setUploadingVideo(true);
-
-      // Abrir la galería para seleccionar video
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Videos,
-        quality: 0.7,
-        allowsEditing: false,
-      });
-
-      if (!result.canceled && result.assets[0]) {
-        // Verificar duración del video (si está disponible)
-        const duration = result.assets[0].duration;
-        if (duration && duration > 60000) { // 60 segundos en milisegundos
-          Alert.alert(
-            'Video muy largo',
-            'El video debe tener una duración máxima de 60 segundos'
-          );
-          return;
-        }
-
-        // Extraer el nombre del archivo de la URI
-        const uri = result.assets[0].uri;
-        const fileName = result.assets[0].fileName || uri.split('/').pop() || 'video.mp4';
-
-        setVideoUri(uri);
-        setVideoName(fileName);
-        Alert.alert('Éxito', 'Video seleccionado correctamente');
-      }
-    } catch (error) {
-      console.error('Error al seleccionar video:', error);
-      Alert.alert('Error', 'No se pudo seleccionar el video');
-    } finally {
-      setUploadingVideo(false);
-    }
+  const handlePreviewMedia = (uri: string, type: 'image' | 'video') => {
+    setPreviewMedia({ uri, type });
   };
 
   const handlePublish = async () => {
@@ -295,37 +417,82 @@ export default function RawPublish() {
     try {
       setLoading(true);
 
-      let videoUrl: string | undefined = formData.videoUrl;
+      let imageUrls: string[] = [];
+      let videoUrls: string[] = [];
 
-      // Si hay un video seleccionado, subirlo a S3 primero
-      if (videoUri) {
+      // Subir imágenes si hay alguna seleccionada
+      if (selectedImages.length > 0) {
         try {
-          setUploadingVideo(true);
+          setUploadingImages(true);
+          Alert.alert('Subiendo imágenes', `Subiendo ${selectedImages.length} imagen(es)...`);
           
-          // Subir video a S3
-          const uploadedVideo = await uploadService.uploadFile(
-            videoUri,
-            videoName || `video_${Date.now()}.mp4`,
-            'video/mp4',
-            'vehicles/videos'
-          );
-
-          videoUrl = uploadedVideo.publicUrl;
+          for (const image of selectedImages) {
+            const uploaded = await uploadService.uploadFile(
+              image.uri,
+              image.name,
+              'image/jpeg',
+              'vehicles/images'
+            );
+            imageUrls.push(uploaded.publicUrl);
+          }
           
-          Alert.alert('Video subido', 'El video se ha subido correctamente a S3');
+          Alert.alert('Éxito', `${imageUrls.length} imagen(es) subida(s) correctamente`);
         } catch (error) {
-          console.error('Error al subir video:', error);
-          Alert.alert(
-            'Error al subir video',
-            '¿Deseas publicar el vehículo sin video?',
-            [
-              { text: 'Cancelar', style: 'cancel', onPress: () => { setLoading(false); return; } },
-              { text: 'Continuar sin video', onPress: () => {} }
-            ]
-          );
-          videoUrl = undefined;
+          console.error('Error al subir imágenes:', error);
+          const continuar = await new Promise((resolve) => {
+            Alert.alert(
+              'Error al subir imágenes',
+              '¿Deseas publicar el vehículo sin todas las imágenes?',
+              [
+                { text: 'Cancelar', style: 'cancel', onPress: () => resolve(false) },
+                { text: 'Continuar', onPress: () => resolve(true) }
+              ]
+            );
+          });
+          if (!continuar) {
+            setLoading(false);
+            return;
+          }
         } finally {
-          setUploadingVideo(false);
+          setUploadingImages(false);
+        }
+      }
+
+      // Subir videos si hay alguno seleccionado
+      if (selectedVideos.length > 0) {
+        try {
+          setUploadingVideos(true);
+          Alert.alert('Subiendo videos', `Subiendo ${selectedVideos.length} video(s)...`);
+          
+          for (const video of selectedVideos) {
+            const uploaded = await uploadService.uploadFile(
+              video.uri,
+              video.name,
+              'video/mp4',
+              'vehicles/videos'
+            );
+            videoUrls.push(uploaded.publicUrl);
+          }
+          
+          Alert.alert('Éxito', `${videoUrls.length} video(s) subido(s) correctamente`);
+        } catch (error) {
+          console.error('Error al subir videos:', error);
+          const continuar = await new Promise((resolve) => {
+            Alert.alert(
+              'Error al subir videos',
+              '¿Deseas publicar el vehículo sin todos los videos?',
+              [
+                { text: 'Cancelar', style: 'cancel', onPress: () => resolve(false) },
+                { text: 'Continuar', onPress: () => resolve(true) }
+              ]
+            );
+          });
+          if (!continuar) {
+            setLoading(false);
+            return;
+          }
+        } finally {
+          setUploadingVideos(false);
         }
       }
 
@@ -341,7 +508,8 @@ export default function RawPublish() {
         location: formData.location || undefined,
         observations: formData.observations || undefined,
         description: formData.description || undefined,
-        videoUrl: videoUrl || undefined,
+        images: imageUrls.length > 0 ? imageUrls : undefined,
+        videos: videoUrls.length > 0 ? videoUrls : undefined,
         hasInspection: false,
       };
 
@@ -373,8 +541,8 @@ export default function RawPublish() {
         description: '',
         videoUrl: '',
       });
-      setVideoUri('');
-      setVideoName('');
+      setSelectedImages([]);
+      setSelectedVideos([]);
     } catch (error: any) {
       Alert.alert('Error', error.message || 'No se pudo publicar el vehículo');
     } finally {
@@ -671,102 +839,180 @@ export default function RawPublish() {
         </View>
       </View>
 
-      <View style={styles.videoSection}>
-        <Text style={styles.sectionTitle}>Video del vehículo (opcional)</Text>
-        <Text style={styles.videoSubtitle}>
-          Agrega un video de hasta 60 segundos mostrando el vehículo
+      {/* Sección de Imágenes */}
+      <View style={styles.mediaSection}>
+        <Text style={styles.sectionTitle}>
+          Fotos del vehículo ({selectedImages.length}/{MAX_MEDIA_ITEMS})
+        </Text>
+        <Text style={styles.mediaSubtitle}>
+          Agrega hasta 6 fotos del vehículo
         </Text>
         
-        <View style={styles.videoButtonsContainer}>
+        <View style={styles.mediaButtonsContainer}>
           <TouchableOpacity 
-            style={[styles.videoButton, (loading || uploadingVideo) && styles.videoButtonDisabled]}
-            onPress={handleRecordVideo}
+            style={[styles.mediaButton, (loading || uploadingImages || selectedImages.length >= MAX_MEDIA_ITEMS) && styles.mediaButtonDisabled]}
+            onPress={handleTakePhoto}
             activeOpacity={0.8}
-            disabled={loading || uploadingVideo}
+            disabled={loading || uploadingImages || selectedImages.length >= MAX_MEDIA_ITEMS}
           >
-            {uploadingVideo ? (
+            {uploadingImages ? (
               <ActivityIndicator size="small" color="#FFFFFF" />
             ) : (
               <>
-                <Ionicons name="videocam" size={32} color="#FFFFFF" />
-                <Text style={styles.videoButtonText}>Grabar Video</Text>
-                <Text style={styles.videoButtonSubtext}>Hasta 60 segundos</Text>
+                <Ionicons name="camera" size={32} color="#FFFFFF" />
+                <Text style={styles.mediaButtonText}>Tomar Foto</Text>
               </>
             )}
           </TouchableOpacity>
 
           <TouchableOpacity 
-            style={[styles.videoButton, (loading || uploadingVideo) && styles.videoButtonDisabled]}
-            onPress={handleUploadVideo}
+            style={[styles.mediaButton, (loading || uploadingImages || selectedImages.length >= MAX_MEDIA_ITEMS) && styles.mediaButtonDisabled]}
+            onPress={handleSelectImages}
             activeOpacity={0.8}
-            disabled={loading || uploadingVideo}
+            disabled={loading || uploadingImages || selectedImages.length >= MAX_MEDIA_ITEMS}
           >
-            {uploadingVideo ? (
+            {uploadingImages ? (
               <ActivityIndicator size="small" color="#FFFFFF" />
             ) : (
               <>
-                <Ionicons name="cloud-upload" size={32} color="#FFFFFF" />
-                <Text style={styles.videoButtonText}>Adjuntar Video</Text>
-                <Text style={styles.videoButtonSubtext}>Desde galería</Text>
+                <Ionicons name="images" size={32} color="#FFFFFF" />
+                <Text style={styles.mediaButtonText}>Seleccionar Fotos</Text>
               </>
             )}
           </TouchableOpacity>
         </View>
 
-        {videoUri !== '' && (
-          <View style={styles.videoSelectedContainer}>
-            <Ionicons name="checkmark-circle" size={20} color="#4CAF50" />
-            <View style={styles.videoInfoContainer}>
-              <Text style={styles.videoSelectedText}>Video seleccionado</Text>
-              <Text style={styles.videoNameText} numberOfLines={1}>{videoName}</Text>
-            </View>
-            <TouchableOpacity 
-              style={styles.videoActionButton}
-              onPress={() => setShowVideoPlayer(true)}
-            >
-              <Ionicons name="play-circle" size={24} color="#4CAF50" />
-            </TouchableOpacity>
-            <TouchableOpacity 
-              style={styles.videoActionButton}
-              onPress={() => {
-                setVideoUri('');
-                setVideoName('');
-              }}
-            >
-              <Ionicons name="close-circle" size={24} color="#F44336" />
-            </TouchableOpacity>
+        {/* Grid de imágenes seleccionadas */}
+        {selectedImages.length > 0 && (
+          <View style={styles.mediaGrid}>
+            {selectedImages.map((image, index) => (
+              <View key={index} style={styles.mediaItem}>
+                <TouchableOpacity onPress={() => handlePreviewMedia(image.uri, 'image')}>
+                  <Image source={{ uri: image.uri }} style={styles.mediaThumbnail} />
+                </TouchableOpacity>
+                <TouchableOpacity 
+                  style={styles.removeMediaButton}
+                  onPress={() => handleRemoveImage(index)}
+                >
+                  <Ionicons name="close-circle" size={24} color="#F44336" />
+                </TouchableOpacity>
+              </View>
+            ))}
           </View>
         )}
       </View>
 
-      {/* Modal para reproducir video */}
-      {showVideoPlayer && videoUri && (
-        <View style={styles.videoPlayerModal}>
-          <View style={styles.videoPlayerContainer}>
-            <View style={styles.videoPlayerHeader}>
-              <Text style={styles.videoPlayerTitle}>Vista previa del video</Text>
-              <TouchableOpacity onPress={() => setShowVideoPlayer(false)}>
-                <Ionicons name="close" size={28} color="#1C1E21" />
-              </TouchableOpacity>
-            </View>
+      {/* Sección de Videos */}
+      <View style={styles.mediaSection}>
+        <Text style={styles.sectionTitle}>
+          Videos del vehículo ({selectedVideos.length}/{MAX_MEDIA_ITEMS})
+        </Text>
+        <Text style={styles.mediaSubtitle}>
+          Agrega hasta 6 videos de máximo 60 segundos cada uno
+        </Text>
+        
+        <View style={styles.mediaButtonsContainer}>
+          <TouchableOpacity 
+            style={[styles.mediaButton, (loading || uploadingVideos || selectedVideos.length >= MAX_MEDIA_ITEMS) && styles.mediaButtonDisabled]}
+            onPress={handleRecordVideo}
+            activeOpacity={0.8}
+            disabled={loading || uploadingVideos || selectedVideos.length >= MAX_MEDIA_ITEMS}
+          >
+            {uploadingVideos ? (
+              <ActivityIndicator size="small" color="#FFFFFF" />
+            ) : (
+              <>
+                <Ionicons name="videocam" size={32} color="#FFFFFF" />
+                <Text style={styles.mediaButtonText}>Grabar Video</Text>
+              </>
+            )}
+          </TouchableOpacity>
+
+          <TouchableOpacity 
+            style={[styles.mediaButton, (loading || uploadingVideos || selectedVideos.length >= MAX_MEDIA_ITEMS) && styles.mediaButtonDisabled]}
+            onPress={handleSelectVideos}
+            activeOpacity={0.8}
+            disabled={loading || uploadingVideos || selectedVideos.length >= MAX_MEDIA_ITEMS}
+          >
+            {uploadingVideos ? (
+              <ActivityIndicator size="small" color="#FFFFFF" />
+            ) : (
+              <>
+                <Ionicons name="film" size={32} color="#FFFFFF" />
+                <Text style={styles.mediaButtonText}>Seleccionar Videos</Text>
+              </>
+            )}
+          </TouchableOpacity>
+        </View>
+
+        {/* Grid de videos seleccionados */}
+        {selectedVideos.length > 0 && (
+          <View style={styles.mediaGrid}>
+            {selectedVideos.map((video, index) => (
+              <View key={index} style={styles.mediaItem}>
+                <TouchableOpacity onPress={() => handlePreviewMedia(video.uri, 'video')}>
+                  <Video
+                    source={{ uri: video.uri }}
+                    style={styles.mediaThumbnail}
+                    resizeMode={'cover' as any}
+                    shouldPlay={false}
+                    isMuted
+                  />
+                  <View style={styles.videoOverlay}>
+                    <Ionicons name="play-circle" size={40} color="#FFFFFF" />
+                    {video.duration && (
+                      <Text style={styles.videoDuration}>
+                        {Math.round((video.duration || 0) / 1000)}s
+                      </Text>
+                    )}
+                  </View>
+                </TouchableOpacity>
+                <TouchableOpacity 
+                  style={styles.removeMediaButton}
+                  onPress={() => handleRemoveVideo(index)}
+                >
+                  <Ionicons name="close-circle" size={24} color="#F44336" />
+                </TouchableOpacity>
+              </View>
+            ))}
+          </View>
+        )}
+      </View>
+
+      {/* Modal de Preview */}
+      <Modal
+        visible={previewMedia !== null}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setPreviewMedia(null)}
+      >
+        <View style={styles.previewModal}>
+          <TouchableOpacity 
+            style={styles.closePreviewButton}
+            onPress={() => setPreviewMedia(null)}
+          >
+            <Ionicons name="close" size={30} color="#fff" />
+          </TouchableOpacity>
+          
+          {previewMedia?.type === 'image' ? (
+            <Image 
+              source={{ uri: previewMedia.uri }} 
+              style={styles.previewImage}
+              resizeMode="contain"
+            />
+          ) : (
             <Video
-              source={{ uri: videoUri }}
-              style={styles.video}
+              source={{ uri: previewMedia?.uri || '' }}
+              style={styles.previewVideo}
               useNativeControls
               resizeMode={'contain' as any}
               shouldPlay
               isMuted={false}
               volume={1.0}
             />
-            <TouchableOpacity
-              style={styles.closeVideoButton}
-              onPress={() => setShowVideoPlayer(false)}
-            >
-              <Text style={styles.closeVideoButtonText}>Cerrar</Text>
-            </TouchableOpacity>
-          </View>
+          )}
         </View>
-      )}
+      </Modal>
 
       <View style={styles.publishContainer}>
         <TouchableOpacity 
@@ -1144,5 +1390,118 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  // Estilos para múltiples medios
+  mediaSection: {
+    backgroundColor: '#FFFFFF',
+    marginHorizontal: 16,
+    marginBottom: 16,
+    padding: 20,
+    borderRadius: 16,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+  },
+  mediaSubtitle: {
+    fontSize: 14,
+    color: '#65676B',
+    textAlign: 'center',
+    marginBottom: 16,
+  },
+  mediaButtonsContainer: {
+    flexDirection: 'row',
+    gap: 12,
+    marginBottom: 16,
+  },
+  mediaButton: {
+    flex: 1,
+    backgroundColor: '#4CAF50',
+    borderRadius: 12,
+    padding: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    elevation: 2,
+    shadowColor: '#4CAF50',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    gap: 8,
+  },
+  mediaButtonDisabled: {
+    backgroundColor: '#A5D6A7',
+    opacity: 0.6,
+  },
+  mediaButtonText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
+  mediaGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+    marginTop: 16,
+  },
+  mediaItem: {
+    width: '30%',
+    aspectRatio: 1,
+    position: 'relative',
+    borderRadius: 8,
+    overflow: 'hidden',
+    backgroundColor: '#E8E8E8',
+  },
+  mediaThumbnail: {
+    width: '100%',
+    height: '100%',
+  },
+  videoOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  videoDuration: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: 'bold',
+    marginTop: 4,
+    textShadowColor: 'rgba(0, 0, 0, 0.75)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
+  },
+  removeMediaButton: {
+    position: 'absolute',
+    top: 4,
+    right: 4,
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    borderRadius: 12,
+  },
+  previewModal: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.95)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  closePreviewButton: {
+    position: 'absolute',
+    top: 50,
+    right: 20,
+    zIndex: 10,
+    padding: 10,
+  },
+  previewImage: {
+    width: '100%',
+    height: '80%',
+  },
+  previewVideo: {
+    width: '100%',
+    height: '80%',
   },
 });

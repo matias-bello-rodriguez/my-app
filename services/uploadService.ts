@@ -49,7 +49,7 @@ class UploadService {
   /**
    * Selecciona múltiples imágenes
    */
-  async pickMultipleImages(): Promise<ImagePicker.ImagePickerAsset[]> {
+  async pickMultipleImages(maxImages = 6): Promise<ImagePicker.ImagePickerAsset[]> {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
 
     if (status !== 'granted') {
@@ -60,10 +60,36 @@ class UploadService {
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsMultipleSelection: true,
       quality: 0.8,
+      selectionLimit: maxImages,
     });
 
     if (!result.canceled) {
-      return result.assets;
+      return result.assets.slice(0, maxImages);
+    }
+
+    return [];
+  }
+
+  /**
+   * Selecciona múltiples videos
+   */
+  async pickMultipleVideos(maxVideos = 6): Promise<ImagePicker.ImagePickerAsset[]> {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+    if (status !== 'granted') {
+      throw new Error('Permiso denegado para acceder a los videos');
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Videos,
+      allowsMultipleSelection: true,
+      quality: 0.7,
+      videoMaxDuration: 60,
+      selectionLimit: maxVideos,
+    });
+
+    if (!result.canceled) {
+      return result.assets.slice(0, maxVideos);
     }
 
     return [];

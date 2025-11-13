@@ -20,6 +20,183 @@ import authService from '../../services/authService';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
+// Componente para cada item del TikTok
+const TikTokMediaItem = ({ 
+    item, 
+    isActive, 
+    userName, 
+    translateStatus,
+    handleLike,
+    handleCommentTikTok,
+    handleShare,
+    onClose
+}: any) => {
+    const [currentMediaIndex, setCurrentMediaIndex] = useState(0);
+    
+    // Crear array de todos los medios (imágenes y videos)
+    const allMedia: { type: 'image' | 'video'; uri: string }[] = [];
+    
+    // Agregar videos primero
+    if (item.videoUrl) {
+        // Si videoUrl es un string, es un video único
+        if (typeof item.videoUrl === 'string') {
+            allMedia.push({ type: 'video', uri: item.videoUrl });
+        }
+    }
+    
+    // Agregar videos si hay un array de videos
+    if (item.videos && Array.isArray(item.videos)) {
+        item.videos.forEach((videoUrl: string) => {
+            allMedia.push({ type: 'video', uri: videoUrl });
+        });
+    }
+    
+    // Agregar imágenes
+    if (item.images && Array.isArray(item.images)) {
+        item.images.forEach((imageUrl: string) => {
+            allMedia.push({ type: 'image', uri: imageUrl });
+        });
+    }
+    
+    // Si no hay medios, mostrar placeholder
+    if (allMedia.length === 0) {
+        allMedia.push({ type: 'image', uri: '' });
+    }
+    
+    const handleScroll = (event: any) => {
+        const offsetX = event.nativeEvent.contentOffset.x;
+        const newIndex = Math.round(offsetX / SCREEN_WIDTH);
+        setCurrentMediaIndex(newIndex);
+    };
+    
+    return (
+        <View style={styles.tiktokContainer}>
+            <ScrollView
+                horizontal
+                pagingEnabled
+                showsHorizontalScrollIndicator={false}
+                onScroll={handleScroll}
+                scrollEventThrottle={16}
+                style={{ width: SCREEN_WIDTH, height: SCREEN_HEIGHT }}
+            >
+                {allMedia.map((media, mediaIndex) => (
+                    <View key={mediaIndex} style={styles.tiktokVideoContainer}>
+                        {media.type === 'video' && media.uri ? (
+                            <Video
+                                source={{ uri: media.uri }}
+                                style={styles.tiktokVideo}
+                                resizeMode={ResizeMode.COVER}
+                                isLooping
+                                shouldPlay={isActive && mediaIndex === currentMediaIndex}
+                                isMuted={false}
+                                volume={1.0}
+                                useNativeControls={true}
+                                progressUpdateIntervalMillis={500}
+                            />
+                        ) : media.uri ? (
+                            <Image 
+                                source={{ uri: media.uri }} 
+                                style={styles.tiktokVideo}
+                                resizeMode="cover"
+                            />
+                        ) : (
+                            <View style={styles.tiktokPlaceholder}>
+                                <Text style={styles.tiktokPlaceholderEmoji}>🚗</Text>
+                            </View>
+                        )}
+                    </View>
+                ))}
+            </ScrollView>
+            
+            {/* Indicador de página */}
+            {allMedia.length > 1 && (
+                <View style={styles.tiktokPageIndicator}>
+                    {allMedia.map((_, mediaIndex) => (
+                        <View
+                            key={mediaIndex}
+                            style={[
+                                styles.tiktokPageDot,
+                                mediaIndex === currentMediaIndex && styles.tiktokPageDotActive
+                            ]}
+                        />
+                    ))}
+                </View>
+            )}
+
+            <View style={styles.tiktokInfoContainer}>
+                <View style={styles.tiktokUserInfo}>
+                    <View style={styles.tiktokAvatar}>
+                        <Ionicons name="person" size={20} color="#FFFFFF" />
+                    </View>
+                    <Text style={styles.tiktokUsername}>@{userName}</Text>
+                </View>
+                
+                <Text style={styles.tiktokCarTitle}>
+                    {item.brand} {item.model} {item.year}
+                </Text>
+                
+                <Text style={styles.tiktokCarPrice}>
+                    ${Math.floor(item.price).toLocaleString('es-CL')}
+                </Text>
+                
+                <View style={styles.tiktokCarDetails}>
+                    <View style={styles.tiktokDetailItem}>
+                        <Ionicons name="speedometer" size={14} color="#FFFFFF" />
+                        <Text style={styles.tiktokDetailText}>{item.mileage || '0'} km</Text>
+                    </View>
+                    <View style={styles.tiktokDetailItem}>
+                        <Ionicons name="settings" size={14} color="#FFFFFF" />
+                        <Text style={styles.tiktokDetailText}>{item.transmission || 'Manual'}</Text>
+                    </View>
+                    <View style={styles.tiktokDetailItem}>
+                        <Ionicons name="location" size={14} color="#FFFFFF" />
+                        <Text style={styles.tiktokDetailText}>{item.region || 'Chile'}</Text>
+                    </View>
+                </View>
+                
+                <View style={styles.tiktokStatusBadge}>
+                    <Text style={styles.tiktokStatusText}>
+                        {translateStatus(item.status || 'available')}
+                    </Text>
+                </View>
+            </View>
+
+            <View style={styles.tiktokActionsContainer}>
+                <TouchableOpacity 
+                    style={styles.tiktokActionButton}
+                    onPress={() => handleLike(item.id)}
+                >
+                    <Ionicons name="heart" size={32} color="#FFFFFF" />
+                    <Text style={styles.tiktokActionText}>Like</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity 
+                    style={styles.tiktokActionButton}
+                    onPress={() => handleCommentTikTok(item.id)}
+                >
+                    <Ionicons name="chatbubble" size={32} color="#FFFFFF" />
+                    <Text style={styles.tiktokActionText}>Chat</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity 
+                    style={styles.tiktokActionButton}
+                    onPress={() => handleShare(item)}
+                >
+                    <Ionicons name="share-social" size={32} color="#FFFFFF" />
+                    <Text style={styles.tiktokActionText}>Compartir</Text>
+                </TouchableOpacity>
+            </View>
+
+            <TouchableOpacity 
+                style={styles.tiktokCloseButton}
+                onPress={onClose}
+            >
+                <Ionicons name="close" size={28} color="#FFFFFF" />
+            </TouchableOpacity>
+        </View>
+    );
+};
+
 export default function Index() {
     const router = useRouter();
     const [userBalance] = useState(1250000); // Saldo del usuario
@@ -187,25 +364,33 @@ export default function Index() {
         console.log(`Auto seleccionado: ${car.id}`);
         console.log('Datos del auto:', JSON.stringify(car, null, 2));
         console.log('videoUrl original:', car.videoUrl);
-        console.log('Longitud de videoUrl:', car.videoUrl?.length);
+        console.log('images:', car.images);
         
-        // Si el auto tiene video, mostrar el modal TikTok
-        if (car.videoUrl && carsList) {
-            console.log('Mostrando modal TikTok');
+        // Si hay una lista de autos, mostrar el modal TikTok
+        if (carsList && carsList.length > 0) {
+            console.log('Mostrando modal TikTok con lista de autos');
             const carIndex = carsList.findIndex(c => c.id === car.id);
             setTiktokCars(carsList);
             setCurrentTikTokIndex(carIndex >= 0 ? carIndex : 0);
             setShowTikTokModal(true);
-        } else if (car.videoUrl) {
-            // Si no hay lista, mostrar solo este video en el modal simple
-            console.log('Mostrando video:', car.videoUrl);
-            console.log('¿Es URL firmada?', car.videoUrl.includes('X-Amz-Signature'));
+        } 
+        // Si solo hay video pero no lista, mostrar modal simple de video
+        else if (car.videoUrl) {
+            console.log('Mostrando video individual:', car.videoUrl);
             setSelectedVideoUrl(car.videoUrl);
             setSelectedCarInfo(car);
             setShowVideoPlayer(true);
-        } else {
-            console.log('El auto no tiene video');
-            // Si no tiene video, navegar a detalle del vehículo
+        }
+        // Si solo hay imágenes pero no lista, mostrar modal TikTok con solo este auto
+        else if (car.images && car.images.length > 0) {
+            console.log('Mostrando modal TikTok con solo este auto (imágenes)');
+            setTiktokCars([car]);
+            setCurrentTikTokIndex(0);
+            setShowTikTokModal(true);
+        }
+        // Si no tiene ni video ni imágenes
+        else {
+            console.log('El auto no tiene multimedia, navegando a detalle');
             // router.push(`/car-detail/${car.id}`);
         }
     };
@@ -244,6 +429,27 @@ export default function Index() {
         return translations[status] || status;
     };
 
+    // Función para obtener el primer medio disponible (video o imagen)
+    const getFirstMedia = (car: any): { type: 'video' | 'image' | null; uri: string } => {
+        // Prioridad 1: videoUrl (video único)
+        if (car.videoUrl && typeof car.videoUrl === 'string') {
+            return { type: 'video', uri: car.videoUrl };
+        }
+        
+        // Prioridad 2: primer video del array videos
+        if (car.videos && Array.isArray(car.videos) && car.videos.length > 0) {
+            return { type: 'video', uri: car.videos[0] };
+        }
+        
+        // Prioridad 3: primera imagen del array images
+        if (car.images && Array.isArray(car.images) && car.images.length > 0) {
+            return { type: 'image', uri: car.images[0] };
+        }
+        
+        // Sin multimedia
+        return { type: null, uri: '' };
+    };
+
     const handleLike = (carId: number) => {
         console.log(`Like en auto: ${carId}`);
     };
@@ -256,6 +462,42 @@ export default function Index() {
         console.log(`Comentar en auto: ${carId}`);
         setShowTikTokModal(false);
         router.push('/(tabs)/chat');
+    };
+
+    const handleServiceCardPress = (serviceType: string) => {
+        console.log(`Card de servicio presionada: ${serviceType}`);
+        
+        // Mostrar vehículos según el tipo de servicio
+        let carsToShow: any[] = [];
+        
+        switch (serviceType) {
+            case 'mechanic':
+                // Mostrar todos los vehículos disponibles que tengan multimedia
+                carsToShow = [...myCars, ...latestCars].filter(car => 
+                    car.videoUrl || (car.images && car.images.length > 0)
+                );
+                break;
+            case 'inspection':
+                // Mostrar vehículos inspeccionados que tengan multimedia
+                carsToShow = inspectedCars.filter(car => 
+                    car.videoUrl || (car.images && car.images.length > 0)
+                );
+                break;
+            case 'sell':
+                // Mostrar vehículos recientes para inspiración que tengan multimedia
+                carsToShow = latestCars.filter(car => 
+                    car.videoUrl || (car.images && car.images.length > 0)
+                );
+                break;
+        }
+        
+        if (carsToShow.length > 0) {
+            setTiktokCars(carsToShow);
+            setCurrentTikTokIndex(0);
+            setShowTikTokModal(true);
+        } else {
+            console.log('No hay vehículos con multimedia para mostrar');
+        }
     };
 
     const onViewableItemsChanged = useRef(({ viewableItems }: any) => {
@@ -272,107 +514,16 @@ export default function Index() {
         const isActive = index === currentTikTokIndex;
         
         return (
-            <View style={styles.tiktokContainer}>
-                <TouchableOpacity 
-                    style={styles.tiktokVideoContainer}
-                    activeOpacity={1}
-                >
-                    {item.videoUrl ? (
-                        <Video
-                            source={{ uri: item.videoUrl }}
-                            style={styles.tiktokVideo}
-                            resizeMode={ResizeMode.COVER}
-                            isLooping
-                            shouldPlay={isActive}
-                            isMuted={false}
-                            volume={1.0}
-                            useNativeControls={true}
-                            progressUpdateIntervalMillis={500}
-                        />
-                    ) : item.images && item.images[0] ? (
-                        <Image 
-                            source={{ uri: item.images[0] }} 
-                            style={styles.tiktokVideo}
-                            resizeMode="cover"
-                        />
-                    ) : (
-                        <View style={styles.tiktokPlaceholder}>
-                            <Text style={styles.tiktokPlaceholderEmoji}>🚗</Text>
-                        </View>
-                    )}
-                </TouchableOpacity>
-
-                <View style={styles.tiktokInfoContainer}>
-                    <View style={styles.tiktokUserInfo}>
-                        <View style={styles.tiktokAvatar}>
-                            <Ionicons name="person" size={20} color="#FFFFFF" />
-                        </View>
-                        <Text style={styles.tiktokUsername}>@{userName}</Text>
-                    </View>
-                    
-                    <Text style={styles.tiktokCarTitle}>
-                        {item.brand} {item.model} {item.year}
-                    </Text>
-                    
-                    <Text style={styles.tiktokCarPrice}>
-                        ${Math.floor(item.price).toLocaleString('es-CL')}
-                    </Text>
-                    
-                    <View style={styles.tiktokCarDetails}>
-                        <View style={styles.tiktokDetailItem}>
-                            <Ionicons name="speedometer" size={14} color="#FFFFFF" />
-                            <Text style={styles.tiktokDetailText}>{item.mileage || '0'} km</Text>
-                        </View>
-                        <View style={styles.tiktokDetailItem}>
-                            <Ionicons name="settings" size={14} color="#FFFFFF" />
-                            <Text style={styles.tiktokDetailText}>{item.transmission || 'Manual'}</Text>
-                        </View>
-                        <View style={styles.tiktokDetailItem}>
-                            <Ionicons name="location" size={14} color="#FFFFFF" />
-                            <Text style={styles.tiktokDetailText}>{item.region || 'Chile'}</Text>
-                        </View>
-                    </View>
-                    
-                    <View style={styles.tiktokStatusBadge}>
-                        <Text style={styles.tiktokStatusText}>
-                            {translateStatus(item.status || 'available')}
-                        </Text>
-                    </View>
-                </View>
-
-                <View style={styles.tiktokActionsContainer}>
-                    <TouchableOpacity 
-                        style={styles.tiktokActionButton}
-                        onPress={() => handleLike(item.id)}
-                    >
-                        <Ionicons name="heart" size={32} color="#FFFFFF" />
-                        <Text style={styles.tiktokActionText}>Like</Text>
-                    </TouchableOpacity>
-
-                    <TouchableOpacity 
-                        style={styles.tiktokActionButton}
-                        onPress={() => handleCommentTikTok(item.id)}
-                    >
-                        <Ionicons name="chatbubble" size={32} color="#FFFFFF" />
-                        <Text style={styles.tiktokActionText}>Chat</Text>
-                    </TouchableOpacity>
-
-                    <TouchableOpacity 
-                        style={styles.tiktokActionButton}
-                        onPress={() => handleShare(item)}
-                    >
-                        <Ionicons name="share-social" size={32} color="#FFFFFF" />
-                        <Text style={styles.tiktokActionText}>Compartir</Text>
-                    </TouchableOpacity>
-                </View>
-
-                <TouchableOpacity 
-                    style={styles.tiktokCloseButton}
-                    onPress={() => setShowTikTokModal(false)}
-                >
-                    <Ionicons name="close" size={28} color="#FFFFFF" />
-                </TouchableOpacity>
-            </View>
+            <TikTokMediaItem
+                item={item}
+                isActive={isActive}
+                userName={userName}
+                translateStatus={translateStatus}
+                handleLike={handleLike}
+                handleCommentTikTok={handleCommentTikTok}
+                handleShare={handleShare}
+                onClose={() => setShowTikTokModal(false)}
+            />
         );
     };
 
@@ -424,7 +575,11 @@ export default function Index() {
 
                 {/* Cards de servicios estilo Reels */}
                 <View style={styles.reelsContainer}>
-                    <TouchableOpacity style={[styles.reelCard, { backgroundColor: '#42A5F5' }]} activeOpacity={0.8}>
+                    <TouchableOpacity 
+                        style={[styles.reelCard, { backgroundColor: '#42A5F5' }]} 
+                        activeOpacity={0.8}
+                        onPress={() => handleServiceCardPress('mechanic')}
+                    >
                         <View style={styles.reelGradient}>
                             <Ionicons name="construct" size={28} color="#FFFFFF" />
                             <Text style={styles.reelTitle}>Solicitar</Text>
@@ -432,7 +587,11 @@ export default function Index() {
                         </View>
                     </TouchableOpacity>
                     
-                    <TouchableOpacity style={[styles.reelCard, { backgroundColor: '#66BB6A' }]} activeOpacity={0.8}>
+                    <TouchableOpacity 
+                        style={[styles.reelCard, { backgroundColor: '#66BB6A' }]} 
+                        activeOpacity={0.8}
+                        onPress={() => handleServiceCardPress('inspection')}
+                    >
                         <View style={styles.reelGradient}>
                             <Ionicons name="checkmark-circle" size={28} color="#FFFFFF" />
                             <Text style={styles.reelTitle}>Revisar</Text>
@@ -440,7 +599,11 @@ export default function Index() {
                         </View>
                     </TouchableOpacity>
                     
-                    <TouchableOpacity style={[styles.reelCard, { backgroundColor: '#8E8E93' }]} activeOpacity={0.8}>
+                    <TouchableOpacity 
+                        style={[styles.reelCard, { backgroundColor: '#8E8E93' }]} 
+                        activeOpacity={0.8}
+                        onPress={() => handleServiceCardPress('sell')}
+                    >
                         <View style={styles.reelGradient}>
                             <Ionicons name="car-sport" size={28} color="#FFFFFF" />
                             <Text style={styles.reelTitle}>Vender</Text>
@@ -497,32 +660,34 @@ export default function Index() {
                             </TouchableOpacity>
                         </View>
                         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.feedCarousel}>
-                            {myCars.map((car) => (
+                            {myCars.map((car) => {
+                                const firstMedia = getFirstMedia(car);
+                                return (
                                 <TouchableOpacity 
                                     key={car.id} 
                                     style={styles.reelsVideoCard}
                                     onPress={() => handleCarPress(car, myCars)}
                                 >
                                     <View style={styles.videoBackground}>
-                                        {car.videoUrl ? (
+                                        {firstMedia.type === 'video' ? (
                                             <Video
-                                                source={{ uri: car.videoUrl }}
+                                                source={{ uri: firstMedia.uri }}
                                                 style={styles.carVideo}
                                                 resizeMode={ResizeMode.COVER}
                                                 isLooping
                                                 shouldPlay={true}
                                                 isMuted={true}
                                             />
-                                        ) : car.images && car.images[0] ? (
+                                        ) : firstMedia.type === 'image' ? (
                                             <Image 
-                                                source={{ uri: car.images[0] }} 
+                                                source={{ uri: firstMedia.uri }} 
                                                 style={styles.carImage}
                                                 resizeMode="cover"
                                             />
                                         ) : (
                                             <Text style={styles.videoEmoji}>🚗</Text>
                                         )}
-                                        {car.videoUrl && (
+                                        {firstMedia.type === 'video' && (
                                             <View style={styles.playIconOverlay}>
                                                 <Ionicons name="play-circle" size={64} color="rgba(255, 255, 255, 0.9)" />
                                             </View>
@@ -540,7 +705,8 @@ export default function Index() {
                                         </View>
                                     </View>
                                 </TouchableOpacity>
-                            ))}
+                                );
+                            })}
                             <TouchableOpacity 
                                 style={styles.addCarReelsCard}
                                 onPress={() => router.push('/publish')}
@@ -576,7 +742,11 @@ export default function Index() {
                     </View>
                     <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.feedCarousel}>
                         {favorites.map((car) => (
-                            <TouchableOpacity key={car.id} style={styles.reelsVideoCard}>
+                            <TouchableOpacity 
+                                key={car.id} 
+                                style={styles.reelsVideoCard}
+                                onPress={() => handleCarPress(car, favorites)}
+                            >
                                 <View style={styles.videoBackground}>
                                     <Text style={styles.videoEmoji}>{car.image}</Text>
                                     <View style={styles.videoOverlay}>
@@ -617,7 +787,11 @@ export default function Index() {
                     </View>
                     <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.feedCarousel}>
                         {inspectedCars.map((car) => (
-                            <TouchableOpacity key={car.id} style={styles.reelsVideoCard}>
+                            <TouchableOpacity 
+                                key={car.id} 
+                                style={styles.reelsVideoCard}
+                                onPress={() => handleCarPress(car, inspectedCars)}
+                            >
                                 <View style={styles.videoBackground}>
                                     <Text style={styles.videoEmoji}>{car.image}</Text>
                                     <View style={styles.videoOverlay}>
@@ -657,32 +831,34 @@ export default function Index() {
                         </View>
                     </View>
                     <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.feedCarousel}>
-                        {latestCars.map((car) => (
+                        {latestCars.map((car) => {
+                            const firstMedia = getFirstMedia(car);
+                            return (
                             <TouchableOpacity 
                                 key={car.id} 
                                 style={styles.reelsVideoCard}
                                 onPress={() => handleCarPress(car, latestCars)}
                             >
                                 <View style={styles.videoBackground}>
-                                    {car.videoUrl ? (
+                                    {firstMedia.type === 'video' ? (
                                         <Video
-                                            source={{ uri: car.videoUrl }}
+                                            source={{ uri: firstMedia.uri }}
                                             style={styles.carVideo}
                                             resizeMode={ResizeMode.COVER}
                                             isLooping
                                             shouldPlay={true}
                                             isMuted={true}
                                         />
-                                    ) : car.images && car.images[0] ? (
+                                    ) : firstMedia.type === 'image' ? (
                                         <Image 
-                                            source={{ uri: car.images[0] }} 
+                                            source={{ uri: firstMedia.uri }} 
                                             style={styles.carImage}
                                             resizeMode="cover"
                                         />
                                     ) : (
                                         <Text style={styles.videoEmoji}>🚗</Text>
                                     )}
-                                    {car.videoUrl && (
+                                    {firstMedia.type === 'video' && (
                                         <View style={styles.playIconOverlay}>
                                             <Ionicons name="play-circle" size={64} color="rgba(255, 255, 255, 0.9)" />
                                         </View>
@@ -700,7 +876,8 @@ export default function Index() {
                                     </View>
                                 </View>
                             </TouchableOpacity>
-                        ))}
+                            );
+                        })}
                     </ScrollView>
                     <View style={styles.postActions}>
                         <TouchableOpacity style={styles.postAction}>
@@ -1257,17 +1434,17 @@ const styles = StyleSheet.create({
         backgroundColor: '#000000',
     },
     tiktokVideoContainer: {
-        width: '100%',
-        height: '100%',
+        width: SCREEN_WIDTH,
+        height: SCREEN_HEIGHT,
         backgroundColor: '#000000',
     },
     tiktokVideo: {
-        width: '100%',
-        height: '100%',
+        width: SCREEN_WIDTH,
+        height: SCREEN_HEIGHT,
     },
     tiktokPlaceholder: {
-        width: '100%',
-        height: '100%',
+        width: SCREEN_WIDTH,
+        height: SCREEN_HEIGHT,
         justifyContent: 'center',
         alignItems: 'center',
         backgroundColor: '#1a1a1a',
@@ -1388,5 +1565,26 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
         zIndex: 10,
+    },
+    tiktokPageIndicator: {
+        position: 'absolute',
+        top: 60,
+        left: 0,
+        right: 0,
+        flexDirection: 'row',
+        justifyContent: 'center',
+        alignItems: 'center',
+        gap: 6,
+        zIndex: 10,
+    },
+    tiktokPageDot: {
+        width: 6,
+        height: 6,
+        borderRadius: 3,
+        backgroundColor: 'rgba(255, 255, 255, 0.5)',
+    },
+    tiktokPageDotActive: {
+        backgroundColor: '#FFFFFF',
+        width: 20,
     },
 });
