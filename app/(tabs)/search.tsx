@@ -486,32 +486,22 @@ export default function Search() {
           
           if (firstMedia.type === 'video') {
             return (
-              <>
-                <Video
-                  source={{ uri: firstMedia.uri }}
-                  style={styles.vehicleVideo}
-                  resizeMode={ResizeMode.COVER}
-                  isLooping
-                  shouldPlay={true}
-                  isMuted={true}
-                />
-                <View style={styles.videoIconOverlay}>
-                  <Ionicons name="play-circle" size={30} color="#FFFFFF" />
-                </View>
-              </>
+              <Video
+                source={{ uri: firstMedia.uri }}
+                style={styles.vehicleVideo}
+                resizeMode={ResizeMode.COVER}
+                isLooping
+                shouldPlay={true}
+                isMuted={true}
+              />
             );
           } else if (firstMedia.type === 'image') {
             return (
-              <>
-                <Image
-                  source={{ uri: firstMedia.uri }}
-                  style={styles.vehicleVideo}
-                  resizeMode="cover"
-                />
-                <View style={styles.videoIconOverlay}>
-                  <Ionicons name="images" size={30} color="#FFFFFF" />
-                </View>
-              </>
+              <Image
+                source={{ uri: firstMedia.uri }}
+                style={styles.vehicleVideo}
+                resizeMode="cover"
+              />
             );
           } else {
             return (
