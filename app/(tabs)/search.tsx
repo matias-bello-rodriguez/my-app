@@ -382,7 +382,9 @@ export default function Search() {
           transmission: vehicle.transmission,
           location: vehicle.location || 'No especificada',
           image: vehicle.images?.[0],
+          images: vehicle.images,
           videoUrl: vehicle.videoUrl,
+          videos: vehicle.videos,
         }));
       } else if (searchQuery.trim()) {
         // Búsqueda simple por texto
@@ -399,7 +401,9 @@ export default function Search() {
           transmission: vehicle.transmission,
           location: vehicle.location || 'No especificada',
           image: vehicle.images?.[0],
+          images: vehicle.images,
           videoUrl: vehicle.videoUrl,
+          videos: vehicle.videos,
         }));
       }
       
