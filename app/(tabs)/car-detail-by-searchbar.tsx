@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -15,13 +15,16 @@ import {
   FlatList
 } from 'react-native';
 import { Video, ResizeMode, Audio } from 'expo-av';
+import { useFocusEffect } from '@react-navigation/native';
 import apiService from '../../services/apiService';
+import { useHeader } from '../../contexts/HeaderContext';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 export default function CarDetailBySearchbar() {
   const router = useRouter();
   const params = useLocalSearchParams();
+  const { hideHeader, showHeader } = useHeader();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isFavorite, setIsFavorite] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -37,6 +40,31 @@ export default function CarDetailBySearchbar() {
 
   // Extraer el ID del vehículo
   const vehicleId = params.vehicleId as string;
+
+  // Ocultar header cuando la pantalla esté enfocada y mostrarlo cuando se desenfoque
+  useFocusEffect(
+    useCallback(() => {
+      hideHeader();
+      return () => {
+        showHeader();
+      };
+    }, [hideHeader, showHeader])
+  );
+
+  // Función para volver atrás
+  const handleGoBack = () => {
+    showHeader();
+    router.back();
+  };
+
+  // Funciones para navegación del header
+  const handleSearchPress = () => {
+    router.push('/search');
+  };
+
+  const handleChatPress = () => {
+    router.push('/(tabs)/chat');
+  };
 
   // Cargar datos del vehículo
   useEffect(() => {
@@ -347,23 +375,21 @@ export default function CarDetailBySearchbar() {
       <View style={styles.header}>
         <TouchableOpacity 
           style={styles.backButton}
-          onPress={() => router.back()}
+          onPress={handleGoBack}
         >
-          <Ionicons name="arrow-back" size={24} color="#1C1E21" />
+          <Ionicons name="close" size={24} color="#FFFFFF" />
         </TouchableOpacity>
         
         <Text style={styles.headerTitle}>Detalle del vehículo</Text>
         
-        <TouchableOpacity 
-          style={styles.favoriteButton}
-          onPress={toggleFavorite}
-        >
-          <Ionicons 
-            name={isFavorite ? "heart" : "heart-outline"} 
-            size={24} 
-            color={isFavorite ? "#FF0000" : "#1C1E21"} 
-          />
-        </TouchableOpacity>
+        <View style={styles.headerIcons}>
+          <TouchableOpacity style={styles.headerIcon} onPress={handleSearchPress}>
+            <Ionicons name="search" size={24} color="#FFFFFF" />
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.headerIcon} onPress={handleChatPress}>
+            <Ionicons name="chatbubble-outline" size={24} color="#FFFFFF" />
+          </TouchableOpacity>
+        </View>
       </View>
 
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
@@ -664,12 +690,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#4CAF50',
     paddingHorizontal: 16,
     paddingVertical: 12,
     paddingTop: 50,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E4E6EA',
     elevation: 2,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -677,17 +701,31 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
   },
   backButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#F0F2F5',
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
     alignItems: 'center',
     justifyContent: 'center',
   },
   headerTitle: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: 'bold',
-    color: '#1C1E21',
+    color: '#FFFFFF',
+    flex: 1,
+    textAlign: 'center',
+  },
+  headerIcons: {
+    flexDirection: 'row',
+    gap: 16,
+  },
+  headerIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   favoriteButton: {
     width: 40,
