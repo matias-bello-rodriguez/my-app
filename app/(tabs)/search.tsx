@@ -454,19 +454,14 @@ export default function Search() {
       {/* Video o imagen del vehículo */}
       <View style={styles.vehicleMediaContainer}>
         {item.videoUrl ? (
-          <>
-            <Video
-              source={{ uri: item.videoUrl }}
-              style={styles.vehicleVideo}
-              resizeMode={ResizeMode.COVER}
-              isLooping
-              shouldPlay={true}
-              isMuted={true}
-            />
-            <View style={styles.playIconOverlay}>
-              <Ionicons name="play-circle" size={40} color="rgba(255, 255, 255, 0.9)" />
-            </View>
-          </>
+          <Video
+            source={{ uri: item.videoUrl }}
+            style={styles.vehicleVideo}
+            resizeMode={ResizeMode.COVER}
+            isLooping
+            shouldPlay={true}
+            isMuted={true}
+          />
         ) : (
           <View style={styles.placeholderMedia}>
             <Ionicons name="car-sport" size={50} color="#999" />
