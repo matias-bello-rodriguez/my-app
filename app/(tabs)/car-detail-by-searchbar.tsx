@@ -12,7 +12,8 @@ import {
   Modal,
   SafeAreaView,
   Dimensions,
-  FlatList
+  FlatList,
+  Image
 } from 'react-native';
 import { Video, ResizeMode, Audio } from 'expo-av';
 import { useFocusEffect } from '@react-navigation/native';
@@ -140,6 +141,27 @@ export default function CarDetailBySearchbar() {
   const formatKilometers = (km: number) => {
     if (!km || isNaN(km)) return '0 km';
     return `${Math.floor(km).toLocaleString('es-CL')} km`;
+  };
+
+  // Función para obtener el primer medio disponible (video o imagen)
+  const getFirstMedia = (car: any): { type: 'video' | 'image' | null; uri: string } => {
+    // Prioridad 1: videoUrl (video único)
+    if (car.videoUrl && typeof car.videoUrl === 'string') {
+      return { type: 'video', uri: car.videoUrl };
+    }
+    
+    // Prioridad 2: primer video del array videos
+    if (car.videos && Array.isArray(car.videos) && car.videos.length > 0) {
+      return { type: 'video', uri: car.videos[0] };
+    }
+    
+    // Prioridad 3: primera imagen del array images
+    if (car.images && Array.isArray(car.images) && car.images.length > 0) {
+      return { type: 'image', uri: car.images[0] };
+    }
+    
+    // Sin multimedia
+    return { type: null, uri: '' };
   };
 
   const handleContact = () => {
@@ -395,33 +417,61 @@ export default function CarDetailBySearchbar() {
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         {/* Carrusel de imágenes */}
         <View style={styles.imageCarousel}>
-          {vehicle.videoUrl ? (
-            <TouchableOpacity 
-              style={styles.videoPreviewContainer}
-              onPress={handleVideoPress}
-              activeOpacity={0.9}
-            >
-              <Video
-                source={{ uri: vehicle.videoUrl }}
-                style={styles.videoPreview}
-                resizeMode={ResizeMode.COVER}
-                isLooping
-                shouldPlay={true}
-                isMuted={true}
-              />
-              <View style={styles.videoPreviewOverlay}>
-                <View style={styles.playButtonLarge}>
-                  <Ionicons name="play" size={40} color="#FFFFFF" />
+          {(() => {
+            const firstMedia = getFirstMedia(vehicle);
+            
+            if (firstMedia.type === 'video') {
+              return (
+                <TouchableOpacity 
+                  style={styles.videoPreviewContainer}
+                  onPress={handleVideoPress}
+                  activeOpacity={0.9}
+                >
+                  <Video
+                    source={{ uri: firstMedia.uri }}
+                    style={styles.videoPreview}
+                    resizeMode={ResizeMode.COVER}
+                    isLooping
+                    shouldPlay={true}
+                    isMuted={true}
+                  />
+                  <View style={styles.videoPreviewOverlay}>
+                    <View style={styles.playButtonLarge}>
+                      <Ionicons name="play" size={40} color="#FFFFFF" />
+                    </View>
+                    <Text style={styles.videoPreviewText}>Toca para ver en pantalla completa</Text>
+                  </View>
+                </TouchableOpacity>
+              );
+            } else if (firstMedia.type === 'image') {
+              return (
+                <TouchableOpacity 
+                  style={styles.videoPreviewContainer}
+                  onPress={handleVideoPress}
+                  activeOpacity={0.9}
+                >
+                  <Image
+                    source={{ uri: firstMedia.uri }}
+                    style={styles.videoPreview}
+                    resizeMode="cover"
+                  />
+                  <View style={styles.videoPreviewOverlay}>
+                    <View style={styles.playButtonLarge}>
+                      <Ionicons name="images" size={40} color="#FFFFFF" />
+                    </View>
+                    <Text style={styles.videoPreviewText}>Toca para ver en pantalla completa</Text>
+                  </View>
+                </TouchableOpacity>
+              );
+            } else {
+              return (
+                <View style={styles.imagePlaceholder}>
+                  <Ionicons name="car-sport" size={80} color="#999" />
+                  <Text style={styles.imagePlaceholderText}>Sin imágenes disponibles</Text>
                 </View>
-                <Text style={styles.videoPreviewText}>Toca para ver en pantalla completa</Text>
-              </View>
-            </TouchableOpacity>
-          ) : (
-            <View style={styles.imagePlaceholder}>
-              <Ionicons name="car-sport" size={80} color="#999" />
-              <Text style={styles.imagePlaceholderText}>Sin imágenes disponibles</Text>
-            </View>
-          )}
+              );
+            }
+          })()}
           
           {vehicle.images && vehicle.images.length > 1 && (
             <View style={styles.imageIndicators}>

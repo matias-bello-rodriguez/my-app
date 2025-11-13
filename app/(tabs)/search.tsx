@@ -5,6 +5,7 @@ import {
     ActivityIndicator,
     Alert,
     FlatList,
+    Image,
     ScrollView,
     StyleSheet,
     Text,
@@ -44,7 +45,9 @@ interface VehicleResult {
   transmission: string;
   location: string;
   image?: string;
+  images?: string[];
   videoUrl?: string;
+  videos?: string[];
 }
 
 // Componente de slider mejorado
@@ -303,6 +306,27 @@ export default function Search() {
     return `${km.toLocaleString('es-CL')} km`;
   }, []);
 
+  // Función para obtener el primer medio disponible (video primero, luego imagen)
+  const getFirstMedia = useCallback((item: VehicleResult): { type: 'video' | 'image' | null; uri: string } => {
+    // Prioridad 1: videoUrl (legacy)
+    if (item.videoUrl && typeof item.videoUrl === 'string') {
+      return { type: 'video', uri: item.videoUrl };
+    }
+    
+    // Prioridad 2: primer video del array
+    if (item.videos && Array.isArray(item.videos) && item.videos.length > 0) {
+      return { type: 'video', uri: item.videos[0] };
+    }
+    
+    // Prioridad 3: primer imagen del array
+    if (item.images && Array.isArray(item.images) && item.images.length > 0) {
+      return { type: 'image', uri: item.images[0] };
+    }
+    
+    // Sin medios disponibles
+    return { type: null, uri: '' };
+  }, []);
+
   // Manejadores de eventos
   const handleSearch = useCallback(async () => {
     if (!searchQuery.trim() && !filters.brand && !filters.fuel && !filters.transmission) {
@@ -453,20 +477,46 @@ export default function Search() {
     >
       {/* Video o imagen del vehículo */}
       <View style={styles.vehicleMediaContainer}>
-        {item.videoUrl ? (
-          <Video
-            source={{ uri: item.videoUrl }}
-            style={styles.vehicleVideo}
-            resizeMode={ResizeMode.COVER}
-            isLooping
-            shouldPlay={true}
-            isMuted={true}
-          />
-        ) : (
-          <View style={styles.placeholderMedia}>
-            <Ionicons name="car-sport" size={50} color="#999" />
-          </View>
-        )}
+        {(() => {
+          const firstMedia = getFirstMedia(item);
+          
+          if (firstMedia.type === 'video') {
+            return (
+              <>
+                <Video
+                  source={{ uri: firstMedia.uri }}
+                  style={styles.vehicleVideo}
+                  resizeMode={ResizeMode.COVER}
+                  isLooping
+                  shouldPlay={true}
+                  isMuted={true}
+                />
+                <View style={styles.videoIconOverlay}>
+                  <Ionicons name="play-circle" size={30} color="#FFFFFF" />
+                </View>
+              </>
+            );
+          } else if (firstMedia.type === 'image') {
+            return (
+              <>
+                <Image
+                  source={{ uri: firstMedia.uri }}
+                  style={styles.vehicleVideo}
+                  resizeMode="cover"
+                />
+                <View style={styles.videoIconOverlay}>
+                  <Ionicons name="images" size={30} color="#FFFFFF" />
+                </View>
+              </>
+            );
+          } else {
+            return (
+              <View style={styles.placeholderMedia}>
+                <Ionicons name="car-sport" size={50} color="#999" />
+              </View>
+            );
+          }
+        })()}
       </View>
 
       <View style={styles.resultHeader}>
@@ -1310,5 +1360,13 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.2)',
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  videoIconOverlay: {
+    position: 'absolute',
+    bottom: 8,
+    right: 8,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    borderRadius: 20,
+    padding: 6,
   },
 });
