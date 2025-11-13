@@ -194,6 +194,18 @@ export default function RegisterScreen(){
         return rut.replace(/\./g, '').replace(/-/g, '');
     };
 
+    // Función para formatear el RUT para el backend (formato: 12345678-9)
+    const formatRutForBackend = (rut: string): string => {
+        const cleaned = cleanRut(rut);
+        if (cleaned.length < 2) return cleaned;
+        
+        // Separar cuerpo y dígito verificador
+        const body = cleaned.slice(0, -1);
+        const dv = cleaned.slice(-1);
+        
+        return `${body}-${dv}`;
+    };
+
     const handleRegister = async () => {
         if (loading) return;
 
@@ -207,7 +219,7 @@ export default function RegisterScreen(){
             await authService.register({
                 firstName: name,
                 lastName,
-                rut: cleanRut(rut), // Enviar RUT sin puntos ni guión
+                rut: formatRutForBackend(rut), // Enviar RUT con formato: 12345678-9
                 email,
                 password,
             });

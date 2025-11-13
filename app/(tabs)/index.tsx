@@ -354,8 +354,8 @@ export default function Index() {
                                                 style={styles.carVideo}
                                                 resizeMode={ResizeMode.COVER}
                                                 isLooping
-                                                shouldPlay={false}
-                                                isMuted
+                                                shouldPlay={true}
+                                                isMuted={true}
                                             />
                                         ) : car.images && car.images[0] ? (
                                             <Image 
@@ -368,7 +368,7 @@ export default function Index() {
                                         )}
                                         {car.videoUrl && (
                                             <View style={styles.playIconOverlay}>
-                                                <Ionicons name="play-circle" size={48} color="rgba(255, 255, 255, 0.9)" />
+                                                <Ionicons name="play-circle" size={64} color="rgba(255, 255, 255, 0.9)" />
                                             </View>
                                         )}
                                         <View style={styles.videoOverlay}>
@@ -514,8 +514,8 @@ export default function Index() {
                                             style={styles.carVideo}
                                             resizeMode={ResizeMode.COVER}
                                             isLooping
-                                            shouldPlay={false}
-                                            isMuted
+                                            shouldPlay={true}
+                                            isMuted={true}
                                         />
                                     ) : car.images && car.images[0] ? (
                                         <Image 
@@ -528,7 +528,7 @@ export default function Index() {
                                     )}
                                     {car.videoUrl && (
                                         <View style={styles.playIconOverlay}>
-                                            <Ionicons name="play-circle" size={48} color="rgba(255, 255, 255, 0.9)" />
+                                            <Ionicons name="play-circle" size={64} color="rgba(255, 255, 255, 0.9)" />
                                         </View>
                                     )}
                                     <View style={styles.videoOverlay}>
@@ -871,8 +871,8 @@ const styles = StyleSheet.create({
     },
     // Estilos para Reels de video
     reelsVideoCard: {
-        width: 120,
-        height: 200,
+        width: 200,
+        height: 320,
         marginRight: 12,
         borderRadius: 16,
         overflow: 'hidden',
@@ -886,9 +886,9 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     videoEmoji: {
-        fontSize: 60,
+        fontSize: 80,
         position: 'absolute',
-        top: '30%',
+        top: '35%',
         opacity: 0.7,
     },
     videoOverlay: {
@@ -898,7 +898,7 @@ const styles = StyleSheet.create({
         right: 0,
         bottom: 0,
         justifyContent: 'space-between',
-        padding: 12,
+        padding: 16,
     },
     playButton: {
         position: 'absolute',
@@ -917,27 +917,34 @@ const styles = StyleSheet.create({
         marginBottom: 8,
     },
     videoModel: {
-        fontSize: 12,
+        fontSize: 14,
         fontWeight: '600',
         color: '#FFFFFF',
-        marginBottom: 2,
+        marginBottom: 4,
+        textShadowColor: 'rgba(0, 0, 0, 0.75)',
+        textShadowOffset: { width: 0, height: 1 },
+        textShadowRadius: 3,
     },
     videoPrice: {
-        fontSize: 14,
+        fontSize: 18,
         fontWeight: 'bold',
         color: '#4CAF50',
-        marginBottom: 4,
+        marginBottom: 6,
+        textShadowColor: 'rgba(0, 0, 0, 0.75)',
+        textShadowOffset: { width: 0, height: 1 },
+        textShadowRadius: 3,
     },
     videoStatus: {
         alignSelf: 'flex-start',
     },
     videoStatusText: {
-        fontSize: 10,
+        fontSize: 11,
         color: '#FFFFFF',
         backgroundColor: 'rgba(33, 150, 243, 0.8)',
-        paddingHorizontal: 6,
-        paddingVertical: 2,
-        borderRadius: 4,
+        paddingHorizontal: 8,
+        paddingVertical: 3,
+        borderRadius: 6,
+        fontWeight: '600',
     },
     videoActions: {
         position: 'absolute',
@@ -956,8 +963,8 @@ const styles = StyleSheet.create({
         marginBottom: 8,
     },
     addCarReelsCard: {
-        width: 120,
-        height: 200,
+        width: 200,
+        height: 320,
         marginRight: 12,
         borderRadius: 16,
         overflow: 'hidden',
@@ -973,7 +980,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#FAFAFA',
     },
     addVideoText: {
-        fontSize: 12,
+        fontSize: 14,
         color: '#4CAF50',
         fontWeight: '600',
         marginTop: 8,
@@ -1004,7 +1011,7 @@ const styles = StyleSheet.create({
         left: 0,
         right: 0,
         bottom: 0,
-        backgroundColor: 'rgba(0, 0, 0, 0.3)',
+        backgroundColor: 'rgba(0, 0, 0, 0.2)',
         justifyContent: 'center',
         alignItems: 'center',
         borderRadius: 8,

@@ -1,90 +1,101 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
+  ActivityIndicator,
   Alert,
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
-  View
+  View,
+  Modal,
+  SafeAreaView
 } from 'react-native';
+import { Video, ResizeMode } from 'expo-av';
+import apiService from '../../services/apiService';
 
 export default function CarDetailBySearchbar() {
   const router = useRouter();
   const params = useLocalSearchParams();
-  const [currentImageIndex] = useState(0);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isFavorite, setIsFavorite] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [vehicle, setVehicle] = useState<any>(null);
+  
+  // Estados para el modal de video
+  const [showVideoPlayer, setShowVideoPlayer] = useState(false);
 
-  // Extraer los parámetros pasados desde search.tsx
+  // Extraer el ID del vehículo
   const vehicleId = params.vehicleId as string;
-  const brand = params.brand as string || 'Marca desconocida';
-  const model = params.model as string || 'Modelo desconocido';
-  const year = parseInt(params.year as string) || new Date().getFullYear();
-  const price = parseInt(params.price as string) || 0;
-  const mileage = parseInt(params.mileage as string) || 0;
-  const fuel = params.fuel as string || 'No especificado';
-  const transmission = params.transmission as string || 'No especificada';
-  const location = params.location as string || 'Ubicación no especificada';
 
-  // Datos del vehículo (algunos datos son estáticos, otros vienen de params)
-  const vehicle = {
-    id: vehicleId || '1',
-    brand: brand,
-    model: model,
-    year: year,
-    price: price,
-    mileage: mileage,
-    fuel: fuel,
-    transmission: transmission,
-    location: location,
-    description: `${brand} ${model} ${year} en excelente estado. Mantenimiento al día. Incluye aire acondicionado, cierre centralizado, alzavidrios eléctricos, y radio con Bluetooth.`,
-    features: [
-      'Aire acondicionado',
-      'Cierre centralizado',
-      'Alzavidrios eléctricos',
-      'Radio con Bluetooth',
-      'Control de crucero',
-      'Sensor de reversa',
-      'Cámara de retroceso',
-      'Frenos ABS',
-      'Airbags frontales y laterales'
-    ],
-    specifications: {
-      motor: '1.8L 4 cilindros',
-      potencia: '140 HP',
-      cilindrada: '1798 cc',
-      traccion: 'Delantera',
-      color: 'Blanco',
-      puertas: 4,
-      pasajeros: 5,
-      VIN: 'JTDBURBE0L3000001'
-    },
-    seller: {
-      name: 'Juan Pérez',
-      phone: '+56 9 1234 5678',
-      email: 'juan.perez@email.com',
-      rating: 4.5,
-      reviews: 12
-    },
-    images: [
-      null, // Placeholder para imágenes
-      null,
-      null,
-      null
-    ]
+  // Cargar datos del vehículo
+  useEffect(() => {
+    const loadVehicle = async () => {
+      if (!vehicleId) {
+        Alert.alert('Error', 'No se proporcionó un ID de vehículo');
+        router.back();
+        return;
+      }
+
+      try {
+        setLoading(true);
+        const data = await apiService.getVehicleById(vehicleId);
+        setVehicle(data);
+      } catch (error) {
+        console.error('Error al cargar vehículo:', error);
+        Alert.alert('Error', 'No se pudo cargar la información del vehículo');
+        router.back();
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadVehicle();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [vehicleId]);
+
+  const translateStatus = (status: string) => {
+    const translations: { [key: string]: string } = {
+      'available': 'Disponible',
+      'sold': 'Vendido',
+      'inspection_pending': 'Inspección pendiente',
+    };
+    return translations[status] || status;
+  };
+
+  const translateFuelType = (fuel: string) => {
+    const translations: { [key: string]: string } = {
+      'Gasolina': 'Gasolina',
+      'Diesel': 'Diésel',
+      'Gas': 'Gas',
+      'Híbrido': 'Híbrido',
+      'Eléctrico': 'Eléctrico',
+    };
+    return translations[fuel] || fuel;
+  };
+
+  const translateTransmission = (transmission: string) => {
+    const translations: { [key: string]: string } = {
+      'Manual': 'Manual',
+      'Automática': 'Automática',
+      'Semiautomática': 'Semiautomática',
+    };
+    return translations[transmission] || transmission;
   };
 
   const formatCurrency = (amount: number) => {
+    if (!amount || isNaN(amount)) return '$0';
     return new Intl.NumberFormat('es-CL', {
       style: 'currency',
       currency: 'CLP',
       minimumFractionDigits: 0
-    }).format(amount);
+    }).format(Math.floor(amount));
   };
 
   const formatKilometers = (km: number) => {
-    return `${km.toLocaleString('es-CL')} km`;
+    if (!km || isNaN(km)) return '0 km';
+    return `${Math.floor(km).toLocaleString('es-CL')} km`;
   };
 
   const handleContact = () => {
@@ -130,12 +141,37 @@ export default function CarDetailBySearchbar() {
   };
 
   const toggleFavorite = () => {
+    if (!vehicle) return;
     setIsFavorite(!isFavorite);
     Alert.alert(
       isFavorite ? 'Eliminado de favoritos' : 'Agregado a favoritos',
       isFavorite ? 'El vehículo se eliminó de tu lista de favoritos' : 'El vehículo se agregó a tu lista de favoritos'
     );
   };
+
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+          <ActivityIndicator size="large" color="#007AFF" />
+          <Text style={{ marginTop: 10, color: '#666' }}>Cargando vehículo...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (!vehicle) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+          <Text style={{ color: '#666' }}>No se encontró el vehículo</Text>
+          <TouchableOpacity onPress={() => router.back()} style={styles.retryButton}>
+            <Text style={styles.retryButtonText}>Volver</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -165,14 +201,37 @@ export default function CarDetailBySearchbar() {
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         {/* Carrusel de imágenes */}
         <View style={styles.imageCarousel}>
-          <View style={styles.imagePlaceholder}>
-            <Ionicons name="car-sport" size={80} color="#999" />
-            <Text style={styles.imagePlaceholderText}>Sin imágenes disponibles</Text>
-          </View>
+          {vehicle.videoUrl ? (
+            <TouchableOpacity 
+              style={styles.videoPreviewContainer}
+              onPress={() => setShowVideoPlayer(true)}
+              activeOpacity={0.9}
+            >
+              <Video
+                source={{ uri: vehicle.videoUrl }}
+                style={styles.videoPreview}
+                resizeMode={ResizeMode.COVER}
+                isLooping
+                shouldPlay={true}
+                isMuted={true}
+              />
+              <View style={styles.videoPreviewOverlay}>
+                <View style={styles.playButtonLarge}>
+                  <Ionicons name="play" size={40} color="#FFFFFF" />
+                </View>
+                <Text style={styles.videoPreviewText}>Toca para reproducir con sonido</Text>
+              </View>
+            </TouchableOpacity>
+          ) : (
+            <View style={styles.imagePlaceholder}>
+              <Ionicons name="car-sport" size={80} color="#999" />
+              <Text style={styles.imagePlaceholderText}>Sin imágenes disponibles</Text>
+            </View>
+          )}
           
-          {vehicle.images.length > 1 && (
+          {vehicle.images && vehicle.images.length > 1 && (
             <View style={styles.imageIndicators}>
-              {vehicle.images.map((_, index) => (
+              {vehicle.images.map((_: any, index: number) => (
                 <View 
                   key={index} 
                   style={[
@@ -192,11 +251,16 @@ export default function CarDetailBySearchbar() {
               <Text style={styles.vehicleTitle}>
                 {vehicle.brand} {vehicle.model}
               </Text>
-              <Text style={styles.vehicleYear}>{vehicle.year}</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                <Text style={styles.vehicleYear}>{vehicle.year}</Text>
+                <View style={[styles.statusBadge, vehicle.status === 'available' && styles.statusAvailable]}>
+                  <Text style={styles.statusText}>{translateStatus(vehicle.status)}</Text>
+                </View>
+              </View>
             </View>
             <View style={styles.priceContainer}>
               <Text style={styles.priceLabel}>Precio</Text>
-              <Text style={styles.price}>{formatCurrency(vehicle.price)}</Text>
+              <Text style={styles.price}>{formatCurrency(vehicle.price || 0)}</Text>
             </View>
           </View>
 
@@ -204,19 +268,19 @@ export default function CarDetailBySearchbar() {
           <View style={styles.quickStats}>
             <View style={styles.statItem}>
               <Ionicons name="speedometer-outline" size={20} color="#4CAF50" />
-              <Text style={styles.statValue}>{formatKilometers(vehicle.mileage)}</Text>
+              <Text style={styles.statValue}>{formatKilometers(vehicle.mileage || 0)}</Text>
               <Text style={styles.statLabel}>Kilometraje</Text>
             </View>
             <View style={styles.statDivider} />
             <View style={styles.statItem}>
               <Ionicons name="flash-outline" size={20} color="#4CAF50" />
-              <Text style={styles.statValue}>{vehicle.fuel}</Text>
+              <Text style={styles.statValue}>{translateFuelType(vehicle.fuel || 'N/A')}</Text>
               <Text style={styles.statLabel}>Combustible</Text>
             </View>
             <View style={styles.statDivider} />
             <View style={styles.statItem}>
               <Ionicons name="settings-outline" size={20} color="#4CAF50" />
-              <Text style={styles.statValue}>{vehicle.transmission}</Text>
+              <Text style={styles.statValue}>{translateTransmission(vehicle.transmission || 'N/A')}</Text>
               <Text style={styles.statLabel}>Transmisión</Text>
             </View>
           </View>
@@ -224,96 +288,118 @@ export default function CarDetailBySearchbar() {
           {/* Ubicación */}
           <View style={styles.locationContainer}>
             <Ionicons name="location" size={20} color="#65676B" />
-            <Text style={styles.locationText}>{vehicle.location}</Text>
+            <Text style={styles.locationText}>{vehicle.location || 'Ubicación no disponible'}</Text>
           </View>
         </View>
 
         {/* Descripción */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Descripción</Text>
-          <Text style={styles.description}>{vehicle.description}</Text>
+          <Text style={styles.description}>{vehicle.description || 'Sin descripción disponible'}</Text>
         </View>
 
         {/* Especificaciones técnicas */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Especificaciones técnicas</Text>
-          <View style={styles.specsGrid}>
-            <View style={styles.specRow}>
-              <Text style={styles.specLabel}>Motor:</Text>
-              <Text style={styles.specValue}>{vehicle.specifications.motor}</Text>
-            </View>
-            <View style={styles.specRow}>
-              <Text style={styles.specLabel}>Potencia:</Text>
-              <Text style={styles.specValue}>{vehicle.specifications.potencia}</Text>
-            </View>
-            <View style={styles.specRow}>
-              <Text style={styles.specLabel}>Cilindrada:</Text>
-              <Text style={styles.specValue}>{vehicle.specifications.cilindrada}</Text>
-            </View>
-            <View style={styles.specRow}>
-              <Text style={styles.specLabel}>Tracción:</Text>
-              <Text style={styles.specValue}>{vehicle.specifications.traccion}</Text>
-            </View>
-            <View style={styles.specRow}>
-              <Text style={styles.specLabel}>Color:</Text>
-              <Text style={styles.specValue}>{vehicle.specifications.color}</Text>
-            </View>
-            <View style={styles.specRow}>
-              <Text style={styles.specLabel}>Puertas:</Text>
-              <Text style={styles.specValue}>{vehicle.specifications.puertas}</Text>
-            </View>
-            <View style={styles.specRow}>
-              <Text style={styles.specLabel}>Pasajeros:</Text>
-              <Text style={styles.specValue}>{vehicle.specifications.pasajeros}</Text>
-            </View>
-            <View style={styles.specRow}>
-              <Text style={styles.specLabel}>VIN:</Text>
-              <Text style={styles.specValue}>{vehicle.specifications.VIN}</Text>
+        {vehicle.specifications && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Especificaciones técnicas</Text>
+            <View style={styles.specsGrid}>
+              {vehicle.specifications.motor && (
+                <View style={styles.specRow}>
+                  <Text style={styles.specLabel}>Motor:</Text>
+                  <Text style={styles.specValue}>{vehicle.specifications.motor}</Text>
+                </View>
+              )}
+              {vehicle.specifications.potencia && (
+                <View style={styles.specRow}>
+                  <Text style={styles.specLabel}>Potencia:</Text>
+                  <Text style={styles.specValue}>{vehicle.specifications.potencia}</Text>
+                </View>
+              )}
+              {vehicle.specifications.cilindrada && (
+                <View style={styles.specRow}>
+                  <Text style={styles.specLabel}>Cilindrada:</Text>
+                  <Text style={styles.specValue}>{vehicle.specifications.cilindrada}</Text>
+                </View>
+              )}
+              {vehicle.specifications.traccion && (
+                <View style={styles.specRow}>
+                  <Text style={styles.specLabel}>Tracción:</Text>
+                  <Text style={styles.specValue}>{vehicle.specifications.traccion}</Text>
+                </View>
+              )}
+              {vehicle.specifications.color && (
+                <View style={styles.specRow}>
+                  <Text style={styles.specLabel}>Color:</Text>
+                  <Text style={styles.specValue}>{vehicle.specifications.color}</Text>
+                </View>
+              )}
+              {vehicle.specifications.puertas && (
+                <View style={styles.specRow}>
+                  <Text style={styles.specLabel}>Puertas:</Text>
+                  <Text style={styles.specValue}>{vehicle.specifications.puertas}</Text>
+                </View>
+              )}
+              {vehicle.specifications.pasajeros && (
+                <View style={styles.specRow}>
+                  <Text style={styles.specLabel}>Pasajeros:</Text>
+                  <Text style={styles.specValue}>{vehicle.specifications.pasajeros}</Text>
+                </View>
+              )}
+              {vehicle.specifications.VIN && (
+                <View style={styles.specRow}>
+                  <Text style={styles.specLabel}>VIN:</Text>
+                  <Text style={styles.specValue}>{vehicle.specifications.VIN}</Text>
+                </View>
+              )}
             </View>
           </View>
-        </View>
+        )}
 
         {/* Características */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Características</Text>
-          <View style={styles.featuresList}>
-            {vehicle.features.map((feature, index) => (
-              <View key={index} style={styles.featureItem}>
-                <Ionicons name="checkmark-circle" size={20} color="#4CAF50" />
-                <Text style={styles.featureText}>{feature}</Text>
-              </View>
-            ))}
+        {vehicle.features && vehicle.features.length > 0 && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Características</Text>
+            <View style={styles.featuresList}>
+              {vehicle.features.map((feature: any, index: number) => (
+                <View key={index} style={styles.featureItem}>
+                  <Ionicons name="checkmark-circle" size={20} color="#4CAF50" />
+                  <Text style={styles.featureText}>{feature}</Text>
+                </View>
+              ))}
+            </View>
           </View>
-        </View>
+        )}
 
         {/* Información del vendedor */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Vendedor</Text>
-          <View style={styles.sellerCard}>
-            <View style={styles.sellerHeader}>
-              <View style={styles.sellerAvatar}>
-                <Ionicons name="person" size={32} color="#4CAF50" />
-              </View>
-              <View style={styles.sellerInfo}>
-                <Text style={styles.sellerName}>{vehicle.seller.name}</Text>
-                <View style={styles.sellerRating}>
-                  <Ionicons name="star" size={16} color="#FFB300" />
-                  <Text style={styles.ratingText}>
-                    {vehicle.seller.rating} ({vehicle.seller.reviews} reseñas)
-                  </Text>
+        {vehicle.seller && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Vendedor</Text>
+            <View style={styles.sellerCard}>
+              <View style={styles.sellerHeader}>
+                <View style={styles.sellerAvatar}>
+                  <Ionicons name="person" size={32} color="#4CAF50" />
+                </View>
+                <View style={styles.sellerInfo}>
+                  <Text style={styles.sellerName}>{vehicle.seller.name}</Text>
+                  <View style={styles.sellerRating}>
+                    <Ionicons name="star" size={16} color="#FFB300" />
+                    <Text style={styles.ratingText}>
+                      {vehicle.seller.rating} ({vehicle.seller.reviews} reseñas)
+                    </Text>
+                  </View>
                 </View>
               </View>
+              
+              <TouchableOpacity 
+                style={styles.contactButton}
+                onPress={handleContact}
+              >
+                <Ionicons name="chatbubble-ellipses" size={20} color="#FFFFFF" />
+                <Text style={styles.contactButtonText}>Contactar vendedor</Text>
+              </TouchableOpacity>
             </View>
-            
-            <TouchableOpacity 
-              style={styles.contactButton}
-              onPress={handleContact}
-            >
-              <Ionicons name="chatbubble-ellipses" size={20} color="#FFFFFF" />
-              <Text style={styles.contactButtonText}>Contactar vendedor</Text>
-            </TouchableOpacity>
           </View>
-        </View>
+        )}
 
         {/* Padding bottom para los botones fijos */}
         <View style={{ height: 100 }} />
@@ -337,6 +423,38 @@ export default function CarDetailBySearchbar() {
           <Text style={styles.primaryButtonText}>Contactar</Text>
         </TouchableOpacity>
       </View>
+
+      {/* Modal de Video */}
+      {vehicle.videoUrl && (
+        <Modal
+          visible={showVideoPlayer}
+          transparent={true}
+          animationType="fade"
+          onRequestClose={() => setShowVideoPlayer(false)}
+        >
+          <View style={styles.videoModalContainer}>
+            <TouchableOpacity 
+              style={styles.videoModalClose} 
+              onPress={() => setShowVideoPlayer(false)}
+            >
+              <Ionicons name="close" size={30} color="#fff" />
+            </TouchableOpacity>
+            <Video
+              source={{ uri: vehicle.videoUrl }}
+              style={styles.videoModalPlayer}
+              useNativeControls
+              resizeMode={ResizeMode.CONTAIN}
+              isLooping
+              shouldPlay={showVideoPlayer}
+              onError={(error) => {
+                console.error('Error al reproducir el video:', error);
+                Alert.alert('Error', 'No se pudo reproducir el video');
+                setShowVideoPlayer(false);
+              }}
+            />
+          </View>
+        </Modal>
+      )}
     </View>
   );
 }
@@ -396,6 +514,49 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#E8E8E8',
+  },
+  videoPreviewContainer: {
+    flex: 1,
+    width: '100%',
+    height: '100%',
+    backgroundColor: '#000000',
+    position: 'relative',
+  },
+  videoPreview: {
+    width: '100%',
+    height: '100%',
+  },
+  videoPreviewOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.25)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  playButtonLarge: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: 'rgba(76, 175, 80, 0.85)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 8,
+  },
+  videoPreviewText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '600',
+    textShadowColor: 'rgba(0, 0, 0, 0.75)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
   },
   imagePlaceholderText: {
     marginTop: 12,
@@ -642,5 +803,57 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '600',
+  },
+  retryButton: {
+    marginTop: 16,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    backgroundColor: '#007AFF',
+    borderRadius: 8,
+  },
+  retryButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  videoModalContainer: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.95)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  videoModalClose: {
+    position: 'absolute',
+    top: 50,
+    right: 20,
+    zIndex: 10,
+    padding: 10,
+  },
+  videoModalPlayer: {
+    width: '100%',
+    height: 300,
+  },
+  videoOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+    zIndex: -1,
+  },
+  statusBadge: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+    backgroundColor: '#E0E0E0',
+  },
+  statusAvailable: {
+    backgroundColor: '#4CAF50',
+  },
+  statusText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#fff',
   },
 });
