@@ -14,7 +14,7 @@ import {
   Dimensions,
   FlatList
 } from 'react-native';
-import { Video, ResizeMode } from 'expo-av';
+import { Video, ResizeMode, Audio } from 'expo-av';
 import apiService from '../../services/apiService';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
@@ -40,6 +40,13 @@ export default function CarDetailBySearchbar() {
 
   // Cargar datos del vehículo
   useEffect(() => {
+    // Configurar el modo de audio para permitir reproducción con sonido
+    Audio.setAudioModeAsync({
+      playsInSilentModeIOS: true,
+      staysActiveInBackground: false,
+      shouldDuckAndroid: true,
+    });
+
     const loadVehicle = async () => {
       if (!vehicleId) {
         Alert.alert('Error', 'No se proporcionó un ID de vehículo');
@@ -202,6 +209,7 @@ export default function CarDetailBySearchbar() {
               isLooping
               shouldPlay={isActive}
               isMuted={false}
+              volume={1.0}
               useNativeControls={false}
             />
           ) : (
@@ -606,6 +614,8 @@ export default function CarDetailBySearchbar() {
               resizeMode={ResizeMode.CONTAIN}
               isLooping
               shouldPlay={showVideoPlayer}
+              isMuted={false}
+              volume={1.0}
               onError={(error) => {
                 console.error('Error al reproducir el video:', error);
                 Alert.alert('Error', 'No se pudo reproducir el video');

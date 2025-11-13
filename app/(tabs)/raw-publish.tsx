@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
     ActivityIndicator,
     Alert,
@@ -13,7 +13,7 @@ import {
     TouchableOpacity,
     View
 } from 'react-native';
-import { Video } from 'expo-av';
+import { Video, Audio } from 'expo-av';
 import LocationPicker from '../../components/LocationPicker';
 import apiService from '../../services/apiService';
 import uploadService from '../../services/uploadService';
@@ -52,6 +52,15 @@ export default function RawPublish() {
     description: '',
     videoUrl: '',
   });
+
+  // Configurar el modo de audio al montar el componente
+  useEffect(() => {
+    Audio.setAudioModeAsync({
+      playsInSilentModeIOS: true,
+      staysActiveInBackground: false,
+      shouldDuckAndroid: true,
+    });
+  }, []);
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({
@@ -746,6 +755,8 @@ export default function RawPublish() {
               useNativeControls
               resizeMode={'contain' as any}
               shouldPlay
+              isMuted={false}
+              volume={1.0}
             />
             <TouchableOpacity
               style={styles.closeVideoButton}

@@ -14,7 +14,7 @@ import {
     Dimensions,
     FlatList
 } from 'react-native';
-import { Video, ResizeMode } from 'expo-av';
+import { Video, ResizeMode, Audio } from 'expo-av';
 import apiService from '../../services/apiService';
 import authService from '../../services/authService';
 
@@ -161,6 +161,13 @@ export default function Index() {
     // Cargar datos al montar el componente
     useEffect(() => {
         loadData();
+        
+        // Configurar el modo de audio para permitir reproducción con sonido
+        Audio.setAudioModeAsync({
+            playsInSilentModeIOS: true,
+            staysActiveInBackground: false,
+            shouldDuckAndroid: true,
+        });
     }, []);
 
     const formatCurrency = (amount: number) => {
@@ -278,6 +285,9 @@ export default function Index() {
                             isLooping
                             shouldPlay={isActive}
                             isMuted={false}
+                            volume={1.0}
+                            useNativeControls={false}
+                            progressUpdateIntervalMillis={500}
                         />
                     ) : item.images && item.images[0] ? (
                         <Image 
@@ -765,6 +775,8 @@ export default function Index() {
                             useNativeControls
                             resizeMode={ResizeMode.CONTAIN}
                             shouldPlay
+                            isMuted={false}
+                            volume={1.0}
                             onError={(error) => {
                                 console.error('Error al reproducir video:', error);
                             }}
